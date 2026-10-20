@@ -1,6 +1,8 @@
-# Project_Log backend — configuración del corte C1 (DD-8).
-# Solo propiedades: sin seguridad, sin FRONTEND_ORIGIN (CORS es C2), sin
-# WS_HEARTBEAT_SECONDS (heartbeat es C7), sin límites de ingesta (C5).
+# Project_Log backend — configuración (C1 DD-8 + bloque security de C2 CD-7).
+# Propiedades mínimas: sin WS_HEARTBEAT_SECONDS (heartbeat es C7), sin
+# límites de ingesta (C5). FRONTEND_ORIGIN entra aquí desde C2 (CORS, G1):
+# falta ⇒ CORS cerrado (S26). JWT_SECRET NO está en este yml: se lee con
+# @Value("${JWT_SECRET}") — jamás default-izado en un fichero versionado.
 server:
   port: 8080
 
@@ -20,6 +22,11 @@ management:
     web:
       exposure:
         include: health,info                  # literal TRD §6.5/§9 (R12)
+
+projectlog:
+  security:
+    jwt-ttl-hours: ${JWT_TTL_HOURS:8}        # defecto 8 (TRD §6.3, S13)
+    frontend-origin: ${FRONTEND_ORIGIN:}     # opcional: falta ⇒ CORS cerrado (S26)
 
 logging:
   level:

@@ -30,7 +30,12 @@
          flyway-core + flyway-database-postgresql (RG-3: Flyway 11.x separa
          el soporte por motor; sin él el arranque aborta con
          "No database found to handle jdbc:postgresql://…"), driver PostgreSQL.
-         Deliberadamente SIN spring-boot-starter-test (los tests llegan en C2). -->
+         C2 añade: security (BOM), bouncycastle runtime (issue spring-security
+         #8842: BC es *optional* de spring-security-crypto — sin él el primer
+         encode() Argon2id lanza NoClassDefFoundError), jjwt 0.13.0
+         (api compile; impl/jackson runtime — la superficie compilable es
+         solo jjwt-api) y starter-test (scope test, BOM, G3). -->
+    <!-- versiones EXACTAS (RG-1/G5): bcprov-jdk18on 1.86 y jjwt-* 0.13.0 literales, sin rangos -->
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -60,6 +65,39 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
+        </dependency>
+        <!-- C2 (G5/RG-1): orden fijado por design §1.4 — tras las existentes de C1, sin reordenar -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.86</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.13.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.13.0</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.13.0</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
