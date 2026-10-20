@@ -1,0 +1,12 @@
+# application-test.yml — mínimo para los tests ligeros [L] de C2 (CD-9).
+# Motivo: el StartupSecretsValidator de C1 (EnvironmentPostProcessor,
+# INTOCABLE — S29) corre en cada contexto de Spring Boot, también en los
+# slices @WebMvcTest, y exige las 6 variables requeridas. Los valores aquí
+# son dummy de TEST (nunca reales); los slices no levantan DataSource/Flyway.
+# Con @ActiveProfiles("test") este fichero alimenta al validador.
+SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/test
+SPRING_DATASOURCE_USERNAME: test
+SPRING_DATASOURCE_PASSWORD: test-password
+JWT_SECRET: secreto-ficticio-de-test-que-solo-existe-para-pass-el-validador
+ADMIN_INITIAL_USERNAME: test-admin
+ADMIN_INITIAL_PASSWORD: test-password
