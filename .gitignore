@@ -1,0 +1,36 @@
+# ------------------------------------------------------------------
+# Project_Log — .gitignore raíz (monorepo). Reglas de R13 (spec C1).
+# ------------------------------------------------------------------
+
+# Secretos: .env NUNCA se sube a git (TRD §6.3, P0-10). Solo la
+# plantilla .env.example se versiona (regla negada obligatoria).
+.env
+.env.*
+!.env.example
+
+# Backend (Maven)
+backend/target/
+
+# Frontend (Vite)
+frontend/node_modules/
+frontend/dist/
+.vite/
+
+# IDE
+*.iml
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+DS_Store
+
+# ---------------------------------------------------------------
+# Nota (fuera del árbol de C1): artefactos pre-existentes del
+# proyecto, generados por las fases de documentación/SDD. Su
+# versión en git es decisión aparte del usuario; se excluyen aquí
+# para que el primer commit esté limpio. Documentado en
+# .atl/sdd/C1/apply-progress.md (desviación D1).
+/docs/
+/mockups/
+.atl/
