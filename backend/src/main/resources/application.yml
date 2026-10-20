@@ -1,0 +1,26 @@
+# Project_Log backend — configuración del corte C1 (DD-8).
+# Solo propiedades: sin seguridad, sin FRONTEND_ORIGIN (CORS es C2), sin
+# WS_HEARTBEAT_SECONDS (heartbeat es C7), sin límites de ingesta (C5).
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url:      ${SPRING_DATASOURCE_URL}        # jdbc:postgresql://postgres:5432/project_log
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  flyway:
+    enabled: true                             # V1 desde classpath:db/migration (DD-6)
+  jpa:
+    hibernate:
+      ddl-auto: none                          # el esquema es de V1__init.sql; nada más lo toca
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info                  # literal TRD §6.5/§9 (R12)
+
+logging:
+  level:
+    root: ${LOGGING_LEVEL:INFO}
