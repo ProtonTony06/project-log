@@ -16,6 +16,14 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none                          # el esquema es de V1__init.sql; nada más lo toca
+  autoconfigure:
+    # CD-8a/S3: SIN UserDetailsService propio — el usuario in-memory aleatorio
+    # de Boot DEBE quedar inerte y su aviso "Using generated security password"
+    # no debe aparecer (señal de config mal conectada). Las 3 SecurityFilterChain
+    # de SecurityConfig no usan httpBasic/formLogin: el auto-config que genera
+    # ese usuario sobra y se excluye explícitamente.
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
 
 management:
   endpoints:
