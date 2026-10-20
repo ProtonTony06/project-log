@@ -26,11 +26,10 @@ frontend/dist/
 DS_Store
 
 # ---------------------------------------------------------------
-# Nota (fuera del árbol de C1): artefactos pre-existentes del
-# proyecto, generados por las fases de documentación/SDD. Su
-# versión en git es decisión aparte del usuario; se excluyen aquí
-# para que el primer commit esté limpio. Documentado en
-# .atl/sdd/C1/apply-progress.md (desviación D1).
-/docs/
-/mockups/
-.atl/
+# Artefactos pre-existentes del proyecto (desviación D1 de C1).
+# DECISIÓN 2026-10-20 (usuario): .atl/ (artefactos SDD) se versiona
+# COMPLETO; de /docs/ solo se versiona el 07_SLICING_PLAN.md (estado
+# de cortes). El resto del paquete de definición de /docs/ queda
+# fuera del repo (fuente congelada externa).
+/docs/*
+!/docs/07_SLICING_PLAN.md
