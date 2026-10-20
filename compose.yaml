@@ -1,0 +1,80 @@
+# compose.yaml — Project_Log (R10/DD-5). Compose Spec sin clave version: (D10).
+# Único puerto del host: 8080 (frontend). Sin mem_limit (ADR-27). Sin secretos
+# en el fichero: todo se interpola del .env (chmod 600, fuera de git).
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # Healthcheck literal TRD §6.5 (ADR-21): pg_isready cada 10 s
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - project_log_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../docker/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy   # Flyway se aplica solo con postgres healthy
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_TTL_HOURS: ${JWT_TTL_HOURS}
+      ADMIN_INITIAL_USERNAME: ${ADMIN_INITIAL_USERNAME}
+      ADMIN_INITIAL_PASSWORD: ${ADMIN_INITIAL_PASSWORD}
+      INGEST_MAX_REQUEST_BYTES: ${INGEST_MAX_REQUEST_BYTES}
+      INGEST_MAX_BATCH_SIZE: ${INGEST_MAX_BATCH_SIZE}
+      WS_HEARTBEAT_SECONDS: ${WS_HEARTBEAT_SECONDS}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      LOGGING_LEVEL: ${LOGGING_LEVEL}
+      TZ: ${TZ}
+    # Healthcheck literal TRD §6.5 (ADR-21): GET /actuator/health → 200 cada 30 s
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - project_log_net
+
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      backend:
+        condition: service_healthy   # el frontend arranca solo con backend healthy
+    ports:
+      # ÚNICO puerto del host (ADR-24). FRONTEND_BIND es opcional (default 0.0.0.0).
+      - "${FRONTEND_BIND:-0.0.0.0}:8080:80"
+    # Healthcheck literal TRD §6.5: wget trivial sobre su propio :80
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1/"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - project_log_net
+
+networks:
+  project_log_net:
+    driver: bridge
+
+volumes:
+  pgdata:
