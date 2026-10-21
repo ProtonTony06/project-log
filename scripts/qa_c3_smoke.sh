@@ -260,8 +260,11 @@ fi
 bloqueo_env="(sin .env F1 del despliegue: credenciales/BD de la pila no disponibles)"
 
 precondiciones() {
-  echo "[pre] recomposición única: podman compose up -d --build (recrea contenedores)" >&2
-  if ! compose_ up -d --build; then
+  echo "[pre] recomposición única: podman compose up -d --build --force-recreate" >&2
+  # --force-recreate OBLIGATORIO (fallo E3.1/E3.22 de la corrida 1): con solo
+  # '--build' podman-compose reconstruye la imagen pero DEJA los contenedores
+  # corriendo la imagen vieja (sin C3 ni mockups) — recreate, nunca restart.
+  if ! compose_ up -d --build --force-recreate; then
     echo "[pre] compose up falló (ver $TMPDIR_QA/compose.log)" >&2; return 1
   fi
   if ! esperar_healthy 420; then
