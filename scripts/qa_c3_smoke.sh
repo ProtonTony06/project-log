@@ -154,7 +154,8 @@ except Exception:
 v = d.get(sys.argv[1]) if isinstance(d, dict) else None
 if v is None:
     sys.exit(2)
-print(v)' "$1"
+# JSON literal, no repr Python: false/true en minúscula (bool) y strings crudos
+print("true" if v is True else "false" if v is False else v)' "$1"
 }
 
 # campo_json_nul CLAVE — imprime el valor; "null" literal si el JSON null
@@ -311,11 +312,9 @@ case_e3_1() {
   printf '%s %s' "$created_" "$updated_" | grep -Eq \
     '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$' \
     || e="$e fechas-sin-formato-ISO-Z"
-  local e1="$e"
-  if [ -z "$e" ]; then
-    if ! req GET "$URL_PROJECTS" "" "$(bearer_hdr)"; then e="$e lista-id"; fi
-    capturar_id "$A_NAME" "$F_ID_A" || e="$e id-a-no-hallado-en-lista"
-  fi
+  # captura del id SIEMPRE (aun con e no vacío: no cascada de BLOQUEADOs)
+  if ! req GET "$URL_PROJECTS" "" "$(bearer_hdr)"; then e="$e lista-id"; fi
+  capturar_id "$A_NAME" "$F_ID_A" || e="$e id-a-no-hallado-en-lista"
   printf '%s' "$(campo_json updated_at 2>/dev/null || echo '')" > "$TMPDIR_QA/upd_a_creo.txt"
   [ -z "$e" ] && marca E3.1 PASS || marca E3.1 FAIL "${e1:-$e}"
   return 0
@@ -870,12 +869,14 @@ if [ "$ejecutar_pre" = "0" ]; then
   ejecutar E3.18 case_e3_18
   ejecutar E3.19 case_e3_19
   ejecutar E3.14 case_e3_14
+  ejecutar E3.20 case_e3_20
+  # listar AL FINAL (orden interno CD-3.14: crear → parchear → listar), tras
+  # crear -c y renombrar -b: E3.7/E3.8 verifican membresía de esos estados
   ejecutar E3.7  case_e3_7
   ejecutar E3.8  case_e3_8
   ejecutar E3.9  case_e3_9
   ejecutar E3.10 case_e3_10
   ejecutar E3.11 case_e3_11
-  ejecutar E3.20 case_e3_20
   ejecutar E3.21 case_e3_21
   ejecutar E3.22 case_e3_22
   ejecutar E3.23 case_e3_23
