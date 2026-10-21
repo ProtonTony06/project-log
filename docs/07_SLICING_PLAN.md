@@ -78,7 +78,7 @@ C2→(1), C3→(2,13,14), C4→(3,4), C5→(5,6,7), C6→(8,9,10), C7→(11,12).
   verificado en reinicio, y `/api/v1/panel/**` protegido (401 sin JWT).
 - **Insumos:** TRD §2.5 (auth) y §2.1 (paquetes), Schema §3.2/§3.3 y §5.
 
-### C3 — Proyectos: CRUD + archivado (`estado: pendiente`)
+### C3 — Proyectos: CRUD + archivado (`estado: hecho` 2026-10-21 · apply DONE 24/24 smokes + mvn 60/60, 8 commits a97de25→d9853a0; QA 32/33 — Q23 [B] navegador BLOQUEADO sin driver, tolerado por §7 con instrucción manual ~2 min al usuario; verify PASS-with-notes ×25/26; heredados en archive-report: R-nuevo-5 podman-compose requiere `--force-recreate`, R-nuevo-6 mvn test en imagen builder maven:3.9-eclipse-temurin-21, smoke-of-the-smoke previo a la corrida canónica en C4+; maquetas 04/05 servibles en :8080/mockups con login inline + PATCH {status})
 
 - **Alcance:** `GET /projects` (query `status?`), `POST /projects` (201 ·
   400 · 409 `name_duplicate`), `GET/PATCH /projects/{id}` (incluye
