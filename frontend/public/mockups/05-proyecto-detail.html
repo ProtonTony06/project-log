@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ficha de proyecto — Mockup C3</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --bg:#f5f5f4; --panel:#ffffff; --ink:#1c1917; --muted:#78716c; --line:#e7e5e4;
+    --accent:#0f766e; --live:#16a34a; --down:#a8a29e; --err:#dc2626;
+  }
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  .mono{font-family:ui-monospace,SFMono-Regular,"JetBrains Mono",Menlo,monospace}
+  .mockup-note{position:fixed;bottom:1rem;right:1rem;background:#1c1917;color:#fafaf9;
+    font-size:.75rem;padding:.5rem .75rem;border-radius:.5rem;opacity:.85;z-index:50}
+  .mockup-nav{display:flex;gap:.5rem;justify-content:center;padding:.75rem;background:#1c1917;position:relative;z-index:60}
+  .mockup-nav a{background:#292524;border:1px solid #44403c;border-radius:.5rem;padding:.35rem .7rem;
+    text-decoration:none;color:#fafaf9;font-size:.8rem}
+  .mockup-nav a:hover{border-color:#fafaf9}
+  details>summary{cursor:pointer}
+</style>
+</head>
+<body>
+
+<nav class="mockup-nav">
+  <a href="04-proyectos.html">← 04 · Proyectos</a>
+  <a href="05-proyecto-detail.html">05 · Ficha</a>
+</nav>
+
+<!--
+  COPIA ADAPTADA (puente C3, gate G5) de docs/mockups/05-proyecto-detail.html —
+  la original queda CONGELADA e intocada. Mismo login inline + helper fetch de
+  la copia 04 (duplicado inline, fichero autocontenido): lee ?id=, llama
+  GET /api/v1/panel/projects/{id}, pinta la ficha del ProjectDto §3.3 y el
+  botón Archivar/Desarchivar → PATCH {status}. 404/409 se muestran inline
+  (cuerpo estándar §3.1). SIN key (C4: sin regenerate/revocar), SIN summary
+  (C10), sin zona destructiva ni modales (DELETE es C10), sin WebSocket.
+-->
+
+<header class="bg-white border-b border-stone-200 sticky top-0 z-40">
+  <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-6">
+    <div class="flex items-center gap-2 shrink-0">
+      <span class="w-7 h-7 rounded-lg bg-teal-700 text-white hidden sm:flex items-center justify-center font-bold text-sm">L</span>
+      <span class="font-semibold tracking-tight hidden sm:inline">Project_Log</span>
+    </div>
+    <nav class="flex items-center gap-1 text-sm">
+      <a href="04-proyectos.html" class="px-3 py-1.5 rounded-lg font-medium bg-stone-100 text-stone-900">Proyectos</a>
+    </nav>
+    <div class="ml-auto flex items-center gap-4 text-sm">
+      <span id="usuario-visible" class="text-stone-500 hidden sm:inline"></span>
+      <a id="logout" href="#" class="text-stone-500 hover:text-stone-900">Cerrar sesión</a>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-6">
+
+  <!-- Login inline (igual que en la copia 04; credenciales dev del .env) -->
+  <section id="login-sec" class="max-w-md mx-auto mt-10 bg-white border border-stone-200 rounded-xl p-6" hidden>
+    <h1 class="text-lg font-semibold tracking-tight mb-1">Acceso al panel</h1>
+    <p class="text-xs text-stone-500 mb-4">Copia de puente (C3): credenciales dev del <span class="mono">.env</span> para <span class="mono">POST /api/v1/panel/auth/login</span>.</p>
+    <form id="login-form" class="space-y-3">
+      <input id="login-user" type="text" placeholder="Usuario" autocomplete="username"
+        class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm">
+      <input id="login-pass" type="password" placeholder="Contraseña" autocomplete="current-password"
+        class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm">
+      <button type="submit" class="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium rounded-lg px-4 py-2">
+        Entrar
+      </button>
+      <p id="login-error" class="text-xs text-red-700" hidden></p>
+    </form>
+  </section>
+
+  <section id="panel-sec" hidden>
+    <div class="flex flex-wrap items-center gap-3 mb-5">
+      <a href="04-proyectos.html" class="text-sm text-teal-700 hover:underline">← Volver a proyectos (04)</a>
+      <p class="text-xs text-stone-500 mono ml-auto">GET /api/v1/panel/projects/{id} → ProjectDto</p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3 mb-6">
+      <h1 id="ficha-name" class="text-lg font-semibold tracking-tight">—</h1>
+      <span id="ficha-status" class="text-xs font-medium rounded-md px-2 py-0.5 border"></span>
+      <div class="ml-auto flex flex-wrap gap-2">
+        <button id="boton-status" type="button" class="border border-stone-300 bg-white hover:bg-stone-50 text-sm font-medium rounded-lg px-3 py-2">Archivar</button>
+        <span class="border border-stone-200 bg-stone-100 text-stone-500 text-sm rounded-lg px-3 py-2 italic">edición vía API — fuera del puente</span>
+      </div>
+    </div>
+
+    <p id="error-inline" class="text-sm text-red-700 mb-4" hidden></p>
+    <p id="cargando" class="text-sm text-stone-500">Cargando ficha…</p>
+
+    <section id="ficha-sec" class="bg-white border border-stone-200 rounded-xl p-5" hidden>
+      <h2 class="text-xs font-medium text-stone-500 uppercase tracking-wide mb-3">Datos del proyecto</h2>
+      <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+        <div>
+          <dt class="text-xs text-stone-500 mb-0.5">Name (único)</dt>
+          <dd id="d-name">—</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-stone-500 mb-0.5">Status</dt>
+          <dd id="d-status">—</dd>
+        </div>
+        <div class="sm:col-span-2">
+          <dt class="text-xs text-stone-500 mb-0.5">Description</dt>
+          <dd id="d-description">—</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-stone-500 mb-0.5">api_key_prefix</dt>
+          <dd id="d-prefix" class="mono text-xs">—</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-stone-500 mb-0.5">has_key</dt>
+          <dd id="d-haskey" class="mono text-xs">—</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-stone-500 mb-0.5">Created_at</dt>
+          <dd id="d-created" class="mono text-xs">—</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-stone-500 mb-0.5">Updated_at</dt>
+          <dd id="d-updated" class="mono text-xs">—</dd>
+        </div>
+      </dl>
+    </section>
+  </section>
+
+</main>
+
+<div class="mockup-note">COPIA C3 · puente desechable hasta C8 · no es la implementación</div>
+
+<script>
+(function () {
+  "use strict";
+  var TOKEN_KEY = "mockups_token";
+  var idProyecto = new URLSearchParams(window.location.search).get("id");
+
+  var loginSec = document.getElementById("login-sec");
+  var panelSec = document.getElementById("panel-sec");
+  var loginError = document.getElementById("login-error");
+  var errorInline = document.getElementById("error-inline");
+  var cargando = document.getElementById("cargando");
+  var fichaSec = document.getElementById("ficha-sec");
+  var usuarioVisible = document.getElementById("usuario-visible");
+  var proyectoActual = null;
+
+  function token() {
+    try { return sessionStorage.getItem(TOKEN_KEY); } catch (e) { return null; }
+  }
+  function guardaToken(t) {
+    try { sessionStorage.setItem(TOKEN_KEY, t); } catch (e) { /* storage bloqueado */ }
+  }
+  function borraToken() {
+    try { sessionStorage.removeItem(TOKEN_KEY); } catch (e) { /* idem */ }
+  }
+
+  // Helper fetch mínimo (duplicado inline de la copia 04): JSON + Bearer;
+  // ante 401 limpia el token y re-loguea — SOLO mira response.status, NUNCA
+  // parsea el body del 401 (ISO-8859-1 del entry point). 400/404/409 inline.
+  function api(url, opciones, alExito) {
+    var opciones2 = Object.assign({}, opciones || {});
+    opciones2.headers = Object.assign({ "Authorization": "Bearer " + token() },
+      opciones2.headers || {});
+    fetch(url, opciones2).then(function (r) {
+      if (r.status === 401) {
+        borraToken();
+        render();
+        return;
+      }
+      return r.text().then(function (texto) {
+        var datos = null;
+        try { datos = JSON.parse(texto); } catch (e) { datos = null; }
+        if (!r.ok) {
+          mostrarErrorInline((datos && datos.code)
+            ? datos.code + " · " + (datos.message || "")
+            : "HTTP " + r.status);
+          return;
+        }
+        alExito(datos);
+      });
+    }).catch(function () {
+      mostrarErrorInline("Error de red llamando a " + url);
+    });
+  }
+
+  function mostrarErrorInline(msg) {
+    if (errorInline) { errorInline.textContent = msg; errorInline.hidden = !msg; }
+  }
+
+  function pintar(p) {
+    proyectoActual = p;
+    document.getElementById("ficha-name").textContent = p.name;
+    var activo = p.status === "ACTIVE";
+    var chip = document.getElementById("ficha-status");
+    chip.textContent = activo ? "Activo" : "Archivado";
+    chip.className = activo
+      ? "text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-md px-2 py-0.5"
+      : "text-xs font-medium text-stone-600 bg-stone-200 border border-stone-300 rounded-md px-2 py-0.5";
+    document.getElementById("d-name").textContent = p.name;
+    document.getElementById("d-status").textContent = p.status;
+    document.getElementById("d-description").textContent =
+      p.description == null ? "(sin descripción)" : p.description;
+    document.getElementById("d-prefix").textContent =
+      p.api_key_prefix == null ? "null (sin key · has_key: false)" : p.api_key_prefix;
+    document.getElementById("d-haskey").textContent = String(p.has_key);
+    document.getElementById("d-created").textContent = p.created_at;  // con Z
+    document.getElementById("d-updated").textContent = p.updated_at;  // con Z
+    var boton = document.getElementById("boton-status");
+    boton.textContent = activo ? "Archivar" : "Desarchivar";
+    cargando.hidden = true;
+    fichaSec.hidden = false;
+  }
+
+  // GET /api/v1/panel/projects/{id} construido desde ?id= (AppFlow §5: el 404
+  // NUNCA se traduce a respuesta vacía — aquí queda como error inline).
+  function cargarFicha() {
+    if (!idProyecto) { mostrarErrorInline("Falta el parámetro ?id= en la URL."); return; }
+    cargando.hidden = false;
+    fichaSec.hidden = true;
+    api("/api/v1/panel/projects/" + encodeURIComponent(idProyecto),
+      { method: "GET" }, pintar);
+  }
+
+  document.getElementById("boton-status").addEventListener("click", function () {
+    if (!proyectoActual) return;
+    var activo = proyectoActual.status === "ACTIVE";
+    mostrarErrorInline("");
+    api("/api/v1/panel/projects/" + proyectoActual.id, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: activo ? "ARCHIVED" : "ACTIVE" })
+    }, cargarFicha);
+  });
+
+  document.getElementById("login-form").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    loginError.hidden = true;
+    fetch("/api/v1/panel/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: document.getElementById("login-user").value,
+        password: document.getElementById("login-pass").value
+      })
+    }).then(function (r) {
+      if (!r.ok) {
+        borraToken();
+        loginError.textContent = "Credenciales inválidas (401). Prueba de nuevo.";
+        loginError.hidden = false;
+        return null;
+      }
+      return r.json().then(function (datos) {
+        guardaToken(datos.token);
+        usuarioVisible.textContent = datos.username;
+        render();
+      });
+    }).catch(function () {
+      loginError.textContent = "No se pudo contactar con la API.";
+      loginError.hidden = false;
+    });
+  });
+
+  document.getElementById("logout").addEventListener("click", function (ev) {
+    ev.preventDefault();
+    borraToken();
+    render();
+  });
+
+  function render() {
+    var hayToken = !!token();
+    loginSec.hidden = hayToken;
+    panelSec.hidden = !hayToken;
+    if (hayToken) { cargarFicha(); }
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
