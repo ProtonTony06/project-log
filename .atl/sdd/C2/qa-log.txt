@@ -1,0 +1,2175 @@
+== COMANDO 1 FINAL DEFINITIVO (VEREDICTO): mvn -f backend/pom.xml test (Q1-Q7, plan §6.1) — JAVA_HOME=/tmp/maven-qa/jdk-21.0.12.1+1, Maven 3.9.9 portable (JDK Fedora = JRE sin javac). Re-ejecuciones previas documentadas, todas por ENTORNO o BUG TEST-SIDE en el artefacto QA LogHygieneTest, nunca por el sistema: (1) sin javac en el host; (2) LogHygieneTest: import @Import ausente + stub issue(String)→IssuedToken; (3) error de invocación (sin pom, nada ejecutado); (4) LogHygieneTest sin @ActiveProfiles("test"): el validador C1 abortaba el contexto, se replica el patrón de PanelAuthMvcTest; (5) LogHygieneTest: appender vacío por no emitir a INFO — subida a DEBUG con restauración + stub matches==true para ejercitar issue(); é STA es la ejecución del veredicto ==
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.projectlog:project-log-backend >-----------------
+[INFO] Building project-log-backend 0.1.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ project-log-backend ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ project-log-backend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ project-log-backend ---
+[INFO] Copying 1 resource from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ project-log-backend ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 6 source files with javac [debug parameters release 21] to target/test-classes
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ project-log-backend ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.projectlog.auth.Argon2PasswordTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.739 s -- in com.projectlog.auth.Argon2PasswordTest
+[INFO] Running com.projectlog.auth.LogHygieneTest
+12:42:53.167 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.projectlog.auth.LogHygieneTest]: LogHygieneTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+12:42:53.261 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.auth.LogHygieneTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-21T12:42:53.538+02:00  INFO 308034 --- [           main] com.projectlog.auth.LogHygieneTest       : Starting LogHygieneTest using Java 21.0.12.1 with PID 308034 (started by acuelop369 in /home/acuelop369/Escritorio/Proyectos/Project_Log/backend)
+2026-10-21T12:42:53.539+02:00  INFO 308034 --- [           main] com.projectlog.auth.LogHygieneTest       : The following 1 profile is active: "test"
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/home/acuelop369/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-21T12:42:54.979+02:00  INFO 308034 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-10-21T12:42:54.980+02:00  INFO 308034 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-10-21T12:42:54.980+02:00  INFO 308034 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-10-21T12:42:54.998+02:00  INFO 308034 --- [           main] com.projectlog.auth.LogHygieneTest       : Started LogHygieneTest in 1.704 seconds (process running for 2.945)
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/v1/panel/me
+       Parameters = {}
+          Headers = [Authorization:"Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbi1xYSIsInJvbGUiOiJBRE1JTiJ9.MICROFIRMADETESTQ5"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.projectlog.auth.MeController
+           Method = com.projectlog.auth.MeController#me()
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY"]
+     Content type = application/json
+             Body = {"username":"admin-qa","role":"ADMIN","expires_at":"2026-10-21T18:42:55Z"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/v1/panel/me
+       Parameters = {}
+          Headers = [Authorization:"Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJmcmFnbWVudCJ9.SIGNATURAALTERADA9999"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = null
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 401
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY"]
+     Content type = application/json
+             Body = {"message":"Autenticación requerida","code":"invalid_token"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/v1/panel/me
+       Parameters = {}
+          Headers = []
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = null
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 401
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY"]
+     Content type = application/json
+             Body = {"message":"Autenticación requerida","code":"invalid_token"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /api/v1/panel/auth/login
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", Content-Length:"52"]
+             Body = {"username":"admin-qa","password":"qa-c2-contra-f3"}
+    Session Attrs = {}
+
+Handler:
+             Type = com.projectlog.auth.LoginController
+           Method = com.projectlog.auth.LoginController#login(LoginRequest)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 401
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY"]
+     Content type = application/json
+             Body = {"message":"Credenciales inválidas","code":"invalid_credentials"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /api/v1/panel/auth/login
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", Content-Length:"14"]
+             Body = { "username": 
+    Session Attrs = {}
+
+Handler:
+             Type = com.projectlog.auth.LoginController
+           Method = com.projectlog.auth.LoginController#login(LoginRequest)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = org.springframework.http.converter.HttpMessageNotReadableException
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 401
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY"]
+     Content type = application/json
+             Body = {"message":"Credenciales inválidas","code":"invalid_credentials"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 2.078 s <<< FAILURE! -- in com.projectlog.auth.LogHygieneTest
+[ERROR] com.projectlog.auth.LogHygieneTest.ningunaLineaDeLogFiltraElToken -- Time elapsed: 0.166 s <<< FAILURE!
+java.lang.AssertionError: 
+[las tres clases observadas deben haber registrado al menos alguno de los caminos recorridos (filtro/entry point) para que la higiene no se aserte en vacío] 
+Expecting actual not to be empty
+	at com.projectlog.auth.LogHygieneTest.ningunaLineaDeLogFiltraElToken(LogHygieneTest.java:204)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.projectlog.auth.LoginCredentialsTest
+2026-10-21T12:42:55.188+02:00  INFO 308034 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.auth.LoginCredentialsTest]: LoginCredentialsTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T12:42:55.200+02:00  INFO 308034 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.auth.LoginCredentialsTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-21T12:42:55.248+02:00  INFO 308034 --- [           main] c.projectlog.auth.LoginCredentialsTest   : Starting LoginCredentialsTest using Java 21.0.12.1 with PID 308034 (started by acuelop369 in /home/acuelop369/Escritorio/Proyectos/Project_Log/backend)
+2026-10-21T12:42:55.249+02:00  INFO 308034 --- [           main] c.projectlog.auth.LoginCredentialsTest   : The following 1 profile is active: "test"
+2026-10-21T12:42:55.469+02:00  INFO 308034 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-10-21T12:42:55.470+02:00  INFO 308034 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-10-21T12:42:55.470+02:00  INFO 308034 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-10-21T12:42:55.476+02:00  INFO 308034 --- [           main] c.projectlog.auth.LoginCredentialsTest   : Started LoginCredentialsTest in 0.267 seconds (process running for 3.424)
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.352 s -- in com.projectlog.auth.LoginCredentialsTest
+[INFO] Running com.projectlog.auth.PanelAuthMvcTest
+2026-10-21T12:42:55.541+02:00  INFO 308034 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.auth.PanelAuthMvcTest]: PanelAuthMvcTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T12:42:55.546+02:00  INFO 308034 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.auth.PanelAuthMvcTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-21T12:42:55.561+02:00  INFO 308034 --- [           main] com.projectlog.auth.PanelAuthMvcTest     : Starting PanelAuthMvcTest using Java 21.0.12.1 with PID 308034 (started by acuelop369 in /home/acuelop369/Escritorio/Proyectos/Project_Log/backend)
+2026-10-21T12:42:55.562+02:00  INFO 308034 --- [           main] com.projectlog.auth.PanelAuthMvcTest     : The following 1 profile is active: "test"
+2026-10-21T12:42:55.721+02:00  INFO 308034 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-10-21T12:42:55.721+02:00  INFO 308034 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-10-21T12:42:55.722+02:00  INFO 308034 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-10-21T12:42:55.727+02:00  INFO 308034 --- [           main] com.projectlog.auth.PanelAuthMvcTest     : Started PanelAuthMvcTest in 0.179 seconds (process running for 3.674)
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.272 s -- in com.projectlog.auth.PanelAuthMvcTest
+[INFO] Running com.projectlog.auth.TokenServiceTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.062 s -- in com.projectlog.auth.TokenServiceTest
+[INFO] Running com.projectlog.config.CorsConfigTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in com.projectlog.config.CorsConfigTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   LogHygieneTest.ningunaLineaDeLogFiltraElToken:204 [las tres clases observadas deben haber registrado al menos alguno de los caminos recorridos (filtro/entry point) para que la higiene no se aserte en vacío] 
+Expecting actual not to be empty
+[INFO] 
+[ERROR] Tests run: 26, Failures: 1, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  5.595 s
+[INFO] Finished at: 2026-10-21T12:42:55+02:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project project-log-backend: There are test failures.
+[ERROR] 
+[ERROR] See /home/acuelop369/Escritorio/Proyectos/Project_Log/backend/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+== COMANDO 2 FINAL: bash scripts/qa_c2_smoke.sh (Q8-Q27 + Q21 [D], plan §1.3/§6/§7). Correcciones test-side al script ANTES de su primera ejecución, documentadas: (i) source de .env línea a línea tolerante (el .env real tiene un valor con "<" que bash parsea como redirección y abortaría todo el script con set -e); (ii) capturar_fila: COALESCE(x, "") → SELECT simple ("" es "zero-length delimited identifier" inválido en Postgres, habría dejado Q14/Q15 falsamente BLOQUEADOS) ==
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+project_log_pgdata
+bd67bba93e8b387b8a930535508cf3ea1dba11ae5da1a0246769f222f534976a
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 20876e4dbaca6b1c359af32a9bc5b02e3eb91851b52671e98c68ed22838d507d
+--> 20876e4dbaca
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache f7e3d5118326fc4312d6f1ccf82810c4ee897a3eba5859f1c18e3725d8a3c750
+--> f7e3d5118326
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 0f817a94c52f89b771dff07c7e779bc6254018c84079c6e3472f15699637992d
+--> 0f817a94c52f
+[1/2] STEP 5/6: COPY . .
+--> Using cache 3aacd4cdc1be91cbb4fa2805cc39c76391468bf70795aec456602659f95bc438
+--> 3aacd4cdc1be
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 434e49b628d61b0d7623b39434df8cc3f30098c3a535fc7486a1f62af5327b1e
+--> 434e49b628d6
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+51741b6377657e24f2967a88d61875ba8b9c6a445e29fb6591b9e4860d982938
+18c0683969844131cc3f7abfd32d0de126c2faa9234d7b544a5c9036aea03e76
+41bc97ea2facf4a66befaf25d53a28c07550724c75d3b0b2aa6c38af860691cb
+10a20588bc5274cb1631b0a975affca76162618a78fa70689f03218f9cd82768
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+51741b6377657e24f2967a88d61875ba8b9c6a445e29fb6591b9e4860d982938
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 20876e4dbaca6b1c359af32a9bc5b02e3eb91851b52671e98c68ed22838d507d
+--> 20876e4dbaca
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache f7e3d5118326fc4312d6f1ccf82810c4ee897a3eba5859f1c18e3725d8a3c750
+--> f7e3d5118326
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 0f817a94c52f89b771dff07c7e779bc6254018c84079c6e3472f15699637992d
+--> 0f817a94c52f
+[1/2] STEP 5/6: COPY . .
+--> Using cache 3aacd4cdc1be91cbb4fa2805cc39c76391468bf70795aec456602659f95bc438
+--> 3aacd4cdc1be
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 434e49b628d61b0d7623b39434df8cc3f30098c3a535fc7486a1f62af5327b1e
+--> 434e49b628d6
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+3326f3c1af1b02f583cd559ebd8ac6c9941cb46498120c1df09fafab853ac8f3
+893ba4bbb1bad8a187edd6cef4534872f4b3803a81a8dfde7db4d5521a257e7b
+3fadc0b31c9b5818d5fbea3c1c39589ded05cc12eaeca610b49c2607b4688cc3
+3aa37351540f787c0efba673afaa6e00c7293862901b6c394f465ba1568f900d
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_frontend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+3326f3c1af1b02f583cd559ebd8ac6c9941cb46498120c1df09fafab853ac8f3
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 20876e4dbaca6b1c359af32a9bc5b02e3eb91851b52671e98c68ed22838d507d
+--> 20876e4dbaca
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache f7e3d5118326fc4312d6f1ccf82810c4ee897a3eba5859f1c18e3725d8a3c750
+--> f7e3d5118326
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 0f817a94c52f89b771dff07c7e779bc6254018c84079c6e3472f15699637992d
+--> 0f817a94c52f
+[1/2] STEP 5/6: COPY . .
+--> Using cache 3aacd4cdc1be91cbb4fa2805cc39c76391468bf70795aec456602659f95bc438
+--> 3aacd4cdc1be
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 434e49b628d61b0d7623b39434df8cc3f30098c3a535fc7486a1f62af5327b1e
+--> 434e49b628d6
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+c67752353f6305e81569e5e979562ebab960984812e6926e0cbf469a70c1c728
+76aeef67504797010ae9d97b56764498530d81e164af2a1b7367c7a63213966c
+25f87867bf4c2975df7aab61760f17cbf16feca043431d3d19a78200f7fa1a61
+f0aca9721008207c92300eb487090be30e84a4d78c76f0478b96289571c43717
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+c67752353f6305e81569e5e979562ebab960984812e6926e0cbf469a70c1c728
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 20876e4dbaca6b1c359af32a9bc5b02e3eb91851b52671e98c68ed22838d507d
+--> 20876e4dbaca
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache f7e3d5118326fc4312d6f1ccf82810c4ee897a3eba5859f1c18e3725d8a3c750
+--> f7e3d5118326
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 0f817a94c52f89b771dff07c7e779bc6254018c84079c6e3472f15699637992d
+--> 0f817a94c52f
+[1/2] STEP 5/6: COPY . .
+--> Using cache 3aacd4cdc1be91cbb4fa2805cc39c76391468bf70795aec456602659f95bc438
+--> 3aacd4cdc1be
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 434e49b628d61b0d7623b39434df8cc3f30098c3a535fc7486a1f62af5327b1e
+--> 434e49b628d6
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+11faac4535f703266338b64a970c8d5c2b4bda6710a11b38c0aa2b1fd9dd692f
+77f61354b58364b4e91ad6dbe6c06007038c2137bc489533f279a17d090606b9
+7eea3f57ce67621b3ab98def58741a96b3139f3b02c8aa08cc6302f1f8863829
+6de93c7e1bd55e57c9e981ea40984aee957994a0fa36b3de6cbaa6399b03bf66
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_frontend_1
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+11faac4535f703266338b64a970c8d5c2b4bda6710a11b38c0aa2b1fd9dd692f
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 20876e4dbaca6b1c359af32a9bc5b02e3eb91851b52671e98c68ed22838d507d
+--> 20876e4dbaca
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache f7e3d5118326fc4312d6f1ccf82810c4ee897a3eba5859f1c18e3725d8a3c750
+--> f7e3d5118326
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 0f817a94c52f89b771dff07c7e779bc6254018c84079c6e3472f15699637992d
+--> 0f817a94c52f
+[1/2] STEP 5/6: COPY . .
+--> Using cache 3aacd4cdc1be91cbb4fa2805cc39c76391468bf70795aec456602659f95bc438
+--> 3aacd4cdc1be
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 434e49b628d61b0d7623b39434df8cc3f30098c3a535fc7486a1f62af5327b1e
+--> 434e49b628d6
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+dc92a7886b3c0d8266dfd4a63cd2be363bb4683d06f2ef1d1da20be829912fbb
+80e7469aef564832548188f867cf745fafe42ace6ec1c845c60fa3776e2cd8f3
+53c6a932e5cce0a4b76f48d6ff3ca3c674bb36ad15f2ec7409b7927061944dc5
+5f35b01f2c960e756fc7100d8297292063481b4387c0b949624de2ba5f459aab
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_frontend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+dc92a7886b3c0d8266dfd4a63cd2be363bb4683d06f2ef1d1da20be829912fbb
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 20876e4dbaca6b1c359af32a9bc5b02e3eb91851b52671e98c68ed22838d507d
+--> 20876e4dbaca
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache f7e3d5118326fc4312d6f1ccf82810c4ee897a3eba5859f1c18e3725d8a3c750
+--> f7e3d5118326
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 0f817a94c52f89b771dff07c7e779bc6254018c84079c6e3472f15699637992d
+--> 0f817a94c52f
+[1/2] STEP 5/6: COPY . .
+--> Using cache 3aacd4cdc1be91cbb4fa2805cc39c76391468bf70795aec456602659f95bc438
+--> 3aacd4cdc1be
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 434e49b628d61b0d7623b39434df8cc3f30098c3a535fc7486a1f62af5327b1e
+--> 434e49b628d6
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+5b47616aae3cedcfd7a3b277306a68b7cebb02fead05b141860e3231ce7e2989
+280ca562fab26338085b1c22bdbb0a7f79eb6e7ec816f30bea10a35471eebe06
+39a5c0390efc2549efc1c0e9ce426094f562564b524e98971732e12c5fc31559
+91b0925b8638e8bb317ff0b73caf224fe503c895f63813e0d57d6dae7af854ef
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+5b47616aae3cedcfd7a3b277306a68b7cebb02fead05b141860e3231ce7e2989
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 20876e4dbaca6b1c359af32a9bc5b02e3eb91851b52671e98c68ed22838d507d
+--> 20876e4dbaca
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache f7e3d5118326fc4312d6f1ccf82810c4ee897a3eba5859f1c18e3725d8a3c750
+--> f7e3d5118326
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 0f817a94c52f89b771dff07c7e779bc6254018c84079c6e3472f15699637992d
+--> 0f817a94c52f
+[1/2] STEP 5/6: COPY . .
+--> Using cache 3aacd4cdc1be91cbb4fa2805cc39c76391468bf70795aec456602659f95bc438
+--> 3aacd4cdc1be
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 434e49b628d61b0d7623b39434df8cc3f30098c3a535fc7486a1f62af5327b1e
+--> 434e49b628d6
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+705264b1abe58c3583e9ec88652998e9a5466ef0b3f6ee3040d7fbaca7fef23a
+8e1a6d0c358bddba846013a3d541f394be5b3aedc6db8e0176ad47dce68d0303
+05de1593b5e5350b072b44a89f32ef8512a291c840f16176b410df080d3c26d1
+95bde29ab5f2059ac249d6d3dda2399e9a4259ecbfee6639373b1e243ef23cf2
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+705264b1abe58c3583e9ec88652998e9a5466ef0b3f6ee3040d7fbaca7fef23a
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 20876e4dbaca6b1c359af32a9bc5b02e3eb91851b52671e98c68ed22838d507d
+--> 20876e4dbaca
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache f7e3d5118326fc4312d6f1ccf82810c4ee897a3eba5859f1c18e3725d8a3c750
+--> f7e3d5118326
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 0f817a94c52f89b771dff07c7e779bc6254018c84079c6e3472f15699637992d
+--> 0f817a94c52f
+[1/2] STEP 5/6: COPY . .
+--> Using cache 3aacd4cdc1be91cbb4fa2805cc39c76391468bf70795aec456602659f95bc438
+--> 3aacd4cdc1be
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 434e49b628d61b0d7623b39434df8cc3f30098c3a535fc7486a1f62af5327b1e
+--> 434e49b628d6
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+bf3ed703e0d6f559ddfcefb613c31e3fa3102f583f4e02f04d67f1d6121662b6
+057a90a61b8fb2a5b6f361ec4f1b32895eced4ab0c19035cd07b4bc3bc339c35
+f02caf8a5629d2b412d34ea2dc4bfa09a5bd4f6a70aa6c00ec1cfcad06145cce
+9e92e40cf79d033b58d7368aa4c864038fee51d5c8d744097b64267a734a9a23
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_frontend_1
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+bf3ed703e0d6f559ddfcefb613c31e3fa3102f583f4e02f04d67f1d6121662b6
+project_log_project_log_net
+[cierre] restaurando pila en F1
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 20876e4dbaca6b1c359af32a9bc5b02e3eb91851b52671e98c68ed22838d507d
+--> 20876e4dbaca
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache f7e3d5118326fc4312d6f1ccf82810c4ee897a3eba5859f1c18e3725d8a3c750
+--> f7e3d5118326
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 0f817a94c52f89b771dff07c7e779bc6254018c84079c6e3472f15699637992d
+--> 0f817a94c52f
+[1/2] STEP 5/6: COPY . .
+--> Using cache 3aacd4cdc1be91cbb4fa2805cc39c76391468bf70795aec456602659f95bc438
+--> 3aacd4cdc1be
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 434e49b628d61b0d7623b39434df8cc3f30098c3a535fc7486a1f62af5327b1e
+--> 434e49b628d6
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+e24247864808cca7eed374b78431dc615f72929ecacc61a1f53cd2fceba2b115
+19b616fc8f2287bb4b30067011d50ae8329af0a2d6c5ce8fab907d74afe051f9
+37edf7ea2df8f307a5c334364a9eab9e9e0abf6d777a6205ad1c9f271ee63798
+a26a281cb3b11f5d11fb52c3719281792da19364719d8ff44952da03fab4602e
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+e24247864808cca7eed374b78431dc615f72929ecacc61a1f53cd2fceba2b115
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 20876e4dbaca6b1c359af32a9bc5b02e3eb91851b52671e98c68ed22838d507d
+--> 20876e4dbaca
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache f7e3d5118326fc4312d6f1ccf82810c4ee897a3eba5859f1c18e3725d8a3c750
+--> f7e3d5118326
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 0f817a94c52f89b771dff07c7e779bc6254018c84079c6e3472f15699637992d
+--> 0f817a94c52f
+[1/2] STEP 5/6: COPY . .
+--> Using cache 3aacd4cdc1be91cbb4fa2805cc39c76391468bf70795aec456602659f95bc438
+--> 3aacd4cdc1be
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 434e49b628d61b0d7623b39434df8cc3f30098c3a535fc7486a1f62af5327b1e
+--> 434e49b628d6
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+e147bea3c822e36fff9580c1ff572ded927f5a5527839db5d1e09fca445bb30c
+d9d85b1da7a56373672508bd16927447b76c54bade1c2d8de819cab40353acd2
+f992ab08c4aebe3bbc9492136bb168aed117ee57645a882991cec6332648d216
+b7158bcfa3c60ef2a6ad8ea2dd9fda7c86fc7cdbc9a4e91253dfb618e91c0292
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+[cierre] restaurando pila en F1
+=== VEREDICTOS QA C2 (por ID del plan) ===
+Q13: FAIL ( timestamps-nulos sin-log-SchemaUpToDate)
+Q8: PASS
+Q9: PASS
+Q10: FAIL ( me-code projects-GET-code projects-POST-code)
+Q11: FAIL ( status=000{"code":"invalid_token","message":"Autenticaci�n requerida"}401 claves=err role=err(no-literal-ADMIN) username=err(vs-sub-del-token) expires_at-vs-exp-token-distinto expires_at-distinto-del-del-login)
+Q12a: FAIL ( status=000{"code":"invalid_token","message":"Autenticaci�n requerida"}401(nunca-2xx-nunca-404) code_distinto-del-literal-S5)
+Q12b: FAIL ( status=000{"code":"invalid_token","message":"Autenticaci�n requerida"}401(nunca-2xx-nunca-404) code_distinto-del-literal-S5)
+Q12c: FAIL ( status=000{"code":"invalid_token","message":"Autenticaci�n requerida"}401(nunca-2xx-nunca-404) code_distinto-del-literal-S5)
+Q14: FAIL ( sin-log-SchemaUpToDate)
+Q17a: FAIL (el-backend-ARRANCA-sin-JWT_SECRET(fail-fast-ausente) log-sin-referencia-a-JWT_SECRET(mensaje-del-validador-no-visible))
+Q17b: FAIL (el-backend-ARRANCA-con-JWT_SECRET-corto(<32B) log-sin-referencia-a-JWT_SECRET)
+Q17c: PASS
+Q15: PASS
+Q16: FAIL (el-backend-ARRANCA-sin-ADMIN_INITIAL_PASSWORD(E4-roto) log-sin-referencia-a-ADMIN_INITIAL_PASSWORD mensaje-con-olor-a-seeder)
+Q18: FAIL ( backend-no-healthy(t1) backend-no-healthy(t2) frontend-no-healthy(t1) frontend-no-healthy(t2) postgres-no-healthy(t1) postgres-no-healthy(t2) health-sin-status-UP)
+Q19: FAIL ( status=200(esperado-404,E10))
+Q20: PASS
+Q22: FAIL ( GET-login-code noexiste-code)
+Q23: FAIL ( ingest-a-sin-cuerpo-estandar(code) ingest-a-sin-message ingest-con-XAPIKey=000{"message":"Autenticaci�n requerida","code":"invalid_token"}401)
+Q24: FAIL ( preflight=000000000{"message":"Autenticaci�n requerida","code":"invalid_token"}401(esperado-204-sin-autenticacion) ACAO=(nunca-*) metodos-sin-POST metodos-sin-OPTIONS metodos-sin-GET(S25) metodos-sin-PATCH(S25) metodos-sin-DELETE(S25) headers-sin-authorization headers-sin-content-type headers-sin-X-Confirm-* me-cors-status=000000{"message":"Autenticaci�n requerida","code":"invalid_token"}401 me-ACAO=(reflejo-exacto))
+Q25: PASS
+Q26: PASS
+Q27: PASS
+Q21: BLOQUEADO (sin hash de referencia en el plan (comparar contra la captura de C1))
+EXIT_SMOKE=1
+== COMANDO 2b: RE-EJECUCIÓN 1/2 de bash scripts/qa_c2_smoke.sh (la del VEREDICTO) tras correcciones test-side documentadas: (a) SIN set -a en el carga de .env — el source exportado de la delegación B daba precedencia al env del proceso sobre el .env en la interpolación ${VAR} de compose.yaml, envenenando TODOAS las mutaciones de Q15/Q16/Q17/Q26 (hallazgo de la 1ª ejecución: el backend «arrancaba» sin JWT_SECRET y sin ADMIN_INITIAL_PASSWORD); (b) req: las cabeceras extra sin el flag -H eran interpretadas por curl como URLs -> error (3) y CODIGO contaminado con 000{cuerpo}401 en Q10-Q12/Q23/Q24; (c) campo_json/claves_json: decode tolerante para cueos 401 con charset ISO-8859-1; (d) Q13: COUNT no-null esperado = 1 (era = 2 con 1 fila); (e) Q13/Q14: grep de Flyway ajustado al literal real «is up to date» (el literal "schema up to date" no casa por la interpolación "public") ==
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+project_log_pgdata
+e147bea3c822e36fff9580c1ff572ded927f5a5527839db5d1e09fca445bb30c
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 20876e4dbaca6b1c359af32a9bc5b02e3eb91851b52671e98c68ed22838d507d
+--> 20876e4dbaca
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache f7e3d5118326fc4312d6f1ccf82810c4ee897a3eba5859f1c18e3725d8a3c750
+--> f7e3d5118326
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 0f817a94c52f89b771dff07c7e779bc6254018c84079c6e3472f15699637992d
+--> 0f817a94c52f
+[1/2] STEP 5/6: COPY . .
+--> Using cache 3aacd4cdc1be91cbb4fa2805cc39c76391468bf70795aec456602659f95bc438
+--> 3aacd4cdc1be
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 434e49b628d61b0d7623b39434df8cc3f30098c3a535fc7486a1f62af5327b1e
+--> 434e49b628d6
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+d8052cc3a357344bab4fe90051b4e42f8e7b304668b452a70aa7063acef6225e
+88e902fde77f32684bd60225a034572595e48749a0eaf66701b2e7d0b1dc5559
+e4331d964379317d138b20ceeb806eae4ff6880478707f4aa36d7778a7e34fc8
+ffc80aac13b94b0d41cb32220effd875890b4ea95ea76b98a9f1cb3d2b3fa9a6
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_frontend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+d8052cc3a357344bab4fe90051b4e42f8e7b304668b452a70aa7063acef6225e
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 20876e4dbaca6b1c359af32a9bc5b02e3eb91851b52671e98c68ed22838d507d
+--> 20876e4dbaca
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache f7e3d5118326fc4312d6f1ccf82810c4ee897a3eba5859f1c18e3725d8a3c750
+--> f7e3d5118326
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 0f817a94c52f89b771dff07c7e779bc6254018c84079c6e3472f15699637992d
+--> 0f817a94c52f
+[1/2] STEP 5/6: COPY . .
+--> Using cache 3aacd4cdc1be91cbb4fa2805cc39c76391468bf70795aec456602659f95bc438
+--> 3aacd4cdc1be
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 434e49b628d61b0d7623b39434df8cc3f30098c3a535fc7486a1f62af5327b1e
+--> 434e49b628d6
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+9943bb58bddf0c97e77118d3be46695462f9d54e193973c8bfc205baf3113422
+f232dc226682aea650d49c632bd6b46ba4e77f0c5336bec5bc57c74304369474
+6c8d87acd997631baed72049001b2a0a3370dc6369387c38fec22101a6bae718
+7fcff6cbeb682fd940dc7acb47cdf4856812c350ee4299ff23f44662e9d4f6e9
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+9943bb58bddf0c97e77118d3be46695462f9d54e193973c8bfc205baf3113422
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 20876e4dbaca6b1c359af32a9bc5b02e3eb91851b52671e98c68ed22838d507d
+--> 20876e4dbaca
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache f7e3d5118326fc4312d6f1ccf82810c4ee897a3eba5859f1c18e3725d8a3c750
+--> f7e3d5118326
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 0f817a94c52f89b771dff07c7e779bc6254018c84079c6e3472f15699637992d
+--> 0f817a94c52f
+[1/2] STEP 5/6: COPY . .
+--> Using cache 3aacd4cdc1be91cbb4fa2805cc39c76391468bf70795aec456602659f95bc438
+--> 3aacd4cdc1be
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 434e49b628d61b0d7623b39434df8cc3f30098c3a535fc7486a1f62af5327b1e
+--> 434e49b628d6
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+50a31bfe90c1973bedd606a7472042a67c3336698a7f319f6c2e8a34e44cc078
+9dd36617d21690f7455cc0efaaa95996a3c0294560b26db71bcdc8f105554eaf
+0e11514728b4712f94b5e59943d6c0fc021253e32d711f54ae0fce047ab74aaa
+298d84b99477ec5f076f8ae9c694d4a3e8b16d535caf1500303b1a7a6d034825
+project_log_postgres_1
+project_log_backend_1
+EXIT_SMOKE=143
+== COMANDO 2c: RE-EJECUCIÓN 2/2 DE bash scripts/qa_c2_smoke.sh — EJECUCIÓN DEL VEREDICTO. Tras la re-ejecución 1 (abortada con SIGTERM tras 6 h 22 m colgada en el up de Q17a: podman-compose up -d espera healthy; con fail-fast + restart:unless-stopped el backend crash-loopea — 10.119 reinicios — y nunca llega a healthy; SIGTERM ejecutó el trap y restauró .env pristine). Correcciones test-side adicionales de esta re-ejecución: (f) timeout 620 s en compose up / 120 s en down + purga de hijos órfenes del compose; (g) Q16/Q17a/Q17b lanzan el up en SEGUNDO PLANO con observador arranque_fallido (el plan Q17a/b/Q16 ESPERA que el backend NO arranque); (h) esperar_healthy y arranque_fallido ya NO usan /actuator/health (el proxy 200-index-siempre la hace falsa): sondeo real GET /me → 401 {invalid_token} (hallazgo del run 1: esperar_healthy "verde" con la pila abajo). Hallazgo estructural para verify: el proxy SOLO enruta /api/v1/ + /ws/logs (TRD §9); Q18/Q19 exigen /actuator POR EL PROXY — incompatibilidad del plan con el routing heredado de C1 (la 1ª ejecución ya lo evidenció) ==
+project_log_pgdata
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> 210ebbab42f1
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> d83a96652508
+[1/2] STEP 4/6: RUN npm ci
+
+added 70 packages, and audited 71 packages in 46s
+
+9 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+--> 8f41cf63b0b2
+[1/2] STEP 5/6: COPY . .
+--> c2fd4fb72de2
+[1/2] STEP 6/6: RUN npm run build
+
+> project-log-frontend@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 28 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                  0.32 kB │ gzip:  0.24 kB
+dist/assets/index-r9SkAYOm.js  223.15 kB │ gzip: 69.66 kB
+✓ built in 929ms
+--> 6b92390da3e5
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+4430192f777be3fee3a33f2f60f0ba3cbdc3fe5710e6bed9ed0c12a663312ac7
+890b5f9f411b99765fa28341481d831226778ac1fd224dd4498725f9879354c6
+0fca4bceff4092de704f12d41131c8e81c3e8569457e6789e875be133b198683
+17b5d9ebe149dc200c201f33fc546588acf657d7b39553222b2eacdad1c5ad0b
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+4430192f777be3fee3a33f2f60f0ba3cbdc3fe5710e6bed9ed0c12a663312ac7
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 210ebbab42f1173fbf0da3f28b79b6b4d4c58dc89089fd2f3757f5f46a82e52c
+--> 210ebbab42f1
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache d83a96652508a644efb4163aa2296510d41142b3c7150de467cf2f14f9be434b
+--> d83a96652508
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 8f41cf63b0b228966f500bacc42bb669f731f5aec5f675d88f2d0f3541ede717
+--> 8f41cf63b0b2
+[1/2] STEP 5/6: COPY . .
+--> Using cache c2fd4fb72de2c90629ebc0cdb4e2e8214808ab700cd66f48192f3c1df5a1f3f1
+--> c2fd4fb72de2
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 6b92390da3e504ff1a5e43d32b2fab28090bb17eeb6ec3106ec3df50b4240c14
+--> 6b92390da3e5
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+3303e26f5bec86c8a2ca5dc08d446d591a6c9de395c410db7b143d833bec7d0e
+41d8c1fb192350bfa095c51b0ccef9f8b3d81eb9b96d74726b10d819ebd4bdfc
+7009585561de1393474d05bae85a32aff6496e24f1a77962bd642e3af1a02fa5
+bcdde9b6f10a31eabd817e7832cd53e60a3771efa737196bc72a38ed9b893363
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_frontend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+3303e26f5bec86c8a2ca5dc08d446d591a6c9de395c410db7b143d833bec7d0e
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 210ebbab42f1173fbf0da3f28b79b6b4d4c58dc89089fd2f3757f5f46a82e52c
+--> 210ebbab42f1
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache d83a96652508a644efb4163aa2296510d41142b3c7150de467cf2f14f9be434b
+--> d83a96652508
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 8f41cf63b0b228966f500bacc42bb669f731f5aec5f675d88f2d0f3541ede717
+--> 8f41cf63b0b2
+[1/2] STEP 5/6: COPY . .
+--> Using cache c2fd4fb72de2c90629ebc0cdb4e2e8214808ab700cd66f48192f3c1df5a1f3f1
+--> c2fd4fb72de2
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 6b92390da3e504ff1a5e43d32b2fab28090bb17eeb6ec3106ec3df50b4240c14
+--> 6b92390da3e5
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+6974446fb8ba20377c6aba00e0229b2d37585001dc9f1bddfd6cd788d46ef5ec
+cfbc62230c4ac282d6586f48d7af1198098eae043e028d32b636a32564a06b0e
+4d2ed47943e4b536b55c1c1c8d756328f3e74fd1d450efd780007b73b3bdffb1
+dc677e91f455be554cbec8e70d28640754d7064d8b05644f4d61e656ad2e21ce
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+6974446fb8ba20377c6aba00e0229b2d37585001dc9f1bddfd6cd788d46ef5ec
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 210ebbab42f1173fbf0da3f28b79b6b4d4c58dc89089fd2f3757f5f46a82e52c
+--> 210ebbab42f1
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache d83a96652508a644efb4163aa2296510d41142b3c7150de467cf2f14f9be434b
+--> d83a96652508
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 8f41cf63b0b228966f500bacc42bb669f731f5aec5f675d88f2d0f3541ede717
+--> 8f41cf63b0b2
+[1/2] STEP 5/6: COPY . .
+--> Using cache c2fd4fb72de2c90629ebc0cdb4e2e8214808ab700cd66f48192f3c1df5a1f3f1
+--> c2fd4fb72de2
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 6b92390da3e504ff1a5e43d32b2fab28090bb17eeb6ec3106ec3df50b4240c14
+--> 6b92390da3e5
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+5bdf3cb17a608befa9a039e9ae85162134c9e6e9d7000b370a76820aa17a86fa
+9c3c898787627f6f04e5577dcc755615fd446c4774f08b225e36bec3a22db144
+f740563490127c66840b67b448f5ae72238d2e0f1c26807d9d214e50d981fa38
+a0c9cf631273c50b045746e2c24353044f1724e4d33e057ce7239425ea7ec57c
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+5bdf3cb17a608befa9a039e9ae85162134c9e6e9d7000b370a76820aa17a86fa
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 210ebbab42f1173fbf0da3f28b79b6b4d4c58dc89089fd2f3757f5f46a82e52c
+--> 210ebbab42f1
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache d83a96652508a644efb4163aa2296510d41142b3c7150de467cf2f14f9be434b
+--> d83a96652508
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 8f41cf63b0b228966f500bacc42bb669f731f5aec5f675d88f2d0f3541ede717
+--> 8f41cf63b0b2
+[1/2] STEP 5/6: COPY . .
+--> Using cache c2fd4fb72de2c90629ebc0cdb4e2e8214808ab700cd66f48192f3c1df5a1f3f1
+--> c2fd4fb72de2
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 6b92390da3e504ff1a5e43d32b2fab28090bb17eeb6ec3106ec3df50b4240c14
+--> 6b92390da3e5
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+acfdb93e8f08939e7c01756cdafc2c533529ffbd994a6a7c9962e059dc04fbad
+3767f76fb1689270b36b07d8bfdff0d8f99a9f2f51abf250dd0a3436eab5eb9b
+41540483ab2ce37f3869649853be25761133736b20bf0015cc2cdfcbb425ccfb
+0541d22f7bce4dada5a963d88dc4d2e73cfc056e9ed4c74d16b4ec5ce6e950a6
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_frontend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_frontend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+acfdb93e8f08939e7c01756cdafc2c533529ffbd994a6a7c9962e059dc04fbad
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 210ebbab42f1173fbf0da3f28b79b6b4d4c58dc89089fd2f3757f5f46a82e52c
+--> 210ebbab42f1
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache d83a96652508a644efb4163aa2296510d41142b3c7150de467cf2f14f9be434b
+--> d83a96652508
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 8f41cf63b0b228966f500bacc42bb669f731f5aec5f675d88f2d0f3541ede717
+--> 8f41cf63b0b2
+[1/2] STEP 5/6: COPY . .
+--> Using cache c2fd4fb72de2c90629ebc0cdb4e2e8214808ab700cd66f48192f3c1df5a1f3f1
+--> c2fd4fb72de2
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 6b92390da3e504ff1a5e43d32b2fab28090bb17eeb6ec3106ec3df50b4240c14
+--> 6b92390da3e5
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+e4509c9f55972597e2dd6f026630114585da7282c377ba90179b22b93560101a
+666d1942ad0fa05adfff2fbd0083c42c5c7f47a38d56c7d5314bf3dff0201c70
+f4e2051a7168619a15cb523b99b6dd56dcfc9d95e323305e945f7a26873d5aa7
+87deafd8d76d5c2e7e9a723e8131e254a1d8cb063ce08d99449448b361aa8c53
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_frontend_1
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+e4509c9f55972597e2dd6f026630114585da7282c377ba90179b22b93560101a
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 210ebbab42f1173fbf0da3f28b79b6b4d4c58dc89089fd2f3757f5f46a82e52c
+--> 210ebbab42f1
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache d83a96652508a644efb4163aa2296510d41142b3c7150de467cf2f14f9be434b
+--> d83a96652508
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 8f41cf63b0b228966f500bacc42bb669f731f5aec5f675d88f2d0f3541ede717
+--> 8f41cf63b0b2
+[1/2] STEP 5/6: COPY . .
+--> Using cache c2fd4fb72de2c90629ebc0cdb4e2e8214808ab700cd66f48192f3c1df5a1f3f1
+--> c2fd4fb72de2
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 6b92390da3e504ff1a5e43d32b2fab28090bb17eeb6ec3106ec3df50b4240c14
+--> 6b92390da3e5
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+2ad2120645176d5d03e6feb980c5ee0b491e60e058775360e835a7f766c8d506
+0c3542e5341344cc5dd845f240c4874df71446df5fb30bd790c07accbdc6982d
+d85fa2767760da6d956806f4a8b9b975bcf4ebfbb861d01c12d5ed462252381d
+840b622883b571db8de981eb063138919a81b62af8f6dd4dd7fdbd8695431d16
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_frontend_1
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+2ad2120645176d5d03e6feb980c5ee0b491e60e058775360e835a7f766c8d506
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 210ebbab42f1173fbf0da3f28b79b6b4d4c58dc89089fd2f3757f5f46a82e52c
+--> 210ebbab42f1
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache d83a96652508a644efb4163aa2296510d41142b3c7150de467cf2f14f9be434b
+--> d83a96652508
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 8f41cf63b0b228966f500bacc42bb669f731f5aec5f675d88f2d0f3541ede717
+--> 8f41cf63b0b2
+[1/2] STEP 5/6: COPY . .
+--> Using cache c2fd4fb72de2c90629ebc0cdb4e2e8214808ab700cd66f48192f3c1df5a1f3f1
+--> c2fd4fb72de2
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 6b92390da3e504ff1a5e43d32b2fab28090bb17eeb6ec3106ec3df50b4240c14
+--> 6b92390da3e5
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+120c0b57d4ed942ced24dda8432ff8bd140acb04f662c6cfbb3b18060a1e356e
+bbbcde8a4a922875e5fd746b0944cb0c2a7b16c9ddc0392211e23180132233c6
+6a8fb4bb023c2244749f837cd7376e1dcd8da561e367c240a7f8a957b99b288f
+f2612b649248c9e14cb16190be5101cd56ae30c7d88075adf24bccf970ae2235
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+120c0b57d4ed942ced24dda8432ff8bd140acb04f662c6cfbb3b18060a1e356e
+project_log_project_log_net
+[cierre] restaurando pila en F1
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 210ebbab42f1173fbf0da3f28b79b6b4d4c58dc89089fd2f3757f5f46a82e52c
+--> 210ebbab42f1
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache d83a96652508a644efb4163aa2296510d41142b3c7150de467cf2f14f9be434b
+--> d83a96652508
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 8f41cf63b0b228966f500bacc42bb669f731f5aec5f675d88f2d0f3541ede717
+--> 8f41cf63b0b2
+[1/2] STEP 5/6: COPY . .
+--> Using cache c2fd4fb72de2c90629ebc0cdb4e2e8214808ab700cd66f48192f3c1df5a1f3f1
+--> c2fd4fb72de2
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 6b92390da3e504ff1a5e43d32b2fab28090bb17eeb6ec3106ec3df50b4240c14
+--> 6b92390da3e5
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+97b89cb708cf1db2456fadac9b408fccdf7638da7f9fabe6dde5a4a99f28253f
+7982bc1899ce54417af10df7ec8ace95d068ac6fb633ee9ccf9cb00425851a70
+0cc08ae831fb4debd002c65ecf7828ef7f090e50043eb33d49f913a7b4581943
+75f2d0b9db245d14940179c3707014371388059272a4868f8a125edb1cd8f7ca
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_frontend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+97b89cb708cf1db2456fadac9b408fccdf7638da7f9fabe6dde5a4a99f28253f
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache ab89792c2cec68795df326e7dacc8a87ba636d26c53409077a4c3d10929eb537
+--> ab89792c2cec
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 00f456743c0cde7295ba3e17b5aad56fbc5851fcea8c2c82a581fa0f544c2fae
+--> 00f456743c0c
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache b5791a7d0d35beff024e3145738bfc116e931e7d11347aaf9e3fa37f0eea2e8b
+--> b5791a7d0d35
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache fa49524d792d9c975134fa67c2fee1b83f4a5c576f49c64707dd618fca46b245
+--> fa49524d792d
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[2/2] COMMIT project_log_backend
+--> 293fe4b5ec32
+Successfully tagged localhost/project_log_backend:latest
+293fe4b5ec326b3dbff269b14f040783d3edb5b5d747c1dfae9f61343f100f62
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache 210ebbab42f1173fbf0da3f28b79b6b4d4c58dc89089fd2f3757f5f46a82e52c
+--> 210ebbab42f1
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache d83a96652508a644efb4163aa2296510d41142b3c7150de467cf2f14f9be434b
+--> d83a96652508
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 8f41cf63b0b228966f500bacc42bb669f731f5aec5f675d88f2d0f3541ede717
+--> 8f41cf63b0b2
+[1/2] STEP 5/6: COPY . .
+--> Using cache c2fd4fb72de2c90629ebc0cdb4e2e8214808ab700cd66f48192f3c1df5a1f3f1
+--> c2fd4fb72de2
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 6b92390da3e504ff1a5e43d32b2fab28090bb17eeb6ec3106ec3df50b4240c14
+--> 6b92390da3e5
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 69ab3e2c4631e2f0e8a374c9ee5bc15b501d8105beae126487cc74231ec5b0cb
+--> 69ab3e2c4631
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 70ce809110aad73c57683f86ee060581de8ad6a07eef956c05ef2b807272997d
+--> 70ce809110aa
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+[2/2] COMMIT project_log_frontend
+--> 92089b502e6f
+Successfully tagged localhost/project_log_frontend:latest
+Successfully tagged localhost/project-log-frontend:c1
+92089b502e6f291c94f6d38aeb7e4df74044affa5e771c5baae687debc83ffe3
+78c69969c9d0d9c593a393b279097f2ba0c32f72b6fcad46af8590b3d9272cf8
+25fea9ad7253dda149e9fa44f1ebd511e1a50e5eca024d75fcb595e5c3ca59ea
+bfb8a209884a639009b2e3b675adf870c7dc0693bd3d60a3868f0f46109b4486
+4aea8af87806762f9f5fbb8740d017506d018f38070c52a8b649ed32f59d28c1
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+[cierre] restaurando pila en F1
+=== VEREDICTOS QA C2 (por ID del plan) ===
+Q13: PASS
+Q8: PASS
+Q9: PASS
+Q10: PASS
+Q11: PASS
+Q12a: PASS
+Q12b: PASS
+Q12c: PASS
+Q14: PASS
+Q17a: PASS
+Q17b: PASS
+Q17c: PASS
+Q15: PASS
+Q16: PASS
+Q18: FAIL ( backend-no-healthy(t1) backend-no-healthy(t2) frontend-no-healthy(t1) frontend-no-healthy(t2) postgres-no-healthy(t1) postgres-no-healthy(t2) health-sin-status-UP)
+Q19: FAIL ( status=200(esperado-404,E10))
+Q20: PASS
+Q22: PASS
+Q23: PASS
+Q24: FAIL ( preflight=403(esperado-204-sin-autenticacion) ACAO=(nunca-*) metodos-sin-POST metodos-sin-OPTIONS metodos-sin-GET(S25) metodos-sin-PATCH(S25) metodos-sin-DELETE(S25) headers-sin-authorization headers-sin-content-type headers-sin-X-Confirm-* me-cors-status=403 me-ACAO=(reflejo-exacto))
+Q25: PASS
+Q26: PASS
+Q27: PASS
+Q21: BLOQUEADO (sin hash de referencia en el plan (comparar contra la captura de C1))
+EXIT_SMOKE=1

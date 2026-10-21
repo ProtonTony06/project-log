@@ -67,7 +67,7 @@ C2→(1), C3→(2,13,14), C4→(3,4), C5→(5,6,7), C6→(8,9,10), C7→(11,12).
   reales en el proxy), además del "index.html de prueba".
 - **Insumos:** TRD §6 (deploy/env), Schema §6.1 (V1__init.sql), Riesgos del 06.
 
-### C2 — Seguridad base + auth del panel (`estado: pendiente`)
+### C2 — Seguridad base + auth del panel (`estado: hecho` 2026-10-21 · QA 22/27 con cierre posterior: Q24-CORS fixed (entorno), Q5/Q18/Q21 resueltos; verify PASS-with-notes ×E2.1–E2.22, suite 26/26; heredados en archive-report: R-nuevo-3 anti-veneno de env, R-nuevo-4 401 ISO-8859-1 → C8/C9)
 
 - **Alcance:** SecurityFilterChain con dos cadenas (panel JWT / ingesta
   `X-API-Key` — la de ingesta se declara, se usa en C5); Argon2id (ADR-3);
