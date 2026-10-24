@@ -90,7 +90,7 @@ C2→(1), C3→(2,13,14), C4→(3,4), C5→(5,6,7), C6→(8,9,10), C7→(11,12).
   maqueta 04/05 servibles contra esta API (los paneles aún no existen).
 - **Insumos:** Schema §3.2/§3.3, AppFlow flujos 2 y 7, TRD §2.3 (entidades).
 
-### C4 — API keys de ingesta (`estado: pendiente`)
+### C4 — API keys de ingesta (`estado: hecho` 2026-10-24 · apply DONE 11/11 (+loop-back QP-07/QP-26), mvn 77/77, smoke 15/15 canónico, 3 commits 8437bdd→8cf0b9f (+ docs(SDD) de cierre); QA PASS global 30/30 (QP-30 opcional N-A); verify PASS-with-notes ×29/29 E4, 0 CRITICAL/3 W/3 S — huecos G-1/G-2 y LIKE-underscore anotados en archive-report; deudas retenidas de C3: smoke docker compose a C9 y 401 ISO-8859-1 a C8/C9, NINGUNA nueva)
 
 - **Alcance:** `POST /projects/{id}/api-key/regenerate` (**201 una única
   vez**, key `plk_`+43 Base64url; `{key, prefix, created_at}`);

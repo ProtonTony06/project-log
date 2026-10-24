@@ -1,0 +1,103 @@
+[pre] recomposición ÚNICA: podman compose up -d --build --force-recreate
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache b1f1dc2c50007b49ade6f6ff35a71fc0f85c2a905bcf20a930dd70a0bfb40c5d
+--> b1f1dc2c5000
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache e1d218152c4e48f58e2d259aa166c7b33dc1c5435dcbe00c0ddb911cd848c05d
+--> e1d218152c4e
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache fe3815cf07365deee26cc65ca0662f67ef88166caed23249987d837543b92263
+--> fe3815cf0736
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache 300d4e1f131f0d68675b97c2474d23dfae17ef4769c8722009f4e93961119829
+--> 300d4e1f131f
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 502fa1ba913a4a2dc3a29dd2b9ae2974399aa003e667835fe52cd1dc95a158ea
+[2/2] COMMIT project_log_backend
+--> 502fa1ba913a
+Successfully tagged localhost/project_log_backend:latest
+502fa1ba913a4a2dc3a29dd2b9ae2974399aa003e667835fe52cd1dc95a158ea
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache c3d8320fa3cc84c217308e75a0d7fd7bdec8ea0ec4ea3a6edc284b22375d6ad9
+--> c3d8320fa3cc
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache 2a6220dcb980c784552ca188c0e62fb16f350462fbfec5255cfd2b4e044acedb
+--> 2a6220dcb980
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache bc8b6325f48a2877a40f1dc22548871bb7e5492c3e9f69817c2e6e7b357c400a
+--> bc8b6325f48a
+[1/2] STEP 5/6: COPY . .
+--> Using cache efb55d37dd4f4d426483f4b9682cc435db06347f5cfac80c6466b80e1072ab1c
+--> efb55d37dd4f
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 381248a44af98c1a176e7d42c92b23c7b73d6c90e4948b96aa6fa933c68f74cd
+--> 381248a44af9
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 8092a1e50c6a45dccdfd2f4ab81d00561c18cf3abf911ecb52ebe290bb51e39c
+--> 8092a1e50c6a
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 5a4c3ac5c1b196e3062bf63182c777c7950aad1fa2c194c11e474ee9595f02f3
+--> 5a4c3ac5c1b1
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 13c07f61402ac001d83abd6116c1edd4b6419112093d8891cff4347265ba7560
+[2/2] COMMIT project_log_frontend
+--> 13c07f61402a
+Successfully tagged localhost/project_log_frontend:latest
+13c07f61402ac001d83abd6116c1edd4b6419112093d8891cff4347265ba7560
+project_log_frontend_1
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+8204c9ac3d4a96fe72d24702c3acb9d95ae99839c7d0bfc6c8ced005fcf162eb
+project_log_project_log_net
+4a7478096a6d5a683fb734aeeea5c2dcca075e3b3063d4871196159ff9cc32be
+ac71f04eb1461be3784589db8ec063b61019ab1d27753f7d655d301a5750385c
+60676d03b8d67ce56db37ea456aeb32b62890cf457e953af53f1449047dcca47
+1b4ccb95855c39aa3ffc8ea0b5acdb3fee14339a4fa4fd09316acc7ae93b19dc
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+[pre] healthy + login OK (higiene: JWT solo en /tmp/qa_c4_smoke.Ddcjng)
+=== VEREDICTOS QA C4 (por ID del spec) ===
+E4.15: PASS
+E4.16: PASS
+E4.17: PASS
+E4.18: PASS
+E4.19: PASS
+E4.20: PASS
+E4.21: PASS
+E4.22: PASS
+E4.23: PASS
+E4.24: PASS
+E4.25: PASS
+E4.26: PASS
+E4.27: PASS
+E4.28: PASS
+E4.29: PASS
+
+=== RESULTADO APARTE: suite [L] (mvn test en builder, re-corrida 2026-10-24 tras loop-back de apply QP-07/QP-26) ===
+comando: podman run --rm -v <abs>/backend:/ws:Z -v /home/acuelop369/.m2:/root/.m2:Z -w /ws docker.io/library/maven:3.9-eclipse-temurin-21 mvn test
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 s -- in com.projectlog.keys.ApiKeyLogHygieneTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in com.projectlog.keys.ApiKeyServiceTest
+[INFO] Tests run: 77, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+[INFO] Finished at: 2026-10-24T21:34:53Z
