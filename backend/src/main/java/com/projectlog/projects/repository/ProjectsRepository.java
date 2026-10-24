@@ -18,7 +18,8 @@ import com.projectlog.projects.dto.UpdateProjectRequest;
  * {@code JdbcTemplate} y SQL explícito inline (patrón C2) sobre la tabla
  * {@code projects} de {@code V1__init.sql} (INTOCABLE — columnas y
  * constraints literales). Centraliza las consultas porque es pieza
- * compartida downstream (C4 usa {@code findById}; C6 mapea los names desde
+ * compartida downstream (C4 usa {@code findById} y añade aquí los 2
+ * estamientos ADITIVOS de key — R4.2/R4.3; C6 mapea los names desde
  * {@code GET /projects}).
  *
  * <p>{@code @Transactional} queda como <b>defensa documentada</b> (R3.2):
@@ -200,5 +201,78 @@ public class ProjectsRepository {
         throw new IllegalArgumentException(
                 "conjuntoSet exige al menos 1 campo presente (G2: el controller"
                         + " no llama a update con {})");
+    }
+
+    /**
+     * C4 (R4.3, literal EXACTO del spec): (1) generar/regenerar key —
+     * mono-sentencia; el {@code RETURNING key_created_at} alimenta la 201
+     * ({@code created_at}). Los 3 campos de key van JUNTOS (invariante del
+     * Schema §2) y el digest del hash viaja ya calculado (escritura CIEGA:
+     * este repo no calcula ni re-hashea nada). Package-private por el pin
+     * E4.13 de este mismo paquete (mismo patrón que {@link #COLS} de C3).
+     */
+    static final String UPDATE_REGENERAR_KEY =
+            "UPDATE projects"
+                    + " SET api_key_hash = ?, api_key_prefix = ?,"
+                    + " key_created_at = now(), updated_at = now()"
+                    + " WHERE id = ?"
+                    + " RETURNING key_created_at";
+
+    /**
+     * C4 (R4.3, literal EXACTO del spec): (2) revocar — los tres a NULL
+     * JUNTOS (invariante Schema §2); fila 0 → {@code false} → 404 del
+     * controller. El WHERE es {@code id = ?} a SECAS (cierre S1 del spec de
+     * C4: SIN {@code api_key_hash IS NOT NULL} — el revoke es IDEMPOTENTE y
+     * el {@code updated_at} avanza también en un no-op lógico). Package-
+     * private por el pin E4.13 de este mismo paquete.
+     */
+    static final String UPDATE_REVOCAR_KEY =
+            "UPDATE projects"
+                    + " SET api_key_hash = NULL, api_key_prefix = NULL,"
+                    + " key_created_at = NULL, updated_at = now()"
+                    + " WHERE id = ?"
+                    + " RETURNING id";
+
+    /**
+     * C4 (R4.4): generar/regenerar key (es el MISMO endpoint), con 404 por
+     * empty-RETURNING — SIN pre-SELECT (una sola ida; seguro ante carreras:
+     * el UPDATE sobre id inexistente es no-op y no escribe). Con {@code List}
+     * (NUNCA {@code queryForObject}: la fila-0 es el caso legal del 404).
+     * El formateo de {@code key_created_at} vive AQUÍ (cierre S4: el repo
+     * formatea las fechas — formatter público de C2, reutilizado por
+     * referencia — y el controller nunca toca fechas).
+     *
+     * @param id    id del proyecto (previamente leído por el controller con
+     *              {@link #findById} — rama 404/409 ANTES de generar la key)
+     * @param hash  digest SHA-256 binario (32 bytes) de la key COMPLETA
+     * @param p     los primeros 10 chars de la key ({@code api_key_prefix})
+     * @return {@code Optional} del {@code key_created_at} recién escrito en
+     *         formato ISO-8601 UTC {@code Z}; vacío si el id no existe (→ 404)
+     */
+    @Transactional // defensa documentada (R3.2): mono-sentencia
+    public Optional<String> regenerateKey(long id, byte[] hash, String p) {
+        List<OffsetDateTime> filas = jdbcTemplate.query(UPDATE_REGENERAR_KEY,
+                (rs, numeroFila) -> rs.getObject("key_created_at", OffsetDateTime.class),
+                hash, p, id);
+        return filas.isEmpty() ? Optional.empty()
+                : Optional.of(filas.get(0).format(LoginController.EXPIRES_AT_FORMATTER));
+    }
+
+    /**
+     * C4 (R4.4, cierre S1): revocar — los TRES campos de key a NULL juntos
+     * (invariante Schema §2), idempotente (también {@code true} cuando el
+     * proyecto ya estaba sin key — Decisión 2 del gate de C4; la fila SÍ se
+     * reescribe: {@code updated_at} avanza). 404 por empty-RETURNING, sin
+     * pre-SELECT. SIN chequeo de {@code status} (Decisión 3 REVISADA:
+     * permitido también sobre ARCHIVADO). NUNCA {@code queryForObject}.
+     *
+     * @return {@code true} si la fila existió (→ 204 del controller);
+     *         {@code false} si el id no existe (→ 404)
+     */
+    @Transactional
+    public boolean revokeKey(long id) {
+        List<Long> filas = jdbcTemplate.query(UPDATE_REVOCAR_KEY,
+                (rs, numeroFila) -> rs.getLong("id"), id);
+        return !filas.isEmpty();
     }
 }
