@@ -253,11 +253,13 @@
         password: document.getElementById("login-pass").value
       })
     }).then(function (r) {
-      if (!r.ok) {                              // 401: borra token y vuelve al form
+      if (!r.ok) {                              // error: borra token y vuelve al form
         borraToken();
-        loginError.textContent = "Credenciales inválidas (401). Prueba de nuevo.";
-        loginError.hidden = false;
-        return null;
+        return r.text().then(function (cuerpo) { // diagnóstico: código real + cuerpo
+          loginError.textContent = "Login fallido — HTTP " + r.status + " — cuerpo: " + cuerpo + " — longitud password " + document.getElementById("login-pass").value.length;
+          loginError.hidden = false;
+          return null;
+        });
       }
       return r.json().then(function (datos) {
         guardaToken(datos.token);
