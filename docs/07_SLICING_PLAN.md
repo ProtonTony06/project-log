@@ -90,7 +90,7 @@ C2→(1), C3→(2,13,14), C4→(3,4), C5→(5,6,7), C6→(8,9,10), C7→(11,12).
   maqueta 04/05 servibles contra esta API (los paneles aún no existen).
 - **Insumos:** Schema §3.2/§3.3, AppFlow flujos 2 y 7, TRD §2.3 (entidades).
 
-### C4 — API keys de ingesta (`estado: hecho` 2026-10-24 · apply DONE 11/11 (+loop-back QP-07/QP-26), mvn 77/77, smoke 15/15 canónico, 3 commits 8437bdd→8cf0b9f (+ docs(SDD) de cierre); QA PASS global 30/30 (QP-30 opcional N-A); verify PASS-with-notes ×29/29 E4, 0 CRITICAL/3 W/3 S — huecos G-1/G-2 y LIKE-underscore anotados en archive-report; deudas retenidas de C3: smoke docker compose a C9 y 401 ISO-8859-1 a C8/C9, NINGUNA nueva)
+### C4 — API keys de ingesta (`estado: hecho` 2026-10-24 · apply DONE 11/11 (+loop-back QP-07/QP-26), mvn 77/77, smoke 15/15 canónico, 3 commits 8437bdd→8cf0b9f (+ docs(SDD) de cierre); QA PASS global 30/30 (QP-30 opcional N-A); verify PASS-with-notes ×29/29 E4, 0 CRITICAL/3 W/3 S — huecos G-1/G-2 y LIKE-underscore anotados en archive-report; deudas retenidas de C3: smoke docker compose a C9 y 401 ISO-8859-1 a C8/C9, NINGUNA nueva) · deuda S-3 (LIKE-underscore) **CERRADA en C6** (E6.18 con contraguja misma-length + E6.13 `FiltrosConsultaTest`; matización H9 ratificada: la contraguja del plan no discriminaba, la versión misma-length sí)
 
 - **Alcance:** `POST /projects/{id}/api-key/regenerate` (**201 una única
   vez**, key `plk_`+43 Base64url; `{key, prefix, created_at}`);
@@ -117,7 +117,7 @@ C2→(1), C3→(2,13,14), C4→(3,4), C5→(5,6,7), C6→(8,9,10), C7→(11,12).
   NADA (all-or-nothing probado).
 - **Insumos:** Schema §3.4 (LogIngestRequest) y §4.1, TRD §2.7, PRD §6.
 
-### C6 — Consulta keyset + filtros + detalle (`estado: pendiente`)
+### C6 — Consulta keyset + filtros + detalle (`estado: hecho` 2026-10-25 · apply 25/25 (+loop-back H1–H9 cerrados por apply), mvn 146/146 [38 C6 + 108 heredados], smoke 8/8 canónico E6.16–E6.23, QA 23/23 QP-6.x PASS + pre-fase, verify PASS-with-notes 7/7 checks A–G OK — 2 desviaciones ANCLADAS (D-S6-a spec 16-vs-17 placeholders, smoke `--build` vs R6.27) + 2 matices ratificados (H9 contraguja misma-length, H8/P-3 guard-Z), commits 78544b2→2b2f1d8 (+docs): paquete query — SQL literal R6.16 byte-a-byte (17 `?`/7 CASTs pinados), cursor keyset r,id con micros preservados, `{items, next_cursor?}` con null explícito, filtros combinables con escape ILIKE, detalle 11 campos, 404 y 401 cadena 2; deuda S-3 de C4 CERRADA con E6.18/E6.13; deudas heredadas → C9 (nginx client_max_body_size, smoke docker compose) y C8/C9 (401 ISO-8859-1), NINGUNA nueva)
 
 - **Alcance:** `GET /logs` con filtros combinables (SQL literal del Schema
   §3.3, cursor keyset, LIMIT+1 → `{items, next_cursor?}`), `GET /logs/{id}`
