@@ -1,0 +1,165 @@
+# ====================================================
+# C5 · qa-log.txt — corrida RAW (qa-run 2026-10-25, POST-remediación)
+# Evidencia VIGENTE = esta corrida (tras el loop-back de remedios de apply).
+# Salidas RAW verbatim, sin editar a mano: stdout+stderr íntegros.
+# Sección A: corrida canónica scripts/qa_c5_smoke.sh (13/13, exit 0).
+# Sección B: mvn test en builder (108/108, BUILD SUCCESS).
+# Sección C (attestations, etiquetada): higiene constatada por psql/ls.
+# Verificación de higiene de la evidencia: 0 coincidencias plk_/eyJ en
+# ambas salidas RAW (grep -c ejecutado por qa-run).
+# ====================================================
+
+=== SECCIÓN B: mvn test (builder maven:3.9-eclipse-temurin-21) POST-remediación ===
+
+2026-10-25T09:57:07.087Z  INFO 77 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-10-25T09:57:07.087Z  INFO 77 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-10-25T09:57:07.090Z  INFO 77 --- [           main] c.p.ingest.IngestControllerMvcTest       : Started IngestControllerMvcTest in 0.192 seconds (process running for 4.462)
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.359 s -- in com.projectlog.ingest.IngestControllerMvcTest
+[INFO] Running com.projectlog.ingest.IngestGuardLimitTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in com.projectlog.ingest.IngestGuardLimitTest
+[INFO] Running com.projectlog.ingest.IngestLogHygieneTest
+2026-10-25T09:57:07.245Z  INFO 77 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.ingest.IngestLogHygieneTest]: IngestLogHygieneTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-25T09:57:07.249Z  INFO 77 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.ingest.IngestLogHygieneTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in com.projectlog.ingest.IngestLogHygieneTest
+[INFO] Running com.projectlog.ingest.IngestServiceTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.039 s -- in com.projectlog.ingest.IngestServiceTest
+[INFO] Running com.projectlog.ingest.LogsRepoSqlTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in com.projectlog.ingest.LogsRepoSqlTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 108, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  7.172 s
+[INFO] Finished at: 2026-10-25T09:57:07Z
+[INFO] ------------------------------------------------------------------------
+EXIT=0
+
+
+=== SECCIÓN A: corrida canónica scripts/qa_c5_smoke.sh (RAW, POST-remediación) ===
+
+[pre] recomposición ÚNICA: podman compose up -d --build --force-recreate
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache def4f14edf706e48f8944d975baddff2a12afa0f30d936538489b04d161400c7
+--> def4f14edf70
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 5425cc578bcfb83e36a16ed9684273a94e5a29537d3e5925561eda027e71541f
+--> 5425cc578bcf
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache bee9fe1c415b17780bf74b437b3444656d9d65c30c2172f3c0a98118c84bb357
+--> bee9fe1c415b
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache 95df081ce4d3fa89b9fb9c9e6469e5d7834bb19f1f8999d66f9dc1b3218bcf9f
+--> 95df081ce4d3
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache 2391c0404bf3912f05c42a5d79e455548a77b7168dfdc5aba4cff76f817c942a
+[2/2] COMMIT project_log_backend
+--> 2391c0404bf3
+Successfully tagged localhost/project_log_backend:latest
+2391c0404bf3912f05c42a5d79e455548a77b7168dfdc5aba4cff76f817c942a
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache c3d8320fa3cc84c217308e75a0d7fd7bdec8ea0ec4ea3a6edc284b22375d6ad9
+--> c3d8320fa3cc
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache 2a6220dcb980c784552ca188c0e62fb16f350462fbfec5255cfd2b4e044acedb
+--> 2a6220dcb980
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache bc8b6325f48a2877a40f1dc22548871bb7e5492c3e9f69817c2e6e7b357c400a
+--> bc8b6325f48a
+[1/2] STEP 5/6: COPY . .
+--> Using cache d06f525c60de54b65869ecdb74a8da01bd4e77316fa9fd8953e72c178c5f1420
+--> d06f525c60de
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache 9851b30de017390f505bfea552a16244dcbe5b86fe3860997bfae5b2232e242c
+--> 9851b30de017
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 8092a1e50c6a45dccdfd2f4ab81d00561c18cf3abf911ecb52ebe290bb51e39c
+--> 8092a1e50c6a
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 3eb4d1dd680c0a72c31a4d9ef259b1c24c834468d22b052a1dffce588ec18f4f
+--> 3eb4d1dd680c
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache 9c703d074faddf3196eb1289a27a03601dff5a6ed06840787c944d3178d65fc9
+[2/2] COMMIT project_log_frontend
+--> 9c703d074fad
+Successfully tagged localhost/project_log_frontend:latest
+9c703d074faddf3196eb1289a27a03601dff5a6ed06840787c944d3178d65fc9
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+64cc646e760c80a94ab25c4fa1c0329333017b57d7746777b5a854ed97ac0094
+project_log_project_log_net
+e60ecca0afb2563e092b5fa546fda39194b31c2216226325ac90e717c185fcae
+51593818ce98cd95b3b02e6317ff0cc91389ad502a5aeb63607f63dbbda34150
+1fa1e360ebd326524a29fad8bc27bfc7e94ec408b238747b7c177aa18fae800e
+2480cdfc3ca04cc7f288318c8a8b22f9560ac7c3275ed621de9c1fb25d47c1dc
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+[directo] ruta directa habilitada (red project_log_project_log_net, imagen docker.io/curlimages/curl:8.11.0)
+[pre] healthy + login OK (higiene: JWT solo en /tmp/qa_c5_smoke.zC54JQ)
+=== VEREDICTOS QA C5 (por ID del spec) ===
+E5.21: PASS
+E5.22: PASS
+E5.23: PASS
+E5.24: PASS
+E5.25: PASS
+E5.26: PASS
+E5.27: PASS
+E5.28: PASS
+E5.29: PASS
+E5.30: PASS
+E5.31: PASS
+E5.32: PASS
+E5.33: PASS
+SMOKE_EXIT=0
+
+=== SECCIÓN C: attestations de higiene (psql -qAt / ls, verbatim) ===
+--- /tmp/qa_c5_req_debug.log y /tmp/qa_c5_curl_err.log tras la corrida: NO EXISTEN (ls:) ---
+ls: no se puede acceder '/tmp/qa_c5_req_debug.log': No existe el fichero o el directorio
+ls: no se puede acceder '/tmp/qa_c5_curl_err.log': No existe el fichero o el directorio
+--- estado de keys de smoke en psql AL FINAL (pre-revocación de la key viva del ciclo): ---
+42|smoke-c5-20261025094135-a|f|t
+44|smoke-c5-20261025094504-a|f|t
+45|smoke-c5-20261025095448-a|f|t
+46|smoke-c5-20261025101946-a|f|t
+47|smoke-c5-20261025103638-a|f|t
+48|smoke-c5-20261025104521-a|f|t
+49|smoke-c5-20261025105340-a|f|t
+50|smoke-c5-20261025105704-a|t|f
+--- revocación de la key viva del ciclo (UPDATE ... WHERE id = 50 RETURNING id): ---
+50
+--- estado AL FINAL (post-revocación; SELECT id, name, trio_null): ---
+48|smoke-c5-20261025104521-a|t
+49|smoke-c5-20261025105340-a|t
+50|smoke-c5-20261025105704-a|t
+(42/44/45/46/47 idénticos a la consulta anterior: t — TOTAL 8/8 proyectos smoke-c5 con trío NULL; 0 keys de smoke vivas)
+--- salud post-corrida (podman ps): ---
+project_log_postgres_1 Up About a minute (healthy)
+project_log_backend_1 Up About a minute (healthy)
+project_log_frontend_1 Up About a minute (healthy)
+--- historia: la corrida canónica PRE-remediación (10:45, 13/13 PASS) y sus hallazgos (dump req_debug con keys) quedaron documentados en el transcript de qa-run y remedíados por apply; su req_debug.log fue purgado por apply y/o dejó de generarse (sin cp fuera del tmpdir 700 en el script remedio) ---
+— fin —

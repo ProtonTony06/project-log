@@ -103,7 +103,7 @@ C2→(1), C3→(2,13,14), C4→(3,4), C5→(5,6,7), C6→(8,9,10), C7→(11,12).
 - **Insumos:** TRD §2.6 (formato y hash), Schema §2 (`projects`), AppFlow
   flujo 3, maqueta 05 (modal de revelación única).
 
-### C5 — Ingesta REST (`estado: pendiente`)
+### C5 — Ingesta REST (`estado: hecho` 2026-10-25 · apply DONE 20/20 (+ratificaciones de gate D-13/D-14/D-15: bean-higiene del guard, ObjectProvider lazy y unwrap de FrameworkServlet), mvn 108/108 [31 C5 + 77 heredados], smoke 13/13 canónico run 6, QA 37/37 (EX-1/E5.34 in) + higiene REMEDIADA en loop-back, verify PASS-with-notes 0 CRITICAL/6 W [ratificados]/7 S, commits 3f707ba→213735c (+docs): cadena 1 REAL de ingesta — denyAll reemplazado, 202 {accepted:N}, all-or-nothing, seam IngestListener tras COMMIT para C7; hueco G-2 CERRADO con E5.31; deudas: nginx client_max_body_size NUEVA → C9, smoke docker compose → C9 y 401 ISO-8859-1 → C8/C9 heredadas)
 
 - **Alcance:** `POST /api/v1/ingest` y `/ingest/batch` (1…200); campos de
   confianza del servidor (project_id deducido de la key, received_at UTC;
