@@ -1,8 +1,10 @@
 # Project_Log backend — configuración (C1 DD-8 + bloque security de C2 CD-7).
-# Propiedades mínimas: sin WS_HEARTBEAT_SECONDS (heartbeat es C7), sin
-# límites de ingesta (C5). FRONTEND_ORIGIN entra aquí desde C2 (CORS, G1):
-# falta ⇒ CORS cerrado (S26). JWT_SECRET NO está en este yml: se lee con
-# @Value("${JWT_SECRET}") — jamás default-izado en un fichero versionado.
+# Propiedades mínimas: sin WS_HEARTBEAT_SECONDS (heartbeat es C7). Los
+# límites de ingesta de C5 viven bajo projectlog.ingest (R5.3.3): sus
+# defaults SON el contrato R-6 (1 MiB / 200). FRONTEND_ORIGIN entra aquí
+# desde C2 (CORS, G1): falta ⇒ CORS cerrado (S26). JWT_SECRET NO está en
+# este yml: se lee con @Value("${JWT_SECRET}") — jamás default-izado en un
+# fichero versionado.
 server:
   port: 8080
 
@@ -35,6 +37,9 @@ projectlog:
   security:
     jwt-ttl-hours: ${JWT_TTL_HOURS:8}        # defecto 8 (TRD §6.3, S13)
     frontend-origin: ${FRONTEND_ORIGIN:}     # opcional: falta ⇒ CORS cerrado (S26)
+  ingest:                                    # C5 (R5.3.3): defaults = contrato R-6
+    max-request-bytes: ${INGEST_MAX_REQUEST_BYTES:1MiB}  # D-6: String + normalizador iB→B
+    max-batch-size: ${INGEST_MAX_BATCH_SIZE:200}         # batch 1…200 (Schema §3.4)
 
 logging:
   level:

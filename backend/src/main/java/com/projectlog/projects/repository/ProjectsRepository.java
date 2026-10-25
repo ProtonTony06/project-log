@@ -234,6 +234,20 @@ public class ProjectsRepository {
                     + " RETURNING id";
 
     /**
+     * C5 (R5.11, literal EXACTO del spec): lookup del hot-path de ingesta
+     * por el índice parcial único {@code projects_api_key_hash_idx} (V1).
+     * Reutiliza {@link #COLS} (CD-3.2, UNA sola fuente de columnas — se
+     * compensa el coste de formatear 2 fechas que la ingesta no usa).
+     * Las filas con hash NULL (revocadas) quedan excluidas por el WHERE
+     * (el hash entrante jamás es null). NUNCA menciona {@code api_key_hash}
+     * en la proyección (D-C5-1: el hash NO viaja). Package-private (D-9 del
+     * design: el pin E5.15-b en {@code ProjectsIngestSqlTest} vive en el
+     * MISMO paquete — sin reflection, sin visibilidad ensanchada más allá).
+     */
+    static final String SELECT_POR_API_KEY_HASH =
+            "SELECT " + COLS + " FROM projects WHERE api_key_hash = ?";
+
+    /**
      * C4 (R4.4): generar/regenerar key (es el MISMO endpoint), con 404 por
      * empty-RETURNING — SIN pre-SELECT (una sola ida; seguro ante carreras:
      * el UPDATE sobre id inexistente es no-op y no escribe). Con {@code List}
@@ -274,5 +288,21 @@ public class ProjectsRepository {
         List<Long> filas = jdbcTemplate.query(UPDATE_REVOCAR_KEY,
                 (rs, numeroFila) -> rs.getLong("id"), id);
         return !filas.isEmpty();
+    }
+
+    /**
+     * C5 (frontera C4 spec §7): lookup O(1) del hot-path de ingesta por el
+     * índice parcial único projects_api_key_hash_idx. Con lista → principal
+     * con project_id+status; filas 0 (ausente/revocada) → Optional.empty() →
+     * 401 api_key_invalid del entry point de la cadena 1.
+     * D-C5-1 (gate 2026-10-25): la igualdad la resuelve el WHERE por igualdad
+     * del SELECT — SIN tiempoConstanteIgual post-lookup (ProjectDto/COLS no
+     * porta el hash; divergencia declarada y ratificada en gate).
+     */
+    @Transactional // defensa documentada (patrón R3.2): mono-sentencia
+    public Optional<ProjectDto> findByApiKeyHash(byte[] hash) {
+        List<ProjectDto> filas = jdbcTemplate.query(
+                SELECT_POR_API_KEY_HASH, FILA, hash);
+        return filas.isEmpty() ? Optional.empty() : Optional.of(filas.get(0));
     }
 }
