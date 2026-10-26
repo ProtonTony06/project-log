@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
 import java.net.http.WebSocketHandshakeException;
 import java.nio.ByteBuffer;
@@ -226,14 +227,31 @@ class StreamingWsClientTest {
     // — E7.7 —
     @Test
     void e77Handshake401PreUpgradeTresCausasSinOraculo() {
-        // (a) sin ?token
+        // (a) sin ?token — pinneado ADEMÁS el CUERPO VACÍO del rechazo (H5):
+        // los interceptores JAMÁS escriben cuerpo en el 401 pre-upgrade.
+        // Matiz técnico de la API pública del JDK (javadoc getResponse()):
+        // en un fallo de upgrade el cuerpo llega por HttpResponse.body(); la
+        // clase del cuerpo no está especificada entre implementaciones — se
+        // acepta String EN BLANCO o null como "vacío" (ambos = sin
+        // contenido); si el JDK lo expusiera como otra clase sería una
+        // LIMITACIÓN TÉCNICA documentada, no un cuerpo con contenido.
         assertThatThrownBy(() -> conectar(escucha(),
                 "ws://localhost:" + puerto + "/ws/logs"))
-                .isInstanceOfSatisfying(CompletionException.class,
-                        ex -> assertThat(
-                                ((WebSocketHandshakeException) ex.getCause())
-                                        .getResponse().statusCode())
-                                .isEqualTo(401));
+                .isInstanceOfSatisfying(CompletionException.class, ex -> {
+                    HttpResponse<?> r = ((WebSocketHandshakeException)
+                            ex.getCause()).getResponse();
+                    assertThat(r.statusCode()).isEqualTo(401);
+                    Object datos = r.body();
+                    if (datos instanceof String texto) {
+                        assertThat(texto.isBlank())
+                                .as("cuerpo del 401 pre-upgrade vacío")
+                                .isTrue();
+                    } else {
+                        assertThat(datos)
+                                .as("cuerpo del 401 pre-upgrade ausente")
+                                .isNull();
+                    }
+                });
         // (b) token EXPIRADO (TTL negativo — patrón TokenServiceTest), misma firma
         String expirado = new TokenService(jwtSecret, -8)
                 .issue("admin", "ADMIN").token();
@@ -497,6 +515,71 @@ class StreamingWsClientTest {
         // un lote NUEVO SÍ llega
         broadcaster.onLotePersistido(78L, ahora(), List.of(42L));
         assertThat(awaitFrame(e2)).contains("42");
+    }
+
+    /**
+     * H13 — vacío del matching completo R7.16 (decisión del orquestador:
+     * R7.16 es contrato literal; §2.5 no exigía pareja): sesión con el
+     * lote-filtros COMPLETO {project_id, from, to, text} — from/to
+     * INCLUSIVOS sobre el RAW del común (== from y == to LEGAL) y texto
+     * crudo contains case-INSENSITIVE (texto de prueba con MAYÚSCULAS en el
+     * filtro y minúsculas en el mensaje). Mecánica idéntica a E7.2: lote
+     * disparado invocando {@code onLotePersistido} con FilaBatch mockeados.
+     */
+    @Test
+    void r716MatchingFromToInclusivoYTextoCaseInsensitive() throws Exception {
+        Escucha escucha = escucha();
+        WebSocket ws = conectar(escucha, urlConToken(tokenValido()));
+        // filtro con from/to/text; la ventana [09:30Z, 10:30Z] cubre al RAW
+        // 10:00:00.123456Z y sus fronteras exactas; el texto con mayúscula
+        // ("Timeout") debe matchear el mensaje en minúscula ("timeout …")
+        enviar(ws, "{\"type\":\"set_filters\",\"filters\":{\"project_id\":79,"
+                + "\"environment\":null,\"level\":null,"
+                + "\"from\":\"2026-10-25T09:30:00Z\","
+                + "\"to\":\"2026-10-25T10:30:00Z\",\"text\":\"Timeout\"}}");
+        stubPorIds(List.of(791L), List.of(fila(logDto(791L, 79L, "INFO",
+                "production", "timeout de consulta"))));
+        esperarFiltros(79L, 1);
+
+        OffsetDateTime dentro = OffsetDateTime.parse(
+                "2026-10-25T10:00:00.123456Z");
+        broadcaster.onLotePersistido(79L, dentro, List.of(791L));
+        assertThat(awaitFrame(escucha)).contains("timeout de consulta");
+        // EXACTAMENTE un TextMessage por lote (R7.15)
+        assertThat(pollTexto(escucha, NADA_MS)).as("no hay 2º frame")
+                .isNull();
+
+        // frontera INCLUSIVA == from → también frame
+        broadcaster.onLotePersistido(79L,
+                OffsetDateTime.parse("2026-10-25T09:30:00Z"), List.of(791L));
+        assertThat(awaitFrame(escucha)).contains("batch");
+        assertThat(pollTexto(escucha, NADA_MS)).as("no hay 2º frame")
+                .isNull();
+        // frontera INCLUSIVA == to → también frame
+        broadcaster.onLotePersistido(79L,
+                OffsetDateTime.parse("2026-10-25T10:30:00Z"), List.of(791L));
+        assertThat(awaitFrame(escucha)).contains("batch");
+        assertThat(pollTexto(escucha, NADA_MS)).as("no hay 2º frame")
+                .isNull();
+
+        // lote JUSTO FUERA del rango (< from) → NINGÚN frame
+        broadcaster.onLotePersistido(79L,
+                OffsetDateTime.parse("2026-10-25T09:29:59.999999Z"),
+                List.of(791L));
+        assertThat(pollTexto(escucha, NADA_MS)).as("fuera por from no genera frame")
+                .isNull();
+        // lote JUSTO FUERA (> to) → NINGÚN frame
+        broadcaster.onLotePersistido(79L,
+                OffsetDateTime.parse("2026-10-25T10:30:00.000001Z"),
+                List.of(791L));
+        assertThat(pollTexto(escucha, NADA_MS)).as("fuera por to no genera frame")
+                .isNull();
+        // el texto filtra: mensaje SIN el texto (rango sí) → NINGÚN frame
+        stubPorIds(List.of(792L), List.of(fila(logDto(792L, 79L, "INFO",
+                "production", "red interna estable"))));
+        broadcaster.onLotePersistido(79L, dentro, List.of(792L));
+        assertThat(pollTexto(escucha, NADA_MS)).as("texto no contenido no genera frame")
+                .isNull();
     }
 
     // — helpers de JSON / tiempos —

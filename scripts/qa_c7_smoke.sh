@@ -91,6 +91,7 @@ F_KEY1="$TMPDIR_QA/key1.txt"      # key del proyecto del smoke — no consola
 F_PAYLOAD="$TMPDIR_QA/payload.json"
 F_PAYLOAD2="$TMPDIR_QA/payload2.json"
 F_LONG="$TMPDIR_QA/long.txt"      # eventos del cliente WS de fondo (E7.1…)
+F_BIDS="$TMPDIR_QA/bids.txt"      # batch_id vistos (unicidad H4 entre casos)
 F_LONG2="$TMPDIR_QA/long2.txt"    # eventos de la reconexión de E7.11
 F_LENTA="$TMPDIR_QA/lenta.txt"    # eventos del cliente NO consumidor (E7.14)
 F_FIFO="$TMPDIR_QA/ordenes.fifo"  # comandos set_filters/CLOSE → cliente long
@@ -715,6 +716,15 @@ except Exception:
     print("err")' "$2"
 }
 
+# bid_de FRAME — batch_id del frame (o "-" si ilegible). Lo usan H4
+# (unicidad EXPLÍCITA del batch_id acumulada en F_BIDS).
+bid_de() {
+  printf '%s' "$1" | python3 -c '
+import sys, json
+try: print(json.loads(sys.stdin.read()).get("batch_id"))
+except Exception: print("-")' 2>/dev/null || echo '-'
+}
+
 # --- E7.5 — batch de 3 → EXACTAMENTE 1 frame, orden del RETURNING ------------
 case_e7_5() {
   echo "[E7.5] POST /ingest/batch (3 needles) → 1 frame con 3 logs EN ORDEN" >&2
@@ -735,12 +745,18 @@ recs = [
 ]
 open("$F_PAYLOAD", "w").write(json.dumps({"logs": recs}, separators=(",", ":")))
 PYEOF
+  # CANON snapshot-delta (H4): la referencia de BD es psql ANTES del batch;
+  # tras la 202 el delta EXACTO es 3.
+  local snapshot_bd
+  snapshot_bd="$(delta_cuenta)"
   if ! req POST "$URL_BATCH" "@$F_PAYLOAD" "$(curl_ingest "$F_KEY1")"; then
     marca E7.5 FAIL "curl-batch"; return 0
   fi
   [ "$CODIGO" = "202" ] || e="batch=$CODIGO "
   [ "$(campo_json accepted)" = "3" ] \
     || e="$e accepted-exacto($(campo_json accepted) ) "
+  [ "$(delta_cuenta)" = "$(( snapshot_bd + 3 ))" ] \
+    || e="$e delta-bd!=3($(delta_cuenta)!=$((snapshot_bd+3))) "
   if ! esperar_que 20 bash -c '[ "$(frames_count '"$F_LONG"')" -gt '"$base"' ]'; then
     marca E7.5 FAIL "el frame no llegó en 20 s"; return 0
   fi
@@ -748,21 +764,15 @@ PYEOF
     || e="$e frames-extra($(frames_count "$F_LONG")/$base) "
   local frame
   frame="$(frame_evento $(( base + 1 )) "$F_LONG")"
-  # batch_id distinto de previos: comparar contra el batch_id del ÚLTIMO
-  # frame previo (índice = base — si base == 0 NO hay previo y el check es
-  # vacuo: se omite; frame_evento 1 sería el MISMO frame nuevo — run 4).
-  local bid prev
-  if [ "$base" -gt 0 ]; then
-    prev="$(printf '%s' "$(frame_evento "$base" "$F_LONG")" | python3 -c '
-import sys, json
-try: print(json.loads(sys.stdin.read()).get("batch_id"))
-except Exception: print("-")' 2>/dev/null || echo '-')"
-    bid="$(printf '%s' "$frame" | python3 -c '
-import sys, json
-try: print(json.loads(sys.stdin.read()).get("batch_id"))
-except Exception: print("-")' 2>/dev/null || echo '-')"
-    [ "$bid" != "$prev" ] || e="$e batch_id-repetido "
+  # batch_id distinto de previos: comparación EXPLÍCITA (H4) contra TODOS
+  # los batch_id almacenados (E7.1 graba el suyo en $F_BIDS).
+  local bid
+  bid="$(bid_de "$frame")"
+  if [ "$bid" != "-" ] && [ -s "$F_BIDS" ] \
+     && grep -qxF "$bid" "$F_BIDS" 2>/dev/null; then
+    e="$e batch_id-repetido "
   fi
+  bid_de "$frame" >> "$F_BIDS" 2>/dev/null || true
   # orden: ids del frame (ENTREGA) == ids del RETURNING en ASC (psql) y los
   # mensajes en el orden na/nb/nc
   local psql_ids frame_ids msgs
@@ -814,6 +824,10 @@ case_e7_1() {
     marca E7.1 FAIL "la sesión no envió set_filters (orden); ver $F_LONG"; return 0
   fi
   base="$(frames_count "$F_LONG")"
+  # CANON snapshot-delta (H1): la referencia de BD es un SNAPSHOT psql del
+  # proyecto del smoke ANTES de la ingesta — la base de frames NO es de BD.
+  local snapshot_bd
+  snapshot_bd="$(delta_cuenta)"
   # POST /api/v1/ingest real con la key (higiene: key viaja solo en header)
   python3 - "$F_PAYLOAD" <<PYEOF
 import json
@@ -831,8 +845,8 @@ PYEOF
   t1="$(date +%s%N)"; dt=$(( (t1 - t0) / 1000000 ))
   [ "$CODIGO" = "202" ] || e="ingesta=$CODIGO "
   [ "$dt" -le 2000 ] || e="ingesta-lenta(${dt}ms) "
-  [ "$(delta_cuenta)" = "$(( base + 1 ))" ] \
-    || e="$e psql-delta($(delta_cuenta)!=$((base+1))) "
+  [ "$(delta_cuenta)" = "$(( snapshot_bd + 1 ))" ] \
+    || e="$e psql-delta($(delta_cuenta)!=$((snapshot_bd+1))) "
   # EXACTAMENTE 1 frame: esperar y contar
   if ! esperar_que 20 bash -c '[ "$(frames_count '"$F_LONG"')" -gt '"$base"' ]'; then
     marca E7.1 FAIL "el frame no llegó en 20 s (${e% }); eventos: $(tail -n 3 "$F_LONG" | tr '\n' ' ')"
@@ -841,6 +855,9 @@ PYEOF
   local frame
   frame="$(frame_evento $(( base + 1 )) "$F_LONG")"
   e="$e$(verificar_frame "$frame" "$id_a" "$NEEDLE_A" "$CORR_A")"
+  # H4: el batch_id del frame va al registro de vistos (los casos posteriores
+  # comparan EXPLÍCITAMENTE contra TODOS los previos almacenados)
+  bid_de "$frame" >> "$F_BIDS" 2>/dev/null || true
   [ -z "$e" ] && marca E7.1 PASS || marca E7.1 FAIL "(${e% })"
   return 0
 }
@@ -1180,14 +1197,17 @@ PYEOF
   elif [ "$code" = "1013" ]; then
     marca E7.14 PASS
   elif [ -z "$code" ]; then
-    # R-7.k (tolerancia, patrón Q23 de C3): los defaults de la pila
-    # (bufferSize 512 KiB / send-time 2000 ms) más el TCP buffers del
-    # host absorben ~900 KiB sin bloquear el flush → el guion NO puede
-    # materializar backpressure; el 1013 contractual lo pinnea la pareja
-    # [L] E7.13 (LatidoYBackpressureTest, doble barrera).
+    # R-7.k (tolerancia, patrón Q23 de C3): SOLO el close 1013 cuenta como
+    # cierre por backpressure; sesión lenta SIGUE ABIERTA al final de la
+    # ventana → PASS con la nota. Defaults de la pila (bufferSize 512 KiB /
+    # send-time 2000 ms) más los TCP buffers del host absorben ~900 KiB sin
+    # bloquear el flush → el guion NO puede materializar backpressure; el
+    # 1013 contractual lo pinnea la pareja [L] E7.13 (LatidoYBackpressureTest,
+    # doble barrera).
     marca E7.14 PASS "1013 no materializado en pila — cubierto por pareja [L] E7.13 (R-7.k; code=)"
   else
-    marca E7.14 PASS "close del lento=$code (no-1013: GC del latido del cliente sin pong — R-7.k; cubierto por [L] E7.13)"
+    # H9: cerró con código ≠ 1013 — razón de cierre EQUIVOCADA, JAMÁS tolerable.
+    marca E7.14 FAIL "cierre-no-1013=$code (razón de cierre equivocada — R-7.k nunca excusa esto)"
   fi
   return 0
 }

@@ -169,4 +169,62 @@ class FiltrosConsultaParseTest {
                 .isEqualTo("%\\\\\\_\\%%");
         assertThat(FiltrosConsulta.patronIlike("")).isEqualTo("%%");
     }
+
+    /**
+     * H12 — pin del ORDEN GLOBAL 2→7 del parser en UNA CADENA con
+     * sub-casos COMBINADOS (pares inválidos simultáneos; el check
+     * MENOR-NUMERADO SIEMPRE gana — primer-fallo-gana R7.28): 2 sobre 3,
+     * 3 sobre 4, 4 sobre 5, 5 sobre 6 y el 7 cierra el orden con
+     * {@code field} null. Literales VERBATIM de la tabla R6.22 (los
+     * mismos del resto del fichero).
+     */
+    @Test
+    void ordenGlobalChecks2a7PrimerFalloGana() {
+        // (2) project_id inválido + environment inválido → gana project_id
+        assertThatThrownBy(() -> FiltrosConsulta.parsear("abc", "qa", null,
+                null, null, null))
+                .isInstanceOfSatisfying(FiltrosConsulta.FiltroInvalido.class,
+                        ex -> {
+                            assertThat(ex.code).isEqualTo("filter_invalid_value");
+                            assertThat(ex.message).isEqualTo(
+                                    "El filtro project_id debe ser un número");
+                            assertThat(ex.field).isEqualTo("project_id");
+                        });
+        // (3) environment inválido + level inválido → gana environment
+        assertThatThrownBy(() -> FiltrosConsulta.parsear(null, "qa", "error",
+                null, null, null))
+                .isInstanceOfSatisfying(FiltrosConsulta.FiltroInvalido.class,
+                        ex -> {
+                            assertThat(ex.message).isEqualTo(
+                                    "Valor de environment no válido; use development, staging o production");
+                            assertThat(ex.field).isEqualTo("environment");
+                        });
+        // (4) level inválido + from naive (sin offset) → gana level
+        assertThatThrownBy(() -> FiltrosConsulta.parsear(null, null, "error",
+                "2026-10-16T22:31:04", null, null))
+                .isInstanceOfSatisfying(FiltrosConsulta.FiltroInvalido.class,
+                        ex -> {
+                            assertThat(ex.message).isEqualTo(
+                                    "Valor de level no válido; use TRACE, DEBUG, INFO, WARN, ERROR o FATAL");
+                            assertThat(ex.field).isEqualTo("level");
+                        });
+        // (5) from naive + to no-fecha → gana from
+        assertThatThrownBy(() -> FiltrosConsulta.parsear(null, null, null,
+                "2026-10-16T22:31:04", "no-es-fecha", null))
+                .isInstanceOfSatisfying(FiltrosConsulta.FiltroInvalido.class,
+                        ex -> assertThat(ex.field).isEqualTo("from"));
+        // (6/7) from>to con AMBOS válidos → check 7 cierra el orden global
+        // con su SIN-field (R6.22: filter_from_to_inverted SIN field) —
+        // nada de los checks 2–6 está presente para poder ganar antes.
+        assertThatThrownBy(() -> FiltrosConsulta.parsear(null, null, null,
+                "2026-10-18T00:00:00Z", "2026-10-16T00:00:00Z", null))
+                .isInstanceOfSatisfying(FiltrosConsulta.FiltroInvalido.class,
+                        ex -> {
+                            assertThat(ex.code)
+                                    .isEqualTo("filter_from_to_inverted");
+                            assertThat(ex.message).isEqualTo(
+                                    "El rango temporal no es válido: from es posterior a to");
+                            assertThat(ex.field).isNull();
+                        });
+    }
 }
