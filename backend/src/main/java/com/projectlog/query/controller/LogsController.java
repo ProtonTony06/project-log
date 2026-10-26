@@ -53,26 +53,16 @@ import com.projectlog.query.repository.LogsQueryRepository.FilaConsulta;
 @RequestMapping("/api/v1/panel/logs")
 public class LogsController {
 
-    /** Codes EXACTOS de R6.21 (ningún code nuevo fuera de la tabla R6.22). */
-    static final String CODE_FILTER_FROM_TO_INVERTED = "filter_from_to_inverted";
-    static final String CODE_FILTER_INVALID_VALUE = "filter_invalid_value";
+    /** Codes EXACTOS de R6.21 (ningún code nuevo fuera de la tabla R6.22).
+     * C7 (R7.27/D-7.12): los codes de los checks 2–7 MUDAN a
+     * {@code FiltrosConsulta} (única fuente ADR-7); quedan SOLO los no
+     * aplicables al stream. */
     static final String CODE_FILTER_LIMIT_INVALID = "filter_limit_invalid";
     static final String CODE_FILTER_CURSOR_INVALID = "filter_cursor_invalid";
     static final String CODE_NOT_FOUND = "not_found";
 
-    /** Messages EXACTOS de R6.21/R6.22 (cortos, español — patrón C3). */
-    private static final String MSG_FROM_TO_INVERTED =
-            "El rango temporal no es válido: from es posterior a to";
-    private static final String MSG_ENVIRONMENT_INVALID =
-            "Valor de environment no válido; use development, staging o production";
-    private static final String MSG_LEVEL_INVALID =
-            "Valor de level no válido; use TRACE, DEBUG, INFO, WARN, ERROR o FATAL";
-    private static final String MSG_PROJECT_ID_INVALID =
-            "El filtro project_id debe ser un número";
-    private static final String MSG_FROM_INVALID =
-            "El filtro from debe ser una fecha ISO-8601 con zona horaria";
-    private static final String MSG_TO_INVALID =
-            "El filtro to debe ser una fecha ISO-8601 con zona horaria";
+    /** Messages EXACTOS de R6.21/R6.22 (cortos, español — patrón C3). Los
+     * de checks 2–7 mudaron con sus codes a {@code FiltrosConsulta} (C7). */
     private static final String MSG_LIMIT_INVALID =
             "El filtro limit debe ser un número entre 1 y 200";
     private static final String MSG_CURSOR_INVALID =
@@ -143,62 +133,18 @@ public class LogsController {
             limite = LIMIT_DEFECTO;
         }
 
-        // — check 2: project_id presente no-numérico → filter_invalid_value —
-        Long projectIdNum = null;
-        if (projectId != null) {
-            try {
-                projectIdNum = Long.parseLong(projectId);
-            } catch (NumberFormatException ex) {
-                return error(HttpStatus.BAD_REQUEST, CODE_FILTER_INVALID_VALUE,
-                        MSG_PROJECT_ID_INVALID, "project_id");
-            }
-        }
-
-        // — check 3: environment fuera del enum cerrado ("" incluido;
-        //   case-sensitive, sin normalizar) → filter_invalid_value —
-        if (environment != null && !"development".equals(environment)
-                && !"staging".equals(environment)
-                && !"production".equals(environment)) {
-            return error(HttpStatus.BAD_REQUEST, CODE_FILTER_INVALID_VALUE,
-                    MSG_ENVIRONMENT_INVALID, "environment");
-        }
-
-        // — check 4: level idem —
-        if (level != null && !"TRACE".equals(level) && !"DEBUG".equals(level)
-                && !"INFO".equals(level) && !"WARN".equals(level)
-                && !"ERROR".equals(level) && !"FATAL".equals(level)) {
-            return error(HttpStatus.BAD_REQUEST, CODE_FILTER_INVALID_VALUE,
-                    MSG_LEVEL_INVALID, "level");
-        }
-
-        // — checks 5 y 6: from/to presentes NO parseables (incl. naive sin
-        //   offset — patrón S5-5 de C5: OffsetDateTime.parse exige offset) —
-        OffsetDateTime desde = null;
-        if (from != null) {
-            try {
-                desde = OffsetDateTime.parse(from);
-            } catch (Exception ex) { // DateTimeParseException
-                return error(HttpStatus.BAD_REQUEST, CODE_FILTER_INVALID_VALUE,
-                        MSG_FROM_INVALID, "from");
-            }
-        }
-        OffsetDateTime hasta = null;
-        if (to != null) {
-            try {
-                hasta = OffsetDateTime.parse(to);
-            } catch (Exception ex) {
-                return error(HttpStatus.BAD_REQUEST, CODE_FILTER_INVALID_VALUE,
-                        MSG_TO_INVALID, "to");
-            }
-        }
-
-        // — check 7: from > to (ambos parseados, sobre los Instants;
-        //   from == to es LEGAL — rango de punto) → filter_from_to_inverted
-        //   SIN field (R6.22) —
-        if (desde != null && hasta != null
-                && desde.toInstant().isAfter(hasta.toInstant())) {
-            return error(HttpStatus.BAD_REQUEST, CODE_FILTER_FROM_TO_INVERTED,
-                    MSG_FROM_TO_INVERTED);
+        // — checks 2–7 (C7/R7.27/R7.28): delegación al parser ÚNICO
+        //   FiltrosConsulta.parsear — MISMO orden (2→7),
+        //   primer-fallo-gana, MISMAS parejas code/message/field (constants
+        //   mudadas, literales byte-idénticos ⇒ cuerpos de error
+        //   idénticos). Orden resultante byte-compat: limit → parsear →
+        //   cursor. —
+        final FiltrosConsulta.Filtros filtros;
+        try {
+            filtros = FiltrosConsulta.parsear(projectId, environment, level,
+                    from, to, text);
+        } catch (FiltrosConsulta.FiltroInvalido ex) {
+            return error(HttpStatus.BAD_REQUEST, ex.code, ex.message, ex.field);
         }
 
         // — check 8: cursor presente ilegible (cualquiera de los 6 pasos del
@@ -213,17 +159,18 @@ public class LogsController {
             }
         }
 
-        // — Solo tras los 8: patron ILIKE (null JAMÁS llega a patronIlike:
-        //   text AUSENTE → patron null directo al repo — rama IS NULL del
-        //   estamento único; text PRESENTE (incl. "") → %<escapado>%) y UNA
-        //   llamada a la BD —
-        String patron = text == null ? null : FiltrosConsulta.patronIlike(text);
+        // — Solo tras los 8: patron ILIKE YA generado por el parser
+        //   FiltrosConsulta (C7: patronTexto null-si-ausente — rama IS NULL
+        //   del estamento único; text PRESENTE (incl. "") → %<escapado>%) y
+        //   UNA llamada a la BD —
+        String patron = filtros.patronTexto();
         OffsetDateTime cursorR =
                 cr == null ? null : OffsetDateTime.ofInstant(cr.r(), ZoneOffset.UTC);
         Long cursorI = cr == null ? null : cr.i();
 
-        List<FilaConsulta> filas = logsQueryRepository.listar(projectIdNum,
-                environment, level, desde, hasta, patron, cursorR, cursorI,
+        List<FilaConsulta> filas = logsQueryRepository.listar(
+                filtros.projectId(), filtros.environment(), filtros.level(),
+                filtros.from(), filtros.to(), patron, cursorR, cursorI,
                 limite);
 
         if (filas.size() > limite) {

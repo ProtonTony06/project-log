@@ -2,7 +2,10 @@ package com.projectlog.query.repository;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -89,6 +92,17 @@ public class LogsQueryRepository {
                     + " message, exception, metadata, source, correlation_id"
                     + " FROM logs WHERE id = ?";
 
+    /**
+     * (C7) §1.H-1: las MISMA 11 columnas de SELECT_POR_ID en ESE orden.
+     * SIN ORDER BY: el orden del frame lo impone la lista de entrada (Java).
+     * 1 placeholder — bind del array con
+     * {@code Connection.createArrayOf("bigint", …)} (driver PG17).
+     */
+    static final String SELECT_POR_IDS =
+            "SELECT id, project_id, level, environment, timestamp, received_at,"
+                    + " message, exception, metadata, source, correlation_id"
+                    + " FROM logs WHERE id = ANY (?)";
+
     private final JdbcTemplate jdbcTemplate;
 
     private final ObjectMapper objectMapper;
@@ -106,6 +120,50 @@ public class LogsQueryRepository {
      */
     public record FilaConsulta(LogListItemDto item, OffsetDateTime received_at,
             long id) {
+    }
+
+    /**
+     * Moneda del frame batch de C7 (R7.24): LogDto completo (render) +
+     * instante RAW del received_at de la MISMA fila para el matching
+     * temporal del servidor (§1.D — no el render truncado). Record PÚBLICO
+     * anidado.
+     */
+    public record FilaBatch(LogDto log, OffsetDateTime received_at) {
+    }
+
+    /**
+     * (C7) Frame batch §3.5: materializa el lote por ids. Los ids llegan EN
+     * ORDEN DEL LOTE (RETURNING del INSERT de C5 — la MONEDA del frame); el
+     * SELECT NO ordena: porIds REORDENA en Java según la lista de ENTRADA.
+     * Faltantes: IGNORADOS (sin error — DELETE no existe en Fase 1 y la fila
+     * ya está en COMMIT; el frame emite solo las encontradas, en orden del
+     * lote). CERO round-trips por elemento: UNA select por lote (P-8).
+     */
+    @Transactional // defensa documentada mono-sentencia — patrón C6
+    public List<FilaBatch> porIds(List<Long> ids) {
+        // Guard defensivo (D-7.11): null/vacía → lista vacía SIN tocar la BD.
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        List<FilaBatch> filas = jdbcTemplate.query(SELECT_POR_IDS,
+                ps -> ps.setArray(1, ps.getConnection().createArrayOf(
+                        "bigint", ids.toArray(new Long[0]))),
+                FILA_BATCH);
+        // Reorden en Java por la lista de ENTRADA (la moneda del frame);
+        // faltantes ignorados sin error (get null → skip). NADA de
+        // array_position.
+        Map<Long, FilaBatch> porId = new LinkedHashMap<>();
+        for (FilaBatch fila : filas) {
+            porId.put(fila.log().id(), fila);
+        }
+        List<FilaBatch> salida = new ArrayList<>(ids.size());
+        for (Long id : ids) {
+            FilaBatch fila = porId.get(id);
+            if (fila != null) {
+                salida.add(fila);
+            }
+        }
+        return salida;
     }
 
     /**
@@ -214,4 +272,22 @@ public class LogsQueryRepository {
             throw new IllegalStateException("metadata jsonb no parseable", e);
         }
     }
+
+    /**
+     * RowMapper DEL LOTE por ids (C7, D-7.11): DELEGANTE — el LogDto sale de
+     * {@code FILA_DETALLE.mapRow(rs, n)} (el MISMO mapper del detalle, sin
+     * duplicar la lambda ni extraer a fichero) y ROBA el instante RAW de la
+     * MISMA fila con un re-read de la columna {@code received_at} (legal —
+     * mapping por columna byte-idéntico; el RAW alimenta el matching §1.D).
+     *
+     * <p>Divergencia mínima declarada vs el boceto del design §4.1
+     * ({@code static}): {@code FILA_DETALLE} es un campo de instancia en el
+     * código real (usa {@code metadataComoNodo}), así que el delegante ES de
+     * instancia igualmente — package-private para el pin E7.19 (patrón
+     * {@code LogsRepoSqlTest}).</p>
+     */
+    final RowMapper<FilaBatch> FILA_BATCH =
+            (rs, numeroFila) -> new FilaBatch(
+                    FILA_DETALLE.mapRow(rs, numeroFila),
+                    rs.getObject("received_at", OffsetDateTime.class));
 }

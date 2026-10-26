@@ -1,5 +1,5 @@
 # Project_Log backend — configuración (C1 DD-8 + bloque security de C2 CD-7).
-# Propiedades mínimas: sin WS_HEARTBEAT_SECONDS (heartbeat es C7). Los
+# Propiedades mínimas. Los
 # límites de ingesta de C5 viven bajo projectlog.ingest (R5.3.3): sus
 # defaults SON el contrato R-6 (1 MiB / 200). FRONTEND_ORIGIN entra aquí
 # desde C2 (CORS, G1): falta ⇒ CORS cerrado (S26). JWT_SECRET NO está en
@@ -40,6 +40,12 @@ projectlog:
   ingest:                                    # C5 (R5.3.3): defaults = contrato R-6
     max-request-bytes: ${INGEST_MAX_REQUEST_BYTES:1MiB}  # D-6: String + normalizador iB→B
     max-batch-size: ${INGEST_MAX_BATCH_SIZE:200}         # batch 1…200 (Schema §3.4)
+
+  streaming:                                 # C7 (R7.29): defaults del spec
+    heartbeat-seconds: ${WS_HEARTBEAT_SECONDS:30}     # ya env (C1) — mapeo
+    idle-timeout-seconds: ${WS_IDLE_TIMEOUT_SECONDS:75}    # P-4 (rango 60–90)
+    send-time-limit-ms: ${WS_SEND_TIME_LIMIT_MS:2000}      # P-5 barrera 1
+    buffer-size-bytes: ${WS_BUFFER_SIZE_BYTES:524288} # P-5 barrera 2 (512 KiB)
 
 logging:
   level:

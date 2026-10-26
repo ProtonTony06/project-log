@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<!--
+  CONSOLA TEMPORAL C7 — no es parte del panel; se reemplaza en C8.
+  Página estática única (HTML+CSS+JS vanilla, sin framework ni build —
+  estilo maquetas C3/C4). Servida por nginx desde frontend/public/.
+  NO es contrato: utilidad de prueba del stream /ws/logs del corte C7.
+  Higiene: el token del login vive SOLO en memoria (variable JS) —
+  JAMÁS localStorage ni cookies.
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consola WS temporal — C7</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px 16px 64px;
+    font: 14px/1.45 system-ui, sans-serif;
+    background: #f5f6f8; color: #1c222b;
+  }
+  main { max-width: 880px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 12px 0 20px; }
+  .banner {
+    background: #fff3c4; border: 1px solid #d9b13b;
+    padding: 10px 14px; border-radius: 6px; font-weight: 600;
+  }
+  section {
+    background: #ffffff; border: 1px solid #d8dde5;
+    border-radius: 8px; padding: 16px; margin-top: 16px;
+  }
+  h2 { font-size: 15px; margin: 0 0 10px; color: #33425a; }
+  label { display: block; margin: 8px 0 2px; color: #4a5568; }
+  input, select {
+    width: 100%; padding: 7px 9px; border: 1px solid #b6bfcc;
+    border-radius: 4px; font: inherit; background: #fff;
+  }
+  button {
+    padding: 8px 14px; border: 1px solid #33425a; border-radius: 4px;
+    background: #33425a; color: #fff; font: inherit; cursor: pointer;
+    margin-top: 12px; margin-right: 8px;
+  }
+  button[disabled] { opacity: .45; cursor: not-allowed; }
+  button.secundario { background: #fff; color: #33425a; }
+  .fila { display: flex; flex-wrap: wrap; gap: 12px; }
+  .fila > div { flex: 1 1 180px; }
+  .badge {
+    display: inline-block; padding: 2px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 600;
+  }
+  .con { background: #d3f0dd; color: #14603a; }
+  .desc { background: #e9e9ee; color: #4a5568; }
+  .info { color: #4a5568; margin-top: 8px; }
+  #feed-eventos, #feed-frames {
+    margin-top: 12px; max-height: 420px; overflow-y: auto;
+    font-family: ui-monospace, monospace; font-size: 12.5px;
+  }
+  #feed-eventos div { padding: 4px 8px; color: #4a5568; border-bottom: 1px dashed #e4e8ee; }
+  #feed-frames pre {
+    background: #f2f5f9; border: 1px solid #dfe5ec; border-radius: 6px;
+    padding: 10px; overflow-x: auto; white-space: pre-wrap;
+    word-break: break-word; margin: 0 0 10px;
+  }
+  #feed-frames .id-frame { color: #0b6bcb; font-weight: 700; }
+  .contadores { color: #4a5568; font-size: 12.5px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="banner">CONSOLA TEMPORAL C7 — no es parte del panel; se reemplaza en C8</div>
+  <h1>Consola del stream <code>/ws/logs</code> (C7)</h1>
+
+  <!-- 1) Login §3.2: token SOLO en memoria -->
+  <section>
+    <h2>1 · Login del panel</h2>
+    <div class="fila">
+      <div>
+        <label for="usuario">Usuario</label>
+        <input id="usuario" autocomplete="off">
+      </div>
+      <div>
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="off">
+      </div>
+    </div>
+    <button id="btn-login">Iniciar sesión</button>
+    <div class="info" id="login-info">Sin sesión.</div>
+  </section>
+
+  <!-- 2) Conexión WS con reconexión MANUAL (sin backoff — es utilidad) -->
+  <section>
+    <h2>2 · Conexión WebSocket</h2>
+    <p class="info">
+      <span class="badge desc" id="badge-estado">Desconectado</span>
+      <span class="contadores" id="contador-frames">0 frames batch</span>
+    </p>
+    <button id="btn-conectar">Conectar</button>
+    <button id="btn-desconectar" class="secundario" disabled>Desconectar</button>
+    <button id="btn-reconectar" class="secundario" disabled>Reconectar</button>
+  </section>
+
+  <!-- 3) Filtros §3.3 → set_filters §3.5 (6 claves SIEMPRE presentes) -->
+  <section>
+    <h2>3 · set_filters (§3.5)</h2>
+    <div class="fila">
+      <div>
+        <label for="f-project">project_id</label>
+        <input id="f-project" type="number" placeholder="7">
+      </div>
+      <div>
+        <label for="f-environment">environment</label>
+        <select id="f-environment">
+          <option value="">— sin filtro —</option>
+          <option value="development">development</option>
+          <option value="staging">staging</option>
+          <option value="production">production</option>
+        </select>
+      </div>
+      <div>
+        <label for="f-level">level</label>
+        <select id="f-level">
+          <option value="">— sin filtro —</option>
+          <option>TRACE</option><option>DEBUG</option><option>INFO</option>
+          <option>WARN</option><option>ERROR</option><option>FATAL</option>
+        </select>
+      </div>
+    </div>
+    <div class="fila">
+      <div>
+        <label for="f-from">from (ISO-8601 con zona)</label>
+        <input id="f-from" placeholder="2026-10-25T10:00:00Z">
+      </div>
+      <div>
+        <label for="f-to">to (ISO-8601 con zona)</label>
+        <input id="f-to" placeholder="2026-10-25T22:00:00Z">
+      </div>
+      <div>
+        <label for="f-text">text</label>
+        <input id="f-text" placeholder="timeout">
+      </div>
+    </div>
+    <button id="btn-filtros">Aplicar set_filters</button>
+    <textarea id="json-enviado" readonly rows="2"
+      style="width:100%;margin-top:10px;font-family:ui-monospace,monospace;font-size:12.5px"></textarea>
+  </section>
+
+  <!-- 4) Eventos open/close/error + frames batch recibidos -->
+  <section>
+    <h2>4 · Eventos</h2>
+    <div id="feed-eventos"></div>
+  </section>
+  <section>
+    <h2>5 · Frames <code>batch</code> recibidos (JSON pretty — últimos 50)</h2>
+    <div id="feed-frames"></div>
+  </section>
+</main>
+
+<script>
+"use strict";
+
+// Estado EN MEMORIA — JAMÁS localStorage (higiene C7).
+var token = null;
+var username = null;
+var expiresAt = null;
+var socket = null;
+var totalFrames = 0;
+var framesRecibidos = []; // los últimos 50 se conservan
+
+function $(id) { return document.getElementById(id); }
+
+function evento(texto) {
+  var linea = document.createElement("div");
+  linea.textContent = new Date().toISOString() + " · " + texto;
+  $("feed-eventos").appendChild(linea);
+}
+
+function actualizarBadge() {
+  var conectado = socket && socket.readyState === WebSocket.OPEN;
+  var badge = $("badge-estado");
+  badge.textContent = conectado ? "Conectado" : "Desconectado";
+  badge.className = "badge " + (conectado ? "con" : "desc");
+  $("btn-conectar").disabled = conectado || !token;
+  $("btn-desconectar").disabled = !conectado;
+  $("btn-reconectar").disabled = !token;
+}
+
+// — 1) Login → POST /api/v1/panel/auth/login (§3.2) —
+$("btn-login").addEventListener("click", function () {
+  fetch("/api/v1/panel/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: $("usuario").value,
+      password: $("password").value
+    })
+  }).then(function (r) {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function (data) {
+    token = data.token;            // EN MEMORIA — jamás persistido
+    username = data.username;
+    expiresAt = data.expires_at;
+    $("login-info").textContent =
+      "Sesión: " + username + " · expires_at: " + expiresAt;
+    evento("login OK para " + username);
+    actualizarBadge();
+  }).catch(function (err) {
+    $("login-info").textContent = "Login fallido: " + err.message;
+    evento("login FALLIDO");
+  });
+});
+
+// — 2) Conexión WS (patrón exacto R7.31) —
+function conectar() {
+  if (!token) { evento("sin token: haga login antes de conectar"); return; }
+  if (socket) { try { socket.close(); } catch (e) { /* noop */ } }
+  var protocolo = location.protocol === "https:" ? "wss" : "ws";
+  var url = protocolo + "://" + location.host +
+    "/ws/logs?token=" + encodeURIComponent(token);
+  socket = new WebSocket(url);
+
+  socket.addEventListener("open", function () {
+    evento("open — upgrade 101");
+    actualizarBadge();
+  });
+  socket.addEventListener("close", function (ev) {
+    evento("close — code=" + ev.code);
+    actualizarBadge();
+  });
+  socket.addEventListener("error", function () {
+    evento("error de conexión");
+  });
+  socket.addEventListener("message", function (ev) {
+    // El servidor JAMÁS envía un JSON distinto de batch (R7.11/R7.19):
+    // cualquier texto recibido se parsea y se muestra como batch.
+    totalFrames += 1;
+    framesRecibidos.push({ recibidoEn: new Date().toISOString(),
+      frame: JSON.parse(ev.text || ev.data) });
+    framesRecibidos = framesRecibidos.slice(-50);
+    $("contador-frames").textContent = totalFrames + " frames batch (mostrando últimos " +
+      framesRecibidos.length + ")";
+    pintarFrames();
+  });
+}
+
+function pintarFrames() {
+  var contenedor = $("feed-frames");
+  contenedor.textContent = "";
+  framesRecibidos.forEach(function (item) {
+    var pre = document.createElement("pre");
+    try {
+      var pretty = JSON.stringify(item.frame, null, 2);
+      var bId = item.frame && item.frame.batch_id ? item.frame.batch_id : null;
+      if (bId) {
+        // batch_id resaltado (el resto queda como texto plano)
+        var partes = pretty.split('"' + bId + '"');
+        pre.appendChild(document.createTextNode(partes[0] + '"'));
+        var span = document.createElement("span");
+        span.className = "id-frame";
+        span.textContent = bId;
+        pre.appendChild(span);
+        pre.appendChild(document.createTextNode('"' + partes.slice(1).join('"' + bId + '"')));
+      } else {
+        pre.textContent = pretty;
+      }
+    } catch (e) {
+      pre.textContent = String(item.frame);
+    }
+    contenedor.appendChild(pre);
+  });
+}
+
+$("btn-conectar").addEventListener("click", conectar);
+$("btn-desconectar").addEventListener("click", function () {
+  if (socket) socket.close();
+  actualizarBadge();
+});
+$("btn-reconectar").addEventListener("click", conectar); // reconexión MANUAL
+
+// — 3) set_filters §3.5: 6 claves SIEMPRE presentes, null por defecto,
+//      project_id como número cuando el input parsea —
+$("btn-filtros").addEventListener("click", function () {
+  if (!(socket && socket.readyState === WebSocket.OPEN)) {
+    evento("sin conexión abierta: set_filters no enviado");
+    return;
+  }
+  var proyecto = $("f-project").value.trim();
+  var filtros = {
+    project_id: proyecto === "" ? null : Number(proyecto),
+    environment: $("f-environment").value === "" ? null : $("f-environment").value,
+    level: $("f-level").value === "" ? null : $("f-level").value,
+    from: $("f-from").value.trim() === "" ? null : $("f-from").value.trim(),
+    to: $("f-to").value.trim() === "" ? null : $("f-to").value.trim(),
+    text: $("f-text").value === "" ? null : $("f-text").value
+  };
+  var mensaje = JSON.stringify({ type: "set_filters", filters: filtros });
+  $("json-enviado").value = mensaje;
+  socket.send(mensaje);
+  evento("set_filters enviado");
+});
+
+actualizarBadge();
+evento("consola temporal C7 lista (token solo en memoria)");
+</script>
+</body>
+</html>
