@@ -859,15 +859,22 @@ case_q19() {
   return 0
 }
 
-# --- Q20 (E2.13): WS Echo de C1 completo (idle 75 s) sin romperse (G2) ---
+# --- Q20 (E2.13): WS proxy de C1 con --solo-handshake + --token (D-7.14) ---
 case_q20() {
-  echo "[Q20] scripts/ws_echo_test.py (incluye idle 75 s)" >&2
+  echo "[Q20] scripts/ws_echo_test.py --solo-handshake --token (modo C7, S7-7)" >&2
   if [ ! -f scripts/ws_echo_test.py ]; then
     marca Q20 BLOQUEADO "no existe scripts/ws_echo_test.py (artefacto de C1)"; return 0
   fi
   if [ "$CON_ENV" != "1" ]; then marca Q20 BLOQUEADO "$bloqueo_env"; return 0; fi
   asegurar_healthy 60 || { marca Q20 BLOQUEADO "pila no healthy"; return 0; }
-  if timeout 200 python3 scripts/ws_echo_test.py >>"$TMPDIR_QA/q20.log" 2>&1; then
+  if [ ! -s "$F_TOKEN" ]; then
+    marca Q20 BLOQUEADO "sin token de Q8 (el handshake C7 responde 401)"; return 0
+  fi
+  if [ "$CON_ORIGIN" != "1" ]; then
+    marca Q20 BLOQUEADO "sin FRONTEND_ORIGIN el handshake C7 cierra (S7-12)"; return 0
+  fi
+  if timeout 200 python3 scripts/ws_echo_test.py --solo-handshake \
+       --token "$(cat "$F_TOKEN")" >>"$TMPDIR_QA/q20.log" 2>&1; then
     marca Q20 PASS
   else
     marca Q20 FAIL "exit != 0 (log en $TMPDIR_QA/q20.log)"
