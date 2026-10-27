@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+/*
+ * Tokens visuales de docs/04_UIUX.md §2 (V1–V11) — D-C8-8.
+ * La paleta base es la POR DEFECTO de Tailwind (las clases de las maquetas
+ * aprobadas se copian 1:1: bg-teal-700, text-stone-500, border-stone-200…).
+ * @theme define SOLO tokens semánticos de intención con nombre propio;
+ * NINGÚN color de paleta se redefine.
+ */
+@theme {
+  --color-superficie: #ffffff;
+  --color-acento: #0f766e;           /* teal-700: acciones */
+  --color-conectado: #16a34a;        /* verde de conexión (V2) ≠ acento */
+  --color-live: #16a34a;             /* punto/banda "● En vivo" (V5) */
+}
+
+/*
+ * Clases componente copiadas VERBATIM de la maqueta 04
+ * (docs/mockups/04-proyectos.html — GATE visual cerrado; D-C8-8).
+ * BadgeSeveridad usa "lv-<level>"; PildoraEntorno "env-<environment>".
+ */
+.mono {
+  font-family: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace;
+}
+
+.lv {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.25rem;
+  border-width: 1px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.lv-TRACE {
+  background: #f5f5f4;
+  color: #a8a29e;
+  border-color: #e7e5e4;
+}
+.lv-DEBUG {
+  background: #f1f5f9;
+  color: #64748b;
+  border-color: #cbd5e1;
+}
+.lv-INFO {
+  background: #e0f2fe;
+  color: #075985;
+  border-color: #bae6fd;
+}
+.lv-WARN {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fcd34d;
+}
+.lv-ERROR {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+.lv-FATAL {
+  background: #7f1d1d;
+  color: #fff;
+  border-color: #7f1d1d;
+}
+
+.env {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.25rem;
+  line-height: 1.4;
+}
+
+.env-development {
+  background: #f5f5f4;
+  color: #57534e;
+  border: 1px solid #e7e5e4;
+}
+.env-staging {
+  background: #ede9fe;
+  color: #5b21b6;
+  border: 1px solid #ddd6fe;
+}
+.env-production {
+  background: #1c1917;
+  color: #fafaf9;
+}
+
+/* Fila FATAL: borde izquierdo a nivel de fila (V3) — uso de TablaLogs. */
+.fila-fatal {
+  border-left: 3px solid #7f1d1d;
+}
+
+/* Banda "● En vivo" (V5): borde discontinuo verde sobre la tabla. */
+.banda-en-vivo {
+  border: 1px dashed #16a34a;
+}
