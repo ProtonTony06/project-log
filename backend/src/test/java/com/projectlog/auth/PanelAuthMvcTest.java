@@ -85,7 +85,7 @@ class PanelAuthMvcTest {
     void meSinHeaderResponde401JsonInvalidToken() throws Exception {
         mockMvc.perform(get("/api/v1/panel/me"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.code").value("invalid_token"));
     }
 
@@ -95,7 +95,7 @@ class PanelAuthMvcTest {
         mockMvc.perform(get("/api/v1/panel/me")
                         .header("Authorization", "Bearer no-es-un-jwt"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.code").value("invalid_token"));
     }
 
@@ -125,7 +125,7 @@ class PanelAuthMvcTest {
     void el401NaceDelEntryPointConJsonEstandarYNoHtml() throws Exception {
         MvcResult resultado = mockMvc.perform(get("/api/v1/panel/me"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("Autenticación requerida"))
                 .andReturn();
         String cuerpo = resultado.getResponse().getContentAsString();

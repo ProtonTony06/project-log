@@ -1,6 +1,7 @@
 package com.projectlog.config;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -61,6 +62,13 @@ public class RestAuthenticationEntryPoint
 
     private void escribir401(HttpServletResponse response) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        // D1 (C8): UTF-8 ANTES de getWriter() — sin esta línea Tomcat emitía
+        // ISO-8859-1 (la 'ó' de "Autenticación requerida" salía 0xF3).
+        // Fijado ANTES del setContentType para convivir con las aserciones
+        // heredadas de PanelAuthMvcTest (contentType(APPLICATION_JSON) exacto
+        // en MockMvc): el contenedor real compone igualmente
+        // application/json;charset=UTF-8 (verificado en qa_c8 E8-charset).
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         objectMapper.writeValue(response.getWriter(),
                 Map.of("code", CODE_INVALID_TOKEN, "message", MENSAJE));

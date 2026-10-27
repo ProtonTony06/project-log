@@ -1,6 +1,7 @@
 package com.projectlog.ingest;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -70,6 +71,12 @@ public class IngestAuthenticationEntryPoint
 
     private void escribir401(HttpServletResponse response) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        // D1 (C8): simetría con RestAuthenticationEntryPoint — UTF-8 ANTES de
+        // getWriter(): sin esta línea Tomcat emitía ISO-8859-1 (la 'á' de
+        // "inválida" salía como byte aislado Latin-1). Fijado ANTES del
+        // setContentType (idempéndico real: Tomcat compone el header
+        // application/json;charset=UTF-8 igualmente).
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         objectMapper.writeValue(response.getWriter(),
                 Map.of("code", CODE_API_KEY_INVALID, "message", MSG_API_KEY_INVALID));
