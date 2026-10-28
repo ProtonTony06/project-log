@@ -1,8 +1,10 @@
 /**
  * Panel Project_Log (C8 — D-C8-2/D-C8-15): AuthProvider + TopBar + las 9
- * rutas 1:1 (R8.1). El provider JSX vive aquí con el valor de useLogicaSesion;
- * el guard RequireAuth aplica E8.2/E8.3 (destino guardado con query intacta).
- * /login es ruta hermana (mayor especificidad que el *) — nunca entra al guard.
+ * rutas 1:1 (R8.1; el detalle /logs/:id como RUTA HERMANA desde el parche
+ * post-Q23 — D-C8-8). El provider JSX vive aquí con el valor de
+ * useLogicaSesion; el guard RequireAuth aplica E8.2/E8.3 (destino guardado
+ * con query intacta). /login es ruta hermana (mayor especificidad que el *)
+ * — nunca entra al guard.
  */
 import { useEffect } from "react";
 import type { ReactNode } from "react";
@@ -98,11 +100,14 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<RequireAuth><Protegidas /></RequireAuth>}>
           <Route index element={<Navigate to="/logs" replace />} />
-          {/* Ruta ANIDADA (D-C8-7a/E8.35): /logs NO se desmonta al abrir el
-              detalle — LogDetalle entra por <Outlet/> y el acumulado queda. */}
-          <Route path="logs" element={<Logs />}>
-            <Route path=":id" element={<LogDetalle />} />
-          </Route>
+          {/* Rutas Hermanas (D-C8-8, parche post-Q23 de la demo del usuario
+              2026-10-28 — OPCIÓN 2: pantalla dedicada; matiza D-C8-7a): /logs
+              y /logs/:id se montan por SEPARADO — abrir el detalle desmonta
+              el listado (cierra su WS — decisión C). Los filtros viajan en
+              la query string (D-C8-6) y el acumulado keyset en un store en
+              memoria (hooks/storeListado.ts — E8.35). */}
+          <Route path="logs" element={<Logs />} />
+          <Route path="logs/:id" element={<LogDetalle />} />
           {/* /proyectos/nuevo ANTES de /:id (convención de orden de rutas). */}
           <Route path="proyectos" element={<Proyectos />} />
           <Route path="proyectos/nuevo" element={<ProyectoNuevo />} />

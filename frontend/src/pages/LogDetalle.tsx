@@ -1,9 +1,11 @@
 // Detalle de log (maqueta 03 — R8.32–R8.36/E8.34–E8.38): LogDto COMPLETO de
 // 11 campos; bloques "Excepción y stacktrace" y "Metadata" SOLO si no nulos
 // (se ocultan, no quedan vacíos); modal 8b con sentencia literal y trim;
-// Volver a /logs conserva filtros y acumulado (ruta anidada, E8.35).
+// Volver a /logs conserva filtros (search en la URL — D-C8-6) y acumulado
+// (store en memoria — E8.35 post-parche D-C8-8: el detalle es RUTA HERMANA;
+// al montar aquí /logs se desmonta y su WS se cierra — decisión C).
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { listaProyectos, log } from "../api/panel";
 import { ApiError } from "../api/client";
 import type { ProjectDto } from "../api/types";
@@ -39,6 +41,7 @@ function Copiar({
 
 export default function LogDetalle() {
   const { id } = useParams();
+  const location = useLocation();
   const idNum = Number(id);
   const [dto, setDto] = useState<Awaited<ReturnType<typeof log>> | null>(null);
   const [cargando, setCargando] = useState(true);
@@ -106,7 +109,10 @@ export default function LogDetalle() {
     return (
       <main className="max-w-6xl mx-auto px-4 py-6" role="alert">
         <div className="mb-5">
-          <Link to="/logs" className="text-sm text-teal-700 hover:underline">
+          <Link
+            to={`/logs${location.search ? `?${location.search}` : ""}`}
+            className="text-sm text-teal-700 hover:underline"
+          >
             ← Volver a logs
           </Link>
         </div>
@@ -129,7 +135,10 @@ export default function LogDetalle() {
   return (
     <main className="max-w-6xl mx-auto px-4 py-6">
       <div className="flex flex-wrap items-center gap-3 mb-5">
-        <Link to="/logs" className="text-sm text-teal-700 hover:underline">
+        <Link
+          to={`/logs${location.search ? `?${location.search}` : ""}`}
+          className="text-sm text-teal-700 hover:underline"
+        >
           ← Volver a logs (filtros y página intactos)
         </Link>
         <p className="text-xs text-stone-500 mono ml-auto">

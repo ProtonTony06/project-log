@@ -1,11 +1,14 @@
 // /logs (maqueta 02 — R8.20–R8.27/D-C8-7b): keyset acumulado + filtros en la
 // query string (useFiltrosLogs) + WS en vivo (useLogsStream, S8-4 — UNA
-// conexión viva solo mientras esta vista está montada) + banda "● En vivo"
-// + dedup fusionarEnVivo + banner 400 con campo culpable conservando la
-// última lista válida. El indicador del TopBar entra por portal (R8.28).
+// conexión viva solo mientras esta vista está montada: al abrir el detalle
+// /logs/:id esta vista SE DESMONTA y el WS se cierra en cleanup — decisión
+// C; al volver se reconecta) + banda "● En vivo" + dedup fusionarEnVivo +
+// banner 400 con campo culpable conservando la última lista válida. El
+// indicador del TopBar entra por portal (R8.28). El detalle es RUTA HERMANA
+// (D-C8-8, parche Q23): el acumulado keyset viaja por storeListado (E8.35).
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Outlet, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { listaProyectos, logs } from "../api/panel";
 import type { ProjectDto } from "../api/types";
@@ -22,6 +25,7 @@ import {
 } from "../hooks/usePagination";
 import { useLogsStream } from "../hooks/useLogsStream";
 import { leerTokenSesion } from "../hooks/useAuth";
+import { consumirListado, guardarListado } from "../hooks/storeListado";
 import { fusionarEnVivo } from "../ws/dedup";
 import type { LogListItemDto } from "../api/types";
 import { EstadoConexion } from "../components/EstadoConexion";
@@ -40,10 +44,21 @@ interface InfoFrame {
 export default function Logs() {
   const { filtros, actualizar, reiniciar } = useFiltrosLogs();
   const navegar = useNavigate();
+  const location = useLocation();
+
+  // E8.35 (post-parche D-C8-8): si volvemos del detalle con la MISMA query
+  // string, la instantánea del acumulado se consume AQUÍ (una sola vez por
+  // montaje) y el PRIMER refetch de página 1 se salta — los filtros ya
+  // viajan en la URL (D-C8-6), así que el [filtros] del primer render es el
+  // correcto: basta evitar el fetch que lo machacaría.
+  const [restaurada] = useState(() => consumirListado(location.search));
+  const saltoPrimeraRef = useRef(restaurada !== null);
 
   const [proyectos, setProyectos] = useState<ProjectDto[]>([]);
   const [acumulado, setAcumulado] =
-    useState<Acumulado<LogListItemDto>>(paginaInicial());
+    useState<Acumulado<LogListItemDto>>(() =>
+      restaurada !== null ? restaurada.acumulado : paginaInicial(),
+    );
   // espejo para mutaciones coherentes (frames / Cargar más / refetch)
   const refAcumulado = useRef(acumulado);
   const [cargandoPrimera, setCargandoPrimera] = useState(true);
@@ -75,7 +90,16 @@ export default function Logs() {
 
   // PRIMERA página en cada cambio de la query (E8.22); el 400 deja la lista
   // anterior pintada y solo levanta el banner con campo culpable (E8.26).
+  // Primer run tras el retorno del detalle (E8.35): los filtros ya viajan
+  // en la URL y el acumulado entró en el useState inicial — NO refetea.
   useEffect(() => {
+    if (saltoPrimeraRef.current) {
+      saltoPrimeraRef.current = false;
+      if (restaurada !== null) {
+        setCargandoPrimera(false);
+        return;
+      }
+    }
     let vigente = true;
     setCargandoPrimera(true);
     setError400(null);
@@ -290,7 +314,13 @@ export default function Logs() {
           <TablaLogs
             items={refAcumulado.current.items}
             nombresProyectos={nombres}
-            alVerDetalle={(id) => navegar(`/logs/${id}`)}
+            alVerDetalle={(id) => {
+              // E8.35 post-parche (D-C8-8): el acumulado viaja por store y
+              // los filtros siguen en la URL (se añaden a la del detalle —
+              // las query strings no afectan a /logs/:id ni al fallback).
+              guardarListado(location.search, refAcumulado.current);
+              navegar(`/logs/${id}${location.search ? `?${location.search}` : ""}`);
+            }}
           />
         )}
 
@@ -351,9 +381,6 @@ export default function Logs() {
           </div>
         )}
       </main>
-
-      {/* Detalle anidado (D-C8-7a): el listado arriba sigue montado — E8.35. */}
-      <Outlet />
     </>
   );
 }
