@@ -443,7 +443,7 @@ for i in range(1, 41):
         "source": f"s{i % 4}",
         "correlation_id": f"e824-{ts}-{i:03d}",
     })
-print(json.dumps({"batch": lotes}, separators=(",", ":")))
+print(json.dumps({"logs": lotes}, separators=(",", ":")))
 PYEOF
   python3 - "$TS" > "$TMPDIR_QA/seed2.json" <<'PYEOF'
 import json, sys
@@ -458,12 +458,12 @@ for i in range(41, 66):
         "source": f"s{i % 4}",
         "correlation_id": f"e824-{ts}-{i:03d}",
     })
-print(json.dumps({"batch": lotes}, separators=(",", ":")))
+print(json.dumps({"logs": lotes}, separators=(",", ":")))
 PYEOF
   python3 - "$TS" "$CORR_DET" "$NEEDLE_DET" > "$TMPDIR_QA/seed3.json" <<'PYEOF'
 import json, sys
 ts, corr, needle = sys.argv[1], sys.argv[2], sys.argv[3]
-print(json.dumps({"batch": [{
+print(json.dumps({"logs": [{
     "level": "FATAL",
     "timestamp": "2026-10-26T09:15:22.123456Z",
     "message": f"{needle} message",
@@ -598,7 +598,7 @@ case_e8_20() {
   local e="" n1 n2 cursor
   req GET "$URL_LOGS" "" "$(bearer_hdr)"
   [ "$CODIGO" = "200" ] || e="p1=$CODIGO "
-  n1="$(ids_de_ultima_respuesta | wc -l)"
+  n1="$(ids_de_ultima_respuesta | wc -l || true)"
   cursor="$(campo_json next_cursor || echo '-')"
   [ "$n1" -eq 50 ] || e="${e}p1-n=$n1 "
   case "$cursor" in null|-|"") e="${e}p1-cursor=$cursor " ;; esac
@@ -607,7 +607,7 @@ case_e8_20() {
   cur_url="$(urlenc "$cursor")"
   req GET "$URL_LOGS?cursor=$cur_url" "" "$(bearer_hdr)"
   [ "$CODIGO" = "200" ] || e="${e}p2=$CODIGO "
-  n2="$(ids_de_ultima_respuesta | wc -l)"
+  n2="$(ids_de_ultima_respuesta | wc -l || true)"
   [ "$n2" -ge 1 ] || e="${e}p2-vacio "
   [ "$(campo_json next_cursor || echo '?')" = "null" ] || e="${e}fin-cursor=$(campo_json next_cursor || echo '?') "
   # solapamiento de ids entre páginas (keyset ⇒ progresión DISYUNTA)
@@ -693,7 +693,7 @@ case_e8_43() {
   [ "$CODIGO" = "204" ] || e="${e}revoke=$CODIGO "
   req GET "$URL_PROJECTS/$(cat "$F_ID")" "" "$(bearer_hdr)"
   [ "$(campo_json has_key || echo '?')" = "false" ] || e="${e}has_key-tras=$(campo_json has_key || echo '?') "
-  [ "$(campo_json api_key_prefix || echo 'x')" = "null" ] || e="${e}prefix-tras=$(campo_json api_key_prefix) "
+  [ "$(campo_json api_key_prefix || echo 'x')" = "null" ] || e="${e}prefix-tras=$(campo_json api_key_prefix || echo 'x') "
   req POST "$URL_PROJECTS/$(cat "$F_ID")/api-key/regenerate" "" "$(bearer_hdr)"
   [ "$CODIGO" = "201" ] || e="${e}regen2=$CODIGO "
   printf '%s' "$(campo_json key)" > "$F_KEY"
@@ -783,9 +783,9 @@ case_e8_38() {
 case_e8_31() {
   echo "[E8.31] WS pre-upgrade: sin token→401; Origin ajeno→403; cuerpo VACÍO ambos" >&2
   local e="" out
-  out="$(PY_TOKEN="" python3 "$TMPDIR_QA/ws8_client.py" hs "$WS_HOST" "$WS_PORT" sin-token 2>>"$ERR_WS")"
+  out="$(PY_TOKEN="" python3 "$TMPDIR_QA/ws8_client.py" hs "$WS_HOST" "$WS_PORT" sin-token 2>>"$ERR_WS" || true)"
   grep -q '^HS 401 BODY 0' <<<"$out" || e="sin-token=[$out] "
-  out="$(PY_TOKEN="$(cat "$F_TOKEN")" python3 "$TMPDIR_QA/ws8_client.py" hs "$WS_HOST" "$WS_PORT" evil 2>>"$ERR_WS")"
+  out="$(PY_TOKEN="$(cat "$F_TOKEN")" python3 "$TMPDIR_QA/ws8_client.py" hs "$WS_HOST" "$WS_PORT" evil 2>>"$ERR_WS" || true)"
   grep -q '^HS 403 BODY 0' <<<"$out" || e="${e}evil=[$out] "
   [ -z "$e" ] && marca E8.31 PASS "401/403 pre-upgrade con cuerpo VACÍO" || marca E8.31 FAIL "($e)"
   return 0
@@ -807,7 +807,7 @@ case_e8_27() {
   sem="$(python3 - "$NEEDLE_WS" "$CORR_WS" <<'PYEOF'
 import json, sys
 needle, corr = sys.argv[1], sys.argv[2]
-print(json.dumps({"batch": [{
+print(json.dumps({"logs": [{
     "level": "ERROR",
     "timestamp": "2026-10-26T11:00:00.000000Z",
     "message": f"{needle} en vivo",
@@ -860,12 +860,12 @@ assert log["level"] == "ERROR" and log["source"] == "ws-src"
 assert log["correlation_id"] == sys.argv[4], log["correlation_id"]
 PYEOF
   local n_ids
-  n_ids="$(grep '^frame ' "$F_WS" | python3 -c '
+  n_ids="$(grep '^frame ' "$F_WS" 2>/dev/null | python3 -c '
 import sys, json
 ids = set()
 for l in sys.stdin:
     ids.add(json.loads(l[6:])["batch_id"])
-print(len(ids))')"
+print(len(ids))' || true)"
   [ "$n_ids" -eq "$nf" ] || e="${e}batch_ids-duplicados "
   [ -z "$e" ] && marca E8.27 PASS "1 frame batch byte-exacto §3.5 (5 claves, LogDto 11, b_+uuid único)" \
     || marca E8.27 FAIL "($e)"
