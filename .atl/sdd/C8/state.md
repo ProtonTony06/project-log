@@ -27,6 +27,7 @@ commits:
   - cbffdd1 test(smoke) hallazgos ronda 1 (H-C8-B1 {"logs"})
   - dd26fa9 test(smoke) hallazgos ronda 2 (H-C8-B2..B5)
   - docs(SDD) cierre del corte (incluye este state.md + archive-report + ficha del 07)
+  - parche post-archive Q23 (detalle /logs/:id RUTA HERMANA — D-C8-8, OPCIÓN 2 ratificada por el usuario en su demo 2026-10-28; store en memoria del acumulado keyset — E8.35; WS solo en /logs; Vitest 60/60 + build verde; SIN push)
 notes: >
   Corte C8 (panel frontend React+TypeScript según maquetas) CERRADO
   2026-10-28. Gates: smoke 23 PASS/0 FAIL/1 BLOQUEADO-Q23 exit 0 (re-corrida),
@@ -37,4 +38,11 @@ notes: >
   responden 401 real (cadena-3 denyAll en /error), no el 405/404 predicho
   por el spec — contrato del cliente §5 íntegro; UX: modal → 401 → logout
   hasta C10. NO push. C9/C10 se inician solo con orden del usuario.
+  PARCHE POST-ARCHIVE Q23 (2026-10-28, OPCIÓN 2 del usuario): detalle
+  /logs/:id como PANTALLA DEDICADA (ruta hermana, sin Outlet — nueva
+  decisión D-C8-8 que matiza D-C8-7a); E8.35 conservado con store en
+  memoria (hooks/storeListado.ts — acumulado keyset; filtros por URL);
+  WS se cierra al abrir el detalle y reconecta al volver (decisión C
+  intacta); Vitest 60/60 + build verde; mvn sin afectar; ficha del 07
+  CONGELADA (matiz para demo C9 en note/apply-progress, sin reescribir).
 ---

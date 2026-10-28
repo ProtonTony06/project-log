@@ -259,5 +259,41 @@ in-modal — C10 lo reemplazará al implementar los DELETE. Detalle:
 - `mvn -q test` no imprime resumen en éxito — usar sin `-q` con grep para
   registrar "Tests run".
 - Fichero único de progreso — se reescribe completo tras cada lote.
-- APPLY DE C8 COMPLETO (T8.1–T8.68); falta T8.69 (commit docs(SDD) del
-  cierre + ficha del 07) tras verify/archive.
+- APPLY DE C8 COMPLETO (T8.1–T8.69, incluido el commit docs(SDD) del
+  cierre); archivo cerrado 2026-10-28 (archive-report.md).
+
+## PARCHE POST-ARCHIVE — hallazgo Q23 de la demo del usuario (2026-10-28)
+
+El usuario, en su demo manual de C8 (la pareja MANUAL-Q23), ratifica la
+**OPCIÓN 2: detalle como PANTALLA DEDICADA**, no el detalle anidado bajo el
+listado (D-C8-7a): clickar "Detalle" pintaba la ficha DEBAJO de la tabla,
+fuera de la vista inicial — parecía que "no llevaba a ningún sitio"; idem
+el 404 con ids borrados. Tratado como acotado post-archive (commits
+permitidos, SIN push); nueva decisión **D-C8-8**.
+
+- **Routing**: `/logs/:id` ahora es RUTA HERMANA en `App.tsx` (mismo padre
+  `Protegidas` — el guard `RequireAuth` SIGUE cubriéndolo y el TopBar sigue
+  presente); `<Logs />` ya no lleva `<Outlet/>`. Fiel a la maqueta 03.
+- **E8.35 conservado**: FILTROS viajan en la query string (D-C8-6 —
+  `location.search` se arrastra a la URL del detalle y del Volver); el
+  ACUMULADO keyset (items + next_cursor) viaja en un store EN MEMORIA de
+  módulo, NUEVO fichero `frontend/src/hooks/storeListado.ts` (guardar antes
+  de navegar; consumir UNA vez al montar /logs SOLO con la search
+  coincidente; sin storage — R8.7 higiene intacta). Primer refetch de
+  página 1 SALTADO en la rehidratación (flag ref); acumulado entra en el
+  `useState` inicial (sin carrera con el 1.er frame WS). Recarga dura ⇒
+  limpio, como pauta R8.20.
+- **WS (decisión C, sin cambios)**: `useLogsStream` vive SOLO en /logs —
+  al abrir el detalle el cleanup del hook CIERRA la conexión; al volver se
+  reconecta y dispara el refetch de página 1 (E8.30, dedup). S8-4/D-C8-5.5
+  quedan intactos.
+- **Veredictos**: Vitest **60/60** (55 heredados + 5 del store —
+  `storeListado.test.ts`, sin DOM ni router) + `npm run build` VERDE
+  (tsc strict, 69 módulos). **mvn SIN cambio** (0 diff backend); el smoke
+  `qa_c8_smoke.sh` no se ve afectado (su única interacción con la ruta es
+  el fallback SPA `/logs/123` — idéntico con rutas anidadas o hermanas;
+  sin re-corrida necesaria).
+- Documentación: `.atl/notes/c8-parche-post-q23-detalle-ruta-hermana.md`
+  (type: decision) + state.md (parche post-archive Q23, ratificación del
+  usuario). La ficha del C8 en docs/07_SLICING_PLAN.md queda CONGELADA —
+  el matiz se anota para la demo C9 sin reescribirla.
