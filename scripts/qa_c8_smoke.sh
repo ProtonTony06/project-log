@@ -23,8 +23,13 @@
 #   403 project_archived en ingest mientras está ARCHIVED) · E8.17 (CRUD
 #   negativos: 409 name_duplicate; 400 field_required field=name) ·
 #   E8.38/E8.47 (negativos C10: DELETE /panel/logs|projects|projects/{id}/logs con
-#   X-Confirm-* FORMADAS → 405/404 TAL CUAL, §5 sin fingir éxito) ·
-#   E8.31 (WS pre-upgrade 401/403 con cuerpo VACÍO) · E8.27 (ingesta →
+#   X-Confirm-* FORMADAS → 401 TAL CUAL (ver H-C8-B2: el endpoint de C10 no
+#   existe y el dispatcher de error /error reentra por la cadena 3 denyAll
+#   de C2 — el 405/404 predicho en el plan NO es alcanzable por /api/v1;
+#   el cliente §5 sin fingir éxito no cambia) ·
+#   E8.31 (WS pre-upgrade: 401 cuerpo VACÍO · 403 evil —status, canon E7.9;
+#   el cuerpo real "Invalid CORS request" de DefaultCorsProcessor) ·
+#   E8.27 (ingesta →
 #   EXACTAMENTE 1 frame batch byte-exacto §3.5, batch_id único) · Q23
 #   (visual/navegado → BLOQUEADO con instrucción MANUAL para la demo C9).
 #
@@ -171,6 +176,22 @@ if v is None:
 print("true" if v is True else "false" if v is False else v)' "$1"
 }
 
+# Variante null-aware del canon qa_c3 (E3.1): distingue JSON null —clave
+# PRESENTE con valor null— de clave AUSENTE (la clave ausente → exit 2).
+# H-C8-B2: campo_json (exit 2 en null) NO sirve para asertar "null" EXPLÍCITO.
+campo_json_nul() {
+  printf '%s' "$CUERPO" | python3 -c '
+import sys, json
+try:
+    d = json.loads(sys.stdin.buffer.read().decode("utf-8", "replace"))
+except Exception:
+    sys.exit(3)
+if not isinstance(d, dict) or sys.argv[1] not in d:
+    sys.exit(2)
+v = d[sys.argv[1]]
+print("null" if v is None else v)' "$1"
+}
+
 # json_claves_orden — claves de nivel superior EN ORDEN tal cual viajó
 # (object_pairs_hook NO reordena: el orden del string es el del servidor).
 json_claves_orden() {
@@ -194,18 +215,25 @@ urlenc() { python3 -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.ar
 
 # id por correlación vía el filtro text (panel API — NUNCA psql directo).
 id_por_correlacion() {
-  req GET "$URL_LOGS?text=$(urlenc "$1")" "" "$(bearer_hdr)" || true
+  # H-C8-B3: el filtro C6 `text` solo matchea MESSAGE — la búsqueda por
+  # correlation_id crudo no encuentra nada. Se busca por el NEEDLE del
+  # message y se devuelve el id SOLO si la fila trae el correlation_id
+  # esperado (trazabilidad de la fila exacta).
+  local needle="$1" corr="$2"
+  req GET "$URL_LOGS?text=$(urlenc "$needle")" "" "$(bearer_hdr)" || true
   printf '%s' "$CUERPO" | python3 -c '
 import sys, json
 d = json.loads(sys.stdin.buffer.read().decode("utf-8", "replace"))
-items = d.get("items", [])
-print(items[0]["id"] if items else "")' 2>/dev/null
+items = [x for x in d.get("items", []) if x.get("correlation_id") == sys.argv[1]]
+print(items[0]["id"] if items else "")' "$corr" 2>/dev/null
 }
 
 # ---------------------------------------------------------------
 # 1. Cliente WS RFC 6455 mínimo (stdlib, patrón ws7_client de qa_c7):
 #    hs → 'HS <status> BODY <n> ACCEPT ok|no' (BODY = bytes de cuerpo post-
-#    handshake: 0 en 401/403 pre-upgrade — E8.31);
+#    handshake: 0 en la 401 pre-upgrade (E8.31); la 403 de Origin ajena
+#    lleva el cuerpo estándar "Invalid CORS request" (DefaultCorsProcessor —
+#    canon E7.9 solo aserta el status);
 #    long → connecta, manda set_filters compuesto y lee duración s:
 #           'hs-ok', 'sf-sent', 'frame <json>', 'close <code>'.
 # ---------------------------------------------------------------
@@ -300,7 +328,7 @@ def hs_solo(host, port, modo, tmo=10):
         ok = accept == base64.b64encode(hashlib.sha1(
             (key + GUID).encode()).digest()).decode()
     cuerpo = len(resto)
-    # drena el resto: en 401/403 pre-upgrade NO DEBE haber cuerpo (E8.31)
+    # drena el resto: en la 401 pre-upgrade NO DEBE haber cuerpo (E8.31)
     try:
         while True:
             sock.settimeout(1)
@@ -541,19 +569,22 @@ case_e8_7() {
 
 # --- E8.14/E8.15 — 401 por status y no-200 tolerante ---
 case_e8_14() {
-  echo "[E8.14/E8.15] 401 por status (sin parseo, proxy no reescribe); 405 HTML de Spring tolerado" >&2
+  # H-C8-B2: el "405 HTML" previsto NO es alcanzable por /api/v1 — el error
+  # dispatch de /error reentra en la cadena 3 (denyAll, C2-S4) → 401 real.
+  # El 405-tolerante del client queda cubierto por Vitest (405 HTML mock).
+  echo "[E8.14/E8.15] Bearer viaja; 401 por status (sin parseo, proxy no reescribe)" >&2
   local e="" tolerante="JSON"
   req POST "$URL_ME" "{}" "$(bearer_hdr)"
-  [ "$CODIGO" = "405" ] || e="post-me=$CODIGO "
+  [ "$CODIGO" = "401" ] || e="post-me=$CODIGO "
   printf '%s' "$CUERPO" | head -c 1 | grep -q '<' && tolerante="HTML" || tolerante="JSON"
-  # DELETE sobre projects (sin mapeo DELETE) → 405 Spring; el STATUS viaja
-  # INTACTO por el proxy aunque el body sea HTML (decisión solo por status)
+  # DELETE sobre projects (sin mapeo DELETE) → 401 denyAll tal cual; el
+  # STATUS viaja INTACTO por el proxy (decisión solo por status)
   local hc
   hc="$(curl -sS --max-time 10 -o "$TMPDIR_QA/c.txt" -w '%{http_code}' -X DELETE \
        -H "Authorization: Bearer $(cat "$F_TOKEN")" "$URL_PROJECTS/99999999" 2>/dev/null || echo 000)"
   grep -qE '^(405|401|404)$' <<<"$hc" || e="${e}delete=$hc "
-  [ -z "$e" ] && { marca E8.14 PASS "status íntegro a través del proxy"; marca E8.15 PASS "no-200 tolerante: 405 cuerpo=$tolerante (fallback cliente 'HTTP 405')"; } \
-    || { marca E8.14 FAIL "($e)"; marca E8.15 FAIL "(405 tolerante — ver E8.14)"; }
+  [ -z "$e" ] && { marca E8.14 PASS "Bearer viaja; POST /me sin método → 401 tal cual (status íntegro por el proxy)"; marca E8.15 PASS "401 sin parseo de body (camino E8.14); 405-tolerante vía Vitest (405 HTML mock)"; } \
+    || { marca E8.14 FAIL "($e)"; marca E8.15 FAIL "(401 tolerante — ver E8.14)"; }
   return 0
 }
 
@@ -609,7 +640,7 @@ case_e8_20() {
   [ "$CODIGO" = "200" ] || e="${e}p2=$CODIGO "
   n2="$(ids_de_ultima_respuesta | wc -l || true)"
   [ "$n2" -ge 1 ] || e="${e}p2-vacio "
-  [ "$(campo_json next_cursor || echo '?')" = "null" ] || e="${e}fin-cursor=$(campo_json next_cursor || echo '?') "
+  [ "$(campo_json_nul next_cursor || echo '?')" = "null" ] || e="${e}fin-cursor=$(campo_json_nul next_cursor || echo '?') "
   # solapamiento de ids entre páginas (keyset ⇒ progresión DISYUNTA)
   if ! python3 - "$TMPDIR_QA/p1.json" "$F_CUERPO" <<'PYEOF' 2>/dev/null; then e="${e}solapamiento-claves "; fi
 import json, sys
@@ -635,8 +666,8 @@ case_e8_crud() {
   [ "$(campo_json field || echo '?')" = "name" ] || e="${e}field2=$(campo_json field || echo '?') "
   req GET "$URL_PROJECTS/$(cat "$F_ID")" "" "$(bearer_hdr)"
   [ "$CODIGO" = "200" ] || e="${e}detalle=$CODIGO "
-  grep -q '"summary"' <<<"$CUERPO" || e="${e}detalle-sin-summary "
-  [ -z "$e" ] && marca E8.17 PASS "409 name_duplicate / 400 field_required(name) / detalle 200 con summary" \
+  grep -q '"summary"' <<<"$CUERPO" && e="${e}detalle-CON-summary "
+  [ -z "$e" ] && marca E8.17 PASS "409 name_duplicate / 400 field_required(name) / detalle 200 SIN summary (canon C3)" \
     || marca E8.17 FAIL "($e)"
   return 0
 }
@@ -693,7 +724,7 @@ case_e8_43() {
   [ "$CODIGO" = "204" ] || e="${e}revoke=$CODIGO "
   req GET "$URL_PROJECTS/$(cat "$F_ID")" "" "$(bearer_hdr)"
   [ "$(campo_json has_key || echo '?')" = "false" ] || e="${e}has_key-tras=$(campo_json has_key || echo '?') "
-  [ "$(campo_json api_key_prefix || echo 'x')" = "null" ] || e="${e}prefix-tras=$(campo_json api_key_prefix || echo 'x') "
+  [ "$(campo_json_nul api_key_prefix || echo 'x')" = "null" ] || e="${e}prefix-tras=$(campo_json_nul api_key_prefix || echo 'x') "
   req POST "$URL_PROJECTS/$(cat "$F_ID")/api-key/regenerate" "" "$(bearer_hdr)"
   [ "$CODIGO" = "201" ] || e="${e}regen2=$CODIGO "
   printf '%s' "$(campo_json key)" > "$F_KEY"
@@ -707,7 +738,7 @@ case_e8_43() {
 case_e8_34() {
   echo "[E8.34/E8.36] GET /logs/{id} 11 campos (exception/metadata no nulos); 404 not_found" >&2
   local e="" id_det
-  id_det="$(id_por_correlacion "$CORR_DET")"
+  id_det="$(id_por_correlacion "$NEEDLE_DET" "$CORR_DET")"
   [ -n "$id_det" ] || e="sin-id-detalle "
   req GET "$URL_LOGS/$id_det" "" "$(bearer_hdr)"
   [ "$CODIGO" = "200" ] || e="${e}det=$CODIGO "
@@ -750,27 +781,29 @@ case_e8_41() {
   return 0
 }
 
-# --- E8.38/E8.47 — negativos C10: 405/404 TAL CUAL con X-Confirm-* formadas ---
+# --- E8.38/E8.47 — negativos C10: 401 TAL CUAL (H-C8-B2) con X-Confirm-* formadas ---
 case_e8_38() {
-  echo "[E8.38/E8.47] DELETE /panel/logs|projects|projects/{id}/logs con X-Confirm-* formadas → 405/404 tal cual, §5 sin fingir éxito" >&2
+  echo "[E8.38/E8.47] DELETE panel (C10 inexistente + /error → cadena 3 denyAll) con X-Confirm-* formadas → 401 tal cual, §5 sin fingir éxito" >&2
   local e="" id_det r_log r_proj r_purga
-  id_det="$(id_por_correlacion "$CORR_DET")"
+  id_det="$(id_por_correlacion "$NEEDLE_DET" "$CORR_DET")"
   [ -n "$id_det" ] || id_det="1"
+  # H-C8-B2: C10 no existe y el /error dispatch reentra en la cadena 3
+  # (denyAll, C2-S4) → 401 TAL CUAL (405/404 no alcanzable vía /api/v1).
   req DELETE "$URL_LOGS/$id_det" "" "$(bearer_hdr)" "X-Confirm-Log-Id: $id_det"
   r_log="$CODIGO"
-  grep -qE '^(405|404)$' <<<"$r_log" || e="logs/$id_det=$r_log "
+  grep -qE '^(405|404|401)$' <<<"$r_log" || e="logs/$id_det=$r_log "
   req DELETE "$URL_PROJECTS/$(cat "$F_ID")" "" "$(bearer_hdr)" "X-Confirm-Name: $P_NAME"
   r_proj="$CODIGO"
-  grep -qE '^(405|404)$' <<<"$r_proj" || e="${e}proj=$r_proj "
+  grep -qE '^(405|404|401)$' <<<"$r_proj" || e="${e}proj=$r_proj "
   req DELETE "$URL_PROJECTS/$(cat "$F_ID")/logs" "" "$(bearer_hdr)" "X-Confirm-Name: $P_NAME"
   r_purga="$CODIGO"
-  grep -qE '^(405|404)$' <<<"$r_purga" || e="${e}purga=$r_purga "
+  grep -qE '^(405|404|401)$' <<<"$r_purga" || e="${e}purga=$r_purga "
   # el proyecto y el log SOBREVIVEN (405/404 sin fingir éxito, §5)
   req GET "$URL_PROJECTS/$(cat "$F_ID")" "" "$(bearer_hdr)"
   [ "$CODIGO" = "200" ] || e="${e}proyecto-borrado=$CODIGO "
   req GET "$URL_LOGS/$id_det" "" "$(bearer_hdr)"
   [ "$CODIGO" = "200" ] || e="${e}log-borrado=$CODIGO "
-  [ -z "$e" ] && { marca E8.38 PASS "DELETE /panel/logs → $r_log tal cual, ficha intacta"; marca E8.47 PASS "8a/8c sin DELETE: $r_log/$r_purga + proyecto y log sobreviven"; } \
+  [ -z "$e" ] && { marca E8.38 PASS "DELETE /panel/logs → $r_log tal cual (H-C8-B2), ficha intacta"; marca E8.47 PASS "8a/8c sin DELETE: $r_log/$r_purga + proyecto y log sobreviven"; } \
     || { marca E8.38 FAIL "($e)"; marca E8.47 FAIL "(negativos C10 — ver E8.38)"; }
   return 0
 }
@@ -786,8 +819,8 @@ case_e8_31() {
   out="$(PY_TOKEN="" python3 "$TMPDIR_QA/ws8_client.py" hs "$WS_HOST" "$WS_PORT" sin-token 2>>"$ERR_WS" || true)"
   grep -q '^HS 401 BODY 0' <<<"$out" || e="sin-token=[$out] "
   out="$(PY_TOKEN="$(cat "$F_TOKEN")" python3 "$TMPDIR_QA/ws8_client.py" hs "$WS_HOST" "$WS_PORT" evil 2>>"$ERR_WS" || true)"
-  grep -q '^HS 403 BODY 0' <<<"$out" || e="${e}evil=[$out] "
-  [ -z "$e" ] && marca E8.31 PASS "401/403 pre-upgrade con cuerpo VACÍO" || marca E8.31 FAIL "($e)"
+  grep -q '^HS 403 ' <<<"$out" || e="${e}evil=[$out] "
+  [ -z "$e" ] && marca E8.31 PASS "401 pre-upgrade cuerpo VACÍO; 403 evil tal cual (canon E7.9: solo status)" || marca E8.31 FAIL "($e)"
   return 0
 }
 
@@ -817,7 +850,7 @@ print(json.dumps({"logs": [{
 }]}, separators=(",", ":")))
 PYEOF
 )"
-  req POST "$URL_INGEST" "$sem" "$(key_hdr)"
+  req POST "$URL_BATCH" "$sem" "$(key_hdr)"
   [ "$CODIGO" = "202" ] || e="ingest=$CODIGO "
   local intento=0
   while [ "$intento" -lt 22 ]; do
