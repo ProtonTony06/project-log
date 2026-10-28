@@ -1,0 +1,871 @@
+================================================================
+QA-LOG C8 — captura RAW de la suite formal (2026-10-28)
+Corte: C8 Frontend del panel según maquetas (fix 1987754 + feat ea62874 + smoke d88d715 + hallazgos cbffdd1)
+HEAD: cbffdd1 · NO EDITADO: salidas verbatim de los CUATRO comandos.
+Orden REAL: qa_c8_smoke (corrida 1, hallazgos) → [parches del bucle] →
+  mvn → re-corrida qa_c8_smoke → qa_c3 → qa_c7. La 1ª corrida del smoke
+  se adjunta como evidencia del bucle T8.64 (H-C8-B1..B5).
+================================================================
+
+----------------------------------------------------------------
+SECCION 1/5: corrida 1 de qa_c8_smoke.sh — RAW verbatim (PRE-bucle, HEAD d88d715)
+Comando: bash scripts/qa_c8_smoke.sh
+EXIT=1 | resumen: 24 marcas · 13 FAIL · 10 PASS · 1 BLOQUEADO (Q23)
+  Hallazgos H-C8-B1..B5 (ver .atl/notes/c8-smoke-401-denyall-error-dispatch-campojson.md)
+----------------------------------------------------------------
+[pre] recomposición AUTOCONTENIDA (Q13): compose down -v || up -d --build
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+project_log_pgdata
+833a1fb9091354ba690b81064c0e7332fb8ac4794639e1a65c2894806a4e5e33
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache f25794f206deb8c08ed58effd37b6d9d33236ea2f5eefb65881a51bb95ce9170
+--> f25794f206de
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 6d1c48c36dcc95990df87bf3842556aba8b3a4ed6df44301549dbe61ec16ae4c
+--> 6d1c48c36dcc
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache cc300d26634012bf087b9a45b3f1e6891095ccf2f605baa6c072424825e6f4db
+--> cc300d266340
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache 84528d0c2de1fe33307089555d18efa6f6cd440b8a4adab482bad76b0493f7b0
+--> 84528d0c2de1
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache f782dea0d1f4f06c5e79806499fc884677779706196fb6824f480f224e1b6119
+[2/2] COMMIT project_log_backend
+--> f782dea0d1f4
+Successfully tagged localhost/project_log_backend:latest
+f782dea0d1f4f06c5e79806499fc884677779706196fb6824f480f224e1b6119
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache c3d8320fa3cc84c217308e75a0d7fd7bdec8ea0ec4ea3a6edc284b22375d6ad9
+--> c3d8320fa3cc
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache fcf6877951ea1986bcf7068534a281b592c86f854bea728d691344aab99956b5
+--> fcf6877951ea
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 6c0121a62e41849f0f5c7cb5b7651574990b43516f57d0a47aeebdc8e2d08688
+--> 6c0121a62e41
+[1/2] STEP 5/6: COPY . .
+--> 60213f9940d9
+[1/2] STEP 6/6: RUN npm run build
+
+> project-log-frontend@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 68 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.40 kB │ gzip:  0.27 kB
+dist/assets/index-D-vKUhAp.css   25.79 kB │ gzip:  5.88 kB
+dist/assets/index-Cs6eueLP.js   328.80 kB │ gzip: 98.44 kB
+✓ built in 1.51s
+--> d60666db0363
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 8092a1e50c6a45dccdfd2f4ab81d00561c18cf3abf911ecb52ebe290bb51e39c
+--> 8092a1e50c6a
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 0d5fee2fdad206e19b51833074efa8c806df370758a4f35a9f9c4de71f69b923
+--> 0d5fee2fdad2
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache e4511fca3de6de845a7959bb978676429fd1c887bb0006c8b7f9c6cbd9a7ff8f
+[2/2] COMMIT project_log_frontend
+--> e4511fca3de6
+Successfully tagged localhost/project_log_frontend:latest
+e4511fca3de6de845a7959bb978676429fd1c887bb0006c8b7f9c6cbd9a7ff8f
+d6984009c2dd6ca4d3d03d9d98fd09697eb2ea2a203b54694fb78e5797d45c17
+6da9327f7dccff5099c3c70649c07e42e1e6bd32c26c454bdfeba93df518e361
+fb08ed6637fe7e3816574a4f6fb6bf401aa5b51ca0d70916637d30ee2b5e1b52
+cb067d5df1f0950688860f9974935fa9abe76fc52bec587edd437a1333618eab
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+[pre] healthy + login OK (higiene: JWT solo en /tmp/qa_c8_smoke.Sv56Ki)
+[pre-fase] proyecto(1)+key+66 logs sembrados (higiene: key solo en /tmp/qa_c8_smoke.Sv56Ki)
+== qa_c8_smoke ==
+[E8.6/E8.51] SPA: / y /logs/123 → 200 text/html, assets absolutos
+[E8.7/E8.19] login {token,username,expires_at}; /me 200 ADMIN; /me sin token 401 invalid_token
+[E8.14/E8.15] 401 por status (sin parseo, proxy no reescribe); 405 HTML de Spring tolerado
+[E8.48/E8.49] 401 panel (ó) e ingest (á): charset=UTF-8 + bytes multi, cero byte latin-1 aislado
+{"code":"invalid_token","message":"Autenticación requerida"}
+{"code":"api_key_invalid","message":"API key de ingesta ausente o inválida"}
+[E8.17/crud] POST duplicado → 409 name_duplicate; POST name vacío → 400 field_required field=name
+[E8.20/E8.24] GET /logs sin filtros → 50 + cursor; 2ª página acumula; fin null; cero duplicados
+[E8.23/E8.26] from con offset −03:00 OK; from>to → filter_from_to_inverted SIN field; level inválido → filter_invalid_value CON field=level
+[E8.39] GET /projects?include=summary → ProjectDto SIN summary
+[E8.43/E8.44] regenerate 201 {key,prefix,created_at}; revoke 204; has_key false; re-generar para el WS
+[E8.34/E8.36] GET /logs/{id} 11 campos (exception/metadata no nulos); 404 not_found
+[E8.41] PATCH status ARCHIVED → 200; ingest archivada 403 project_archived; ACTIVE → 200 (NUNCA DELETE)
+[E8.38/E8.47] DELETE /panel/logs|projects|projects/{id}/logs con X-Confirm-* formadas → 405/404 tal cual, §5 sin fingir éxito
+[E8.31] WS pre-upgrade: sin token→401; Origin ajeno→403; cuerpo VACÍO ambos
+[E8.27] WS: hs 101, set_filters aceptado, ingest → EXACTAMENTE 1 frame batch §3.5
+
+E8.6: PASS (assets absolutos, cero racha relativa)
+E8.51: PASS (fallback SPA /logs/123 → index.html)
+E8.7: PASS (orden literal {token,username,expires_at})
+E8.19: PASS (401 invalid_token sin token)
+E8.14: FAIL ((post-me=401 ))
+E8.15: FAIL ((405 tolerante — ver E8.14))
+E8.48: PASS (401 panel UTF-8: 0xC3 0xB3 sin 0xF3 aislado)
+E8.49: PASS (401 ingest UTF-8: 0xC3 0xA1 ('ausente o inválida'))
+E8.17: FAIL ((detalle-sin-summary ))
+E8.20: FAIL ((fin-cursor=? ))
+E8.24: FAIL ((cursor — ver E8.20))
+E8.23: PASS
+E8.26: PASS
+E8.39: PASS
+E8.43: FAIL ((prefix-tras=x ))
+E8.44: FAIL ((revocar — ver E8.43))
+E8.34: FAIL ((sin-id-detalle det=401 campos11 ))
+E8.36: FAIL ((404 — ver E8.34))
+E8.41: PASS
+E8.38: FAIL ((logs/1=401 proj=401 purga=401 ))
+E8.47: FAIL ((negativos C10 — ver E8.38))
+E8.31: FAIL ((evil=[HS 403 BODY 31 ACCEPT no] ))
+E8.27: FAIL ((ingest=400 frames=0 (esperado 1) frame-shape ))
+Q23: BLOQUEADO (visual del panel (maquetas 01–05, guard, indicador, banda, modales 8a/8b/8c) = MANUAL con navegador para la demo C9 (cubren E8.1–E8.5, E8.8–E8.13, E8.22, E8.29, E8.30-b, E8.32, E8.35, E8.37-b, E8.40, E8.45, E8.46, E8.55))
+
+resumen: 24 marcas · 13 FAIL · 1 BLOQUEADO
+
+----------------------------------------------------------------
+SECCION 2/5: mvn test completo (suite [L], builder Maven, patrón C4/C7)
+Comando:
+  podman run --rm -v /home/acuelop369/Proyectos/Project_Log/backend:/ws:Z -v /home/acuelop369/.m2:/root/.m2:Z -w /ws docker.io/library/maven:3.9-eclipse-temurin-21 mvn test
+EXIT=0 | Resultado: Tests run: 177, Failures: 0, Errors: 0, Skipped: 0
+  (174 heredados C7 + 3 de EntryPointCharsetTest C39 — cifra R8.50 re-verificada tras la pila)
+----------------------------------------------------------------
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.projectlog:project-log-backend >-----------------
+[INFO] Building project-log-backend 0.1.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ project-log-backend ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ project-log-backend ---
+[INFO] Recompiling the module because of added or removed source files.
+[INFO] Compiling 51 source files with javac [debug parameters release 21] to target/classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ project-log-backend ---
+[INFO] Copying 1 resource from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ project-log-backend ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 29 source files with javac [debug parameters release 21] to target/test-classes
+[INFO] /ws/src/test/java/com/projectlog/projects/repository/ProjectsKeySqlTest.java: Some input files use unchecked or unsafe operations.
+[INFO] /ws/src/test/java/com/projectlog/projects/repository/ProjectsKeySqlTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ project-log-backend ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.projectlog.auth.Argon2PasswordTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.671 s -- in com.projectlog.auth.Argon2PasswordTest
+[INFO] Running com.projectlog.auth.LogHygieneTest
+21:32:12.363 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.projectlog.auth.LogHygieneTest]: LogHygieneTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+21:32:12.503 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.auth.LogHygieneTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-28T21:32:12.865Z  INFO 77 --- [           main] com.projectlog.auth.LogHygieneTest       : Starting LogHygieneTest using Java 21.0.12.1 with PID 77 (started by root in /ws)
+2026-10-28T21:32:12.866Z  INFO 77 --- [           main] com.projectlog.auth.LogHygieneTest       : The following 1 profile is active: "test"
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/root/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-28T21:32:14.546Z  INFO 77 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-10-28T21:32:14.547Z  INFO 77 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-10-28T21:32:14.548Z  INFO 77 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-10-28T21:32:14.580Z  INFO 77 --- [           main] com.projectlog.auth.LogHygieneTest       : Started LogHygieneTest in 2.015 seconds (process running for 3.55)
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.546 s -- in com.projectlog.auth.LogHygieneTest
+[INFO] Running com.projectlog.auth.LoginCredentialsTest
+2026-10-28T21:32:14.765Z  INFO 77 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.auth.LoginCredentialsTest]: LoginCredentialsTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-28T21:32:14.775Z  INFO 77 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.auth.LoginCredentialsTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-28T21:32:14.813Z  INFO 77 --- [           main] c.projectlog.auth.LoginCredentialsTest   : Starting LoginCredentialsTest using Java 21.0.12.1 with PID 77 (started by root in /ws)
+2026-10-28T21:32:14.814Z  INFO 77 --- [           main] c.projectlog.auth.LoginCredentialsTest   : The following 1 profile is active: "test"
+2026-10-28T21:32:15.039Z  INFO 77 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-10-28T21:32:15.039Z  INFO 77 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-10-28T21:32:15.039Z  INFO 77 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-10-28T21:32:15.046Z  INFO 77 --- [           main] c.projectlog.auth.LoginCredentialsTest   : Started LoginCredentialsTest in 0.267 seconds (process running for 4.016)
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.359 s -- in com.projectlog.auth.LoginCredentialsTest
+[INFO] Running com.projectlog.auth.PanelAuthMvcTest
+2026-10-28T21:32:15.126Z  INFO 77 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.auth.PanelAuthMvcTest]: PanelAuthMvcTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-28T21:32:15.132Z  INFO 77 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.auth.PanelAuthMvcTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-28T21:32:15.149Z  INFO 77 --- [           main] com.projectlog.auth.PanelAuthMvcTest     : Starting PanelAuthMvcTest using Java 21.0.12.1 with PID 77 (started by root in /ws)
+2026-10-28T21:32:15.149Z  INFO 77 --- [           main] com.projectlog.auth.PanelAuthMvcTest     : The following 1 profile is active: "test"
+2026-10-28T21:32:15.269Z  INFO 77 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-10-28T21:32:15.269Z  INFO 77 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-10-28T21:32:15.269Z  INFO 77 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-10-28T21:32:15.273Z  INFO 77 --- [           main] com.projectlog.auth.PanelAuthMvcTest     : Started PanelAuthMvcTest in 0.138 seconds (process running for 4.242)
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.255 s -- in com.projectlog.auth.PanelAuthMvcTest
+[INFO] Running com.projectlog.auth.TokenServiceTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.048 s -- in com.projectlog.auth.TokenServiceTest
+[INFO] Running com.projectlog.config.CorsConfigTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in com.projectlog.config.CorsConfigTest
+[INFO] Running com.projectlog.config.EntryPointCharsetTest
+[INFO] Running 401 de ingesta (IngestAuthenticationEntryPoint) — simetría
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in 401 de ingesta (IngestAuthenticationEntryPoint) — simetría
+[INFO] Running 401 del panel (RestAuthenticationEntryPoint)
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in 401 del panel (RestAuthenticationEntryPoint)
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in com.projectlog.config.EntryPointCharsetTest
+[INFO] Running com.projectlog.projects.dto.ProjectDtoSerializationTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in com.projectlog.projects.dto.ProjectDtoSerializationTest
+[INFO] Running com.projectlog.projects.repository.ProjectsIngestSqlTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in com.projectlog.projects.repository.ProjectsIngestSqlTest
+[INFO] Running com.projectlog.projects.repository.ProjectsKeySqlTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in com.projectlog.projects.repository.ProjectsKeySqlTest
+[INFO] Running com.projectlog.projects.repository.ProjectsUpdateSqlTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in com.projectlog.projects.repository.ProjectsUpdateSqlTest
+[INFO] Running com.projectlog.projects.ProjectsControllerMvcTest
+2026-10-28T21:32:15.495Z  INFO 77 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.projects.ProjectsControllerMvcTest]: ProjectsControllerMvcTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-28T21:32:15.505Z  INFO 77 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.projects.ProjectsControllerMvcTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-28T21:32:15.526Z  INFO 77 --- [           main] c.p.projects.ProjectsControllerMvcTest   : Starting ProjectsControllerMvcTest using Java 21.0.12.1 with PID 77 (started by root in /ws)
+2026-10-28T21:32:15.527Z DEBUG 77 --- [           main] c.p.projects.ProjectsControllerMvcTest   : Running with Spring Boot v3.5.16, Spring v6.2.19
+2026-10-28T21:32:15.527Z  INFO 77 --- [           main] c.p.projects.ProjectsControllerMvcTest   : The following 1 profile is active: "test"
+2026-10-28T21:32:15.702Z DEBUG 77 --- [           main] com.projectlog.auth.JwtAuthFilter        : Filter 'jwtAuthFilter' configured for use
+2026-10-28T21:32:15.703Z  INFO 77 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-10-28T21:32:15.703Z  INFO 77 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-10-28T21:32:15.703Z  INFO 77 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-10-28T21:32:15.706Z  INFO 77 --- [           main] c.p.projects.ProjectsControllerMvcTest   : Started ProjectsControllerMvcTest in 0.198 seconds (process running for 4.675)
+[INFO] Tests run: 25, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.382 s -- in com.projectlog.projects.ProjectsControllerMvcTest
+[INFO] Running com.projectlog.keys.ApiKeyControllerMvcTest
+2026-10-28T21:32:15.877Z  INFO 77 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.keys.ApiKeyControllerMvcTest]: ApiKeyControllerMvcTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-28T21:32:15.884Z  INFO 77 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.keys.ApiKeyControllerMvcTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-28T21:32:15.900Z  INFO 77 --- [           main] c.p.keys.ApiKeyControllerMvcTest         : Starting ApiKeyControllerMvcTest using Java 21.0.12.1 with PID 77 (started by root in /ws)
+2026-10-28T21:32:15.900Z DEBUG 77 --- [           main] c.p.keys.ApiKeyControllerMvcTest         : Running with Spring Boot v3.5.16, Spring v6.2.19
+2026-10-28T21:32:15.900Z  INFO 77 --- [           main] c.p.keys.ApiKeyControllerMvcTest         : The following 1 profile is active: "test"
+2026-10-28T21:32:16.045Z DEBUG 77 --- [           main] com.projectlog.auth.JwtAuthFilter        : Filter 'jwtAuthFilter' configured for use
+2026-10-28T21:32:16.045Z  INFO 77 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-10-28T21:32:16.045Z  INFO 77 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-10-28T21:32:16.045Z  INFO 77 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-10-28T21:32:16.048Z  INFO 77 --- [           main] c.p.keys.ApiKeyControllerMvcTest         : Started ApiKeyControllerMvcTest in 0.161 seconds (process running for 5.017)
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.221 s -- in com.projectlog.keys.ApiKeyControllerMvcTest
+[INFO] Running com.projectlog.keys.ApiKeyLogHygieneTest
+2026-10-28T21:32:16.100Z  INFO 77 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.keys.ApiKeyLogHygieneTest]: ApiKeyLogHygieneTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-28T21:32:16.103Z  INFO 77 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.keys.ApiKeyLogHygieneTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in com.projectlog.keys.ApiKeyLogHygieneTest
+[INFO] Running com.projectlog.keys.ApiKeyServiceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in com.projectlog.keys.ApiKeyServiceTest
+[INFO] Running com.projectlog.ingest.IngestControllerMvcTest
+2026-10-28T21:32:16.123Z  INFO 77 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.ingest.IngestControllerMvcTest]: IngestControllerMvcTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-28T21:32:16.131Z  INFO 77 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.ingest.IngestControllerMvcTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-28T21:32:16.144Z  INFO 77 --- [           main] c.p.ingest.IngestControllerMvcTest       : Starting IngestControllerMvcTest using Java 21.0.12.1 with PID 77 (started by root in /ws)
+2026-10-28T21:32:16.145Z DEBUG 77 --- [           main] c.p.ingest.IngestControllerMvcTest       : Running with Spring Boot v3.5.16, Spring v6.2.19
+2026-10-28T21:32:16.145Z  INFO 77 --- [           main] c.p.ingest.IngestControllerMvcTest       : The following 1 profile is active: "test"
+2026-10-28T21:32:16.287Z DEBUG 77 --- [           main] com.projectlog.auth.JwtAuthFilter        : Filter 'jwtAuthFilter' configured for use
+2026-10-28T21:32:16.287Z  INFO 77 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-10-28T21:32:16.287Z  INFO 77 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-10-28T21:32:16.287Z  INFO 77 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-10-28T21:32:16.290Z  INFO 77 --- [           main] c.p.ingest.IngestControllerMvcTest       : Started IngestControllerMvcTest in 0.157 seconds (process running for 5.26)
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.353 s -- in com.projectlog.ingest.IngestControllerMvcTest
+[INFO] Running com.projectlog.ingest.IngestGuardLimitTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in com.projectlog.ingest.IngestGuardLimitTest
+[INFO] Running com.projectlog.ingest.IngestLogHygieneTest
+2026-10-28T21:32:16.480Z  INFO 77 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.ingest.IngestLogHygieneTest]: IngestLogHygieneTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-28T21:32:16.484Z  INFO 77 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.ingest.IngestLogHygieneTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 s -- in com.projectlog.ingest.IngestLogHygieneTest
+[INFO] Running com.projectlog.ingest.IngestServiceTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.055 s -- in com.projectlog.ingest.IngestServiceTest
+[INFO] Running com.projectlog.ingest.LogsRepoSqlTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in com.projectlog.ingest.LogsRepoSqlTest
+[INFO] Running com.projectlog.query.controller.LogsControllerMvcTest
+2026-10-28T21:32:16.555Z  INFO 77 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.query.controller.LogsControllerMvcTest]: LogsControllerMvcTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-28T21:32:16.565Z  INFO 77 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.query.controller.LogsControllerMvcTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-28T21:32:16.584Z  INFO 77 --- [           main] c.p.q.controller.LogsControllerMvcTest   : Starting LogsControllerMvcTest using Java 21.0.12.1 with PID 77 (started by root in /ws)
+2026-10-28T21:32:16.585Z DEBUG 77 --- [           main] c.p.q.controller.LogsControllerMvcTest   : Running with Spring Boot v3.5.16, Spring v6.2.19
+2026-10-28T21:32:16.585Z  INFO 77 --- [           main] c.p.q.controller.LogsControllerMvcTest   : The following 1 profile is active: "test"
+2026-10-28T21:32:16.728Z DEBUG 77 --- [           main] com.projectlog.auth.JwtAuthFilter        : Filter 'jwtAuthFilter' configured for use
+2026-10-28T21:32:16.729Z  INFO 77 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-10-28T21:32:16.729Z  INFO 77 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-10-28T21:32:16.729Z  INFO 77 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-10-28T21:32:16.731Z  INFO 77 --- [           main] c.p.q.controller.LogsControllerMvcTest   : Started LogsControllerMvcTest in 0.164 seconds (process running for 5.701)
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.310 s -- in com.projectlog.query.controller.LogsControllerMvcTest
+[INFO] Running com.projectlog.query.dto.DtosLogsPinTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in com.projectlog.query.dto.DtosLogsPinTest
+[INFO] Running com.projectlog.query.repository.LogsQuerySqlTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in com.projectlog.query.repository.LogsQuerySqlTest
+[INFO] Running com.projectlog.query.repository.PorIdsSqlPinTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.342 s -- in com.projectlog.query.repository.PorIdsSqlPinTest
+[INFO] Running com.projectlog.query.CursorCodecTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in com.projectlog.query.CursorCodecTest
+[INFO] Running com.projectlog.query.FiltrosConsultaParseTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in com.projectlog.query.FiltrosConsultaParseTest
+[INFO] Running com.projectlog.query.FiltrosConsultaTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in com.projectlog.query.FiltrosConsultaTest
+[INFO] Running com.projectlog.streaming.LatidoYBackpressureTest
+2026-10-28T21:32:17.245Z  INFO 77 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.streaming.LatidoYBackpressureTest]: LatidoYBackpressureTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-28T21:32:17.249Z  INFO 77 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.streaming.LatidoYBackpressureTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-28T21:32:17.264Z  INFO 77 --- [           main] c.p.streaming.LatidoYBackpressureTest    : Starting LatidoYBackpressureTest using Java 21.0.12.1 with PID 77 (started by root in /ws)
+2026-10-28T21:32:17.264Z DEBUG 77 --- [           main] c.p.streaming.LatidoYBackpressureTest    : Running with Spring Boot v3.5.16, Spring v6.2.19
+2026-10-28T21:32:17.264Z  INFO 77 --- [           main] c.p.streaming.LatidoYBackpressureTest    : The following 1 profile is active: "test"
+2026-10-28T21:32:26.242Z  INFO 77 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-10-28T21:32:26.253Z  INFO 77 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-28T21:32:26.254Z  INFO 77 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-10-28T21:32:26.284Z  INFO 77 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-10-28T21:32:26.284Z  INFO 77 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 9020 ms
+2026-10-28T21:32:26.377Z  INFO 77 --- [           main] o.s.boot.web.servlet.RegistrationBean    : Filter filtroGuardSoloCadena1 was not registered (disabled)
+2026-10-28T21:32:26.414Z DEBUG 77 --- [           main] com.projectlog.auth.JwtAuthFilter        : Filter 'jwtAuthFilter' configured for use
+2026-10-28T21:32:26.688Z  INFO 77 --- [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-28T21:32:26.702Z  WARN 77 --- [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 5ff56130-a8cf-4daa-ac69-bc94564e308a
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-10-28T21:32:26.705Z  INFO 77 --- [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2026-10-28T21:32:26.983Z  INFO 77 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 46131 (http) with context path '/'
+2026-10-28T21:32:26.990Z  INFO 77 --- [           main] c.p.streaming.LatidoYBackpressureTest    : Started LatidoYBackpressureTest in 9.737 seconds (process running for 15.959)
+2026-10-28T21:32:27.527Z  WARN 77 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : sesión cerrada por lentitud (1013)
+2026-10-28T21:32:27.545Z  WARN 77 --- [           main] c.projectlog.streaming.LogSocketHandler  : sesión cerrada por lentitud (1013)
+2026-10-28T21:32:27.646Z  INFO 77 --- [o-auto-1-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-28T21:32:27.646Z  INFO 77 --- [o-auto-1-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-28T21:32:27.647Z  INFO 77 --- [o-auto-1-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-10-28T21:32:30.527Z  WARN 77 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-10-28T21:32:30.527Z  WARN 77 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-10-28T21:32:31.527Z  WARN 77 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-10-28T21:32:32.527Z  WARN 77 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-10-28T21:32:33.526Z  WARN 77 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-10-28T21:32:34.526Z  WARN 77 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 17.52 s -- in com.projectlog.streaming.LatidoYBackpressureTest
+[INFO] Running com.projectlog.streaming.StreamingWsClientTest
+2026-10-28T21:32:34.770Z  INFO 77 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.streaming.StreamingWsClientTest]: StreamingWsClientTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-28T21:32:34.772Z  INFO 77 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.streaming.StreamingWsClientTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-28T21:32:34.782Z  INFO 77 --- [           main] c.p.streaming.StreamingWsClientTest      : Starting StreamingWsClientTest using Java 21.0.12.1 with PID 77 (started by root in /ws)
+2026-10-28T21:32:34.782Z DEBUG 77 --- [           main] c.p.streaming.StreamingWsClientTest      : Running with Spring Boot v3.5.16, Spring v6.2.19
+2026-10-28T21:32:34.782Z  INFO 77 --- [           main] c.p.streaming.StreamingWsClientTest      : The following 1 profile is active: "test"
+2026-10-28T21:32:34.905Z  INFO 77 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-10-28T21:32:34.905Z  INFO 77 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-28T21:32:34.905Z  INFO 77 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-10-28T21:32:34.915Z  INFO 77 --- [           main] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-10-28T21:32:34.915Z  INFO 77 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 132 ms
+2026-10-28T21:32:34.936Z  INFO 77 --- [           main] o.s.boot.web.servlet.RegistrationBean    : Filter filtroGuardSoloCadena1 was not registered (disabled)
+2026-10-28T21:32:34.937Z DEBUG 77 --- [           main] com.projectlog.auth.JwtAuthFilter        : Filter 'jwtAuthFilter' configured for use
+2026-10-28T21:32:35.035Z  INFO 77 --- [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-28T21:32:35.041Z  WARN 77 --- [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 3d2c755e-3163-42c7-8cd0-7b583e8ff5f5
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-10-28T21:32:35.042Z  INFO 77 --- [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2026-10-28T21:32:35.093Z  INFO 77 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 38391 (http) with context path '/'
+2026-10-28T21:32:35.099Z  INFO 77 --- [           main] c.p.streaming.StreamingWsClientTest      : Started StreamingWsClientTest in 0.325 seconds (process running for 24.068)
+2026-10-28T21:32:35.109Z  INFO 77 --- [o-auto-2-exec-1] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-28T21:32:35.109Z  INFO 77 --- [o-auto-2-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-28T21:32:35.110Z  INFO 77 --- [o-auto-2-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-10-28T21:32:35.526Z  WARN 77 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-10-28T21:32:36.526Z  WARN 77 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-10-28T21:32:37.526Z  WARN 77 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-10-28T21:32:38.196Z DEBUG 77 --- [o-auto-2-exec-1] c.projectlog.streaming.LogSocketHandler  : mensaje no-contrato ignorado
+2026-10-28T21:32:38.526Z  WARN 77 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-10-28T21:32:38.696Z DEBUG 77 --- [o-auto-2-exec-2] c.projectlog.streaming.LogSocketHandler  : mensaje no-contrato ignorado
+2026-10-28T21:32:39.197Z DEBUG 77 --- [o-auto-2-exec-3] c.projectlog.streaming.LogSocketHandler  : mensaje no-contrato ignorado
+2026-10-28T21:32:39.526Z  WARN 77 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-10-28T21:32:39.700Z  WARN 77 --- [o-auto-2-exec-4] c.projectlog.streaming.LogSocketHandler  : set_filters inválido: filtros vigentes conservados
+2026-10-28T21:32:39.701Z  WARN 77 --- [o-auto-2-exec-5] c.projectlog.streaming.LogSocketHandler  : set_filters inválido: filtros vigentes conservados
+2026-10-28T21:32:39.703Z DEBUG 77 --- [o-auto-2-exec-6] c.projectlog.streaming.LogSocketHandler  : mensaje no-contrato ignorado
+2026-10-28T21:32:39.705Z DEBUG 77 --- [o-auto-2-exec-7] c.projectlog.streaming.LogSocketHandler  : mensaje no-contrato ignorado
+2026-10-28T21:32:39.706Z  WARN 77 --- [o-auto-2-exec-8] c.projectlog.streaming.LogSocketHandler  : set_filters inválido: filtros vigentes conservados
+2026-10-28T21:32:39.708Z DEBUG 77 --- [o-auto-2-exec-9] c.projectlog.streaming.LogSocketHandler  : mensaje no-contrato ignorado
+2026-10-28T21:32:39.709Z DEBUG 77 --- [-auto-2-exec-10] c.projectlog.streaming.LogSocketHandler  : mensaje no-contrato ignorado
+2026-10-28T21:32:40.526Z  WARN 77 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-10-28T21:32:41.526Z  WARN 77 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-10-28T21:32:42.526Z  WARN 77 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-10-28T21:32:43.526Z  WARN 77 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-10-28T21:32:43.837Z  WARN 77 --- [-auto-2-exec-10] c.p.streaming.JwtHandshakeInterceptor    : handshake WS rechazado
+2026-10-28T21:32:43.849Z  WARN 77 --- [o-auto-2-exec-2] c.p.streaming.JwtHandshakeInterceptor    : handshake WS rechazado
+2026-10-28T21:32:43.856Z  WARN 77 --- [o-auto-2-exec-5] c.p.streaming.JwtHandshakeInterceptor    : handshake WS rechazado
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.601 s -- in com.projectlog.streaming.StreamingWsClientTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 177, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  37.013 s
+[INFO] Finished at: 2026-10-28T21:32:44Z
+[INFO] ------------------------------------------------------------------------
+
+----------------------------------------------------------------
+SECCION 3/5: re-corrida qa_c8_smoke.sh — RAW verbatim (POST-bucle, parches aplicados SIN commit de parte)
+Comando: bash scripts/qa_c8_smoke.sh
+EXIT=0 | resumen: 24 marcas · 23 PASS · 0 FAIL · 1 BLOQUEADO (Q23 — MANUAL demo C9)
+----------------------------------------------------------------
+[pre] recomposición AUTOCONTENIDA (Q13): compose down -v || up -d --build
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+project_log_pgdata
+d6984009c2dd6ca4d3d03d9d98fd09697eb2ea2a203b54694fb78e5797d45c17
+project_log_project_log_net
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache f25794f206deb8c08ed58effd37b6d9d33236ea2f5eefb65881a51bb95ce9170
+--> f25794f206de
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 6d1c48c36dcc95990df87bf3842556aba8b3a4ed6df44301549dbe61ec16ae4c
+--> 6d1c48c36dcc
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache cc300d26634012bf087b9a45b3f1e6891095ccf2f605baa6c072424825e6f4db
+--> cc300d266340
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache 84528d0c2de1fe33307089555d18efa6f6cd440b8a4adab482bad76b0493f7b0
+--> 84528d0c2de1
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache f782dea0d1f4f06c5e79806499fc884677779706196fb6824f480f224e1b6119
+[2/2] COMMIT project_log_backend
+--> f782dea0d1f4
+Successfully tagged localhost/project_log_backend:latest
+f782dea0d1f4f06c5e79806499fc884677779706196fb6824f480f224e1b6119
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache c3d8320fa3cc84c217308e75a0d7fd7bdec8ea0ec4ea3a6edc284b22375d6ad9
+--> c3d8320fa3cc
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache fcf6877951ea1986bcf7068534a281b592c86f854bea728d691344aab99956b5
+--> fcf6877951ea
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 6c0121a62e41849f0f5c7cb5b7651574990b43516f57d0a47aeebdc8e2d08688
+--> 6c0121a62e41
+[1/2] STEP 5/6: COPY . .
+--> Using cache 60213f9940d98b34b48eaacfca80f10b3bcd165828f420dbeb5e6e310af4853d
+--> 60213f9940d9
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache d60666db03636c1e9c0cc5669f394cac3e09ebd8be4c368fe5e7be45d186d197
+--> d60666db0363
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 8092a1e50c6a45dccdfd2f4ab81d00561c18cf3abf911ecb52ebe290bb51e39c
+--> 8092a1e50c6a
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 0d5fee2fdad206e19b51833074efa8c806df370758a4f35a9f9c4de71f69b923
+--> 0d5fee2fdad2
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache e4511fca3de6de845a7959bb978676429fd1c887bb0006c8b7f9c6cbd9a7ff8f
+[2/2] COMMIT project_log_frontend
+--> e4511fca3de6
+Successfully tagged localhost/project_log_frontend:latest
+e4511fca3de6de845a7959bb978676429fd1c887bb0006c8b7f9c6cbd9a7ff8f
+6e59fc6843fb66d2279ffb4474ef45c2f3e9912ab6a7d319c9d79baf5c722592
+8d880b3cd641e5a80294d0f21cb0a6853ae5b11b59007d22ed5609d9cb2e4935
+b17d08067bca706b46a29ab3eb5b967a8caf58c3d7efb2ce5f4fdf5a9c6a6ef2
+e1efe7230c7b4a677c145b169cd682846718b206d061d76353523aa3ef468b42
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+[pre] healthy + login OK (higiene: JWT solo en /tmp/qa_c8_smoke.g9BuGR)
+[pre-fase] proyecto(1)+key+66 logs sembrados (higiene: key solo en /tmp/qa_c8_smoke.g9BuGR)
+== qa_c8_smoke ==
+[E8.6/E8.51] SPA: / y /logs/123 → 200 text/html, assets absolutos
+[E8.7/E8.19] login {token,username,expires_at}; /me 200 ADMIN; /me sin token 401 invalid_token
+[E8.14/E8.15] Bearer viaja; 401 por status (sin parseo, proxy no reescribe)
+[E8.48/E8.49] 401 panel (ó) e ingest (á): charset=UTF-8 + bytes multi, cero byte latin-1 aislado
+{"message":"Autenticación requerida","code":"invalid_token"}
+{"message":"API key de ingesta ausente o inválida","code":"api_key_invalid"}
+[E8.17/crud] POST duplicado → 409 name_duplicate; POST name vacío → 400 field_required field=name
+[E8.20/E8.24] GET /logs sin filtros → 50 + cursor; 2ª página acumula; fin null; cero duplicados
+[E8.23/E8.26] from con offset −03:00 OK; from>to → filter_from_to_inverted SIN field; level inválido → filter_invalid_value CON field=level
+[E8.39] GET /projects?include=summary → ProjectDto SIN summary
+[E8.43/E8.44] regenerate 201 {key,prefix,created_at}; revoke 204; has_key false; re-generar para el WS
+[E8.34/E8.36] GET /logs/{id} 11 campos (exception/metadata no nulos); 404 not_found
+[E8.41] PATCH status ARCHIVED → 200; ingest archivada 403 project_archived; ACTIVE → 200 (NUNCA DELETE)
+[E8.38/E8.47] DELETE panel (C10 inexistente + /error → cadena 3 denyAll) con X-Confirm-* formadas → 401 tal cual, §5 sin fingir éxito
+[E8.31] WS pre-upgrade: sin token→401; Origin ajeno→403; cuerpo VACÍO ambos
+[E8.27] WS: hs 101, set_filters aceptado, ingest → EXACTAMENTE 1 frame batch §3.5
+
+E8.6: PASS (assets absolutos, cero racha relativa)
+E8.51: PASS (fallback SPA /logs/123 → index.html)
+E8.7: PASS (orden literal {token,username,expires_at})
+E8.19: PASS (401 invalid_token sin token)
+E8.14: PASS (Bearer viaja; POST /me sin método → 401 tal cual (status íntegro por el proxy))
+E8.15: PASS (401 sin parseo de body (camino E8.14); 405-tolerante vía Vitest (405 HTML mock))
+E8.48: PASS (401 panel UTF-8: 0xC3 0xB3 sin 0xF3 aislado)
+E8.49: PASS (401 ingest UTF-8: 0xC3 0xA1 ('ausente o inválida'))
+E8.17: PASS (409 name_duplicate / 400 field_required(name) / detalle 200 SIN summary (canon C3))
+E8.20: PASS (defecto 50 items + next_cursor)
+E8.24: PASS (p50 + p16 disyuntas, next_cursor null = fin)
+E8.23: PASS
+E8.26: PASS
+E8.39: PASS
+E8.43: PASS (201 orden literal {key,prefix,created_at})
+E8.44: PASS (204 + has_key=false + prefix null)
+E8.34: PASS
+E8.36: PASS
+E8.41: PASS
+E8.38: PASS (DELETE /panel/logs → 401 tal cual (H-C8-B2), ficha intacta)
+E8.47: PASS (8a/8c sin DELETE: 401/401 + proyecto y log sobreviven)
+E8.31: PASS (401 pre-upgrade cuerpo VACÍO; 403 evil tal cual (canon E7.9: solo status))
+E8.27: PASS (1 frame batch byte-exacto §3.5 (5 claves, LogDto 11, b_+uuid único))
+Q23: BLOQUEADO (visual del panel (maquetas 01–05, guard, indicador, banda, modales 8a/8b/8c) = MANUAL con navegador para la demo C9 (cubren E8.1–E8.5, E8.8–E8.13, E8.22, E8.29, E8.30-b, E8.32, E8.35, E8.37-b, E8.40, E8.45, E8.46, E8.55))
+
+resumen: 24 marcas · 0 FAIL · 1 BLOQUEADO
+
+----------------------------------------------------------------
+SECCION 4/5: regresión qa_c3_smoke.sh — RAW verbatim (POST-D2)
+Comando: bash scripts/qa_c3_smoke.sh
+EXIT=1 | 23 PASS · 1 FAIL (E3.22) · AJENO-CLASIFICADO: las copias
+  /mockups/04|05 que este caso exige fueron BORRADAS por D2 (R8.54/D-C8-17,
+  aprobadas en el gate de C8) — premisa invalidada por design, no por bug.
+----------------------------------------------------------------
+===QA_C3
+[pre] recomposición única: podman compose up -d --build --force-recreate
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache f25794f206deb8c08ed58effd37b6d9d33236ea2f5eefb65881a51bb95ce9170
+--> f25794f206de
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 6d1c48c36dcc95990df87bf3842556aba8b3a4ed6df44301549dbe61ec16ae4c
+--> 6d1c48c36dcc
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache cc300d26634012bf087b9a45b3f1e6891095ccf2f605baa6c072424825e6f4db
+--> cc300d266340
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache 84528d0c2de1fe33307089555d18efa6f6cd440b8a4adab482bad76b0493f7b0
+--> 84528d0c2de1
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache f782dea0d1f4f06c5e79806499fc884677779706196fb6824f480f224e1b6119
+[2/2] COMMIT project_log_backend
+--> f782dea0d1f4
+Successfully tagged localhost/project_log_backend:latest
+f782dea0d1f4f06c5e79806499fc884677779706196fb6824f480f224e1b6119
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache c3d8320fa3cc84c217308e75a0d7fd7bdec8ea0ec4ea3a6edc284b22375d6ad9
+--> c3d8320fa3cc
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache fcf6877951ea1986bcf7068534a281b592c86f854bea728d691344aab99956b5
+--> fcf6877951ea
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 6c0121a62e41849f0f5c7cb5b7651574990b43516f57d0a47aeebdc8e2d08688
+--> 6c0121a62e41
+[1/2] STEP 5/6: COPY . .
+--> Using cache 60213f9940d98b34b48eaacfca80f10b3bcd165828f420dbeb5e6e310af4853d
+--> 60213f9940d9
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache d60666db03636c1e9c0cc5669f394cac3e09ebd8be4c368fe5e7be45d186d197
+--> d60666db0363
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 8092a1e50c6a45dccdfd2f4ab81d00561c18cf3abf911ecb52ebe290bb51e39c
+--> 8092a1e50c6a
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 0d5fee2fdad206e19b51833074efa8c806df370758a4f35a9f9c4de71f69b923
+--> 0d5fee2fdad2
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache e4511fca3de6de845a7959bb978676429fd1c887bb0006c8b7f9c6cbd9a7ff8f
+[2/2] COMMIT project_log_frontend
+--> e4511fca3de6
+Successfully tagged localhost/project_log_frontend:latest
+e4511fca3de6de845a7959bb978676429fd1c887bb0006c8b7f9c6cbd9a7ff8f
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+6e59fc6843fb66d2279ffb4474ef45c2f3e9912ab6a7d319c9d79baf5c722592
+project_log_project_log_net
+cc0d472dfc12b89670258d2ce4b6f06fb23aa56c4344774970bdbc60e98f5d4c
+c5691ccc09080dbc56f13bac611bd645e2ba276c2084424279b7a30db9d26d32
+e64ca7f2434aa3072f9c9fed1d94eadb4180c9e09f2860583260147a91acc77b
+744f7c45eb76cb177a0ecd68cc88b09225c89bf89d7a043f865b438540d4bb72
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+[pre] healthy + login OK (higiene: JWT solo en /tmp/qa_c3_smoke.TQF2yY)
+[... construcción de imágenes podman (cache) redactada del medio — RAW de fases y veredictos íntegro en las SECCIONES adyacentes ...]
+[pre] healthy + login OK (higiene: JWT solo en /tmp/qa_c3_smoke.TQF2yY)
+=== VEREDICTOS QA C3 (por ID del spec) ===
+E3.1: PASS
+E3.2: PASS
+E3.3: PASS
+E3.4: PASS
+E3.5: PASS
+E3.6: PASS
+E3.12: PASS
+E3.13: PASS
+E3.15: PASS
+E3.16: PASS
+E3.17: PASS
+E3.18: PASS
+E3.19: PASS
+E3.14: PASS
+E3.20: PASS
+E3.7: PASS
+E3.8: PASS
+E3.9: PASS
+E3.10: PASS
+E3.11: PASS
+E3.21: PASS
+E3.22: FAIL ( 04-sin-login 04-sin-fetch-projects 05-sin-fetch-ficha 05-sin-construccion-id 05-sin-patch-status)
+E3.23: PASS
+E3.24: PASS
+C3_EXIT=1
+===QA_C7
+
+----------------------------------------------------------------
+SECCION 5/5: regresión qa_c7_smoke.sh — RAW verbatim (POST-D2)
+Comando: bash scripts/qa_c7_smoke.sh
+EXIT=2 | los 9 casos E7.n PASS (E7.14 con nota R-7.k) · pre-fase
+  BLOQUEADO-CLASIFICADO: el caso exige /ws-console.html PUBLICADO (R7.30)
+  y D2 (R8.54/D-C8-17, aprobado) lo RETIRÓ — premisa invalidada por design.
+  La doble marca (BLOQUEADO + PASS por ID) es del guion C7 sin cambios:
+  el pre_fase marcó BLOQUEADO y el bucle de casos siguió y re-marcaron.
+----------------------------------------------------------------
+===QA_C7
+[pre] recomposición ÚNICA: podman compose up -d --build --force-recreate
+79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537
+[1/2] STEP 1/6: FROM node:22-alpine AS build
+[1/2] STEP 1/6: FROM maven:3.9-eclipse-temurin-21 AS build
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache afbd77e45abd21f6e7e4e603178cd67dc9f3443d497a64d855e10a6d87f537a0
+--> afbd77e45abd
+[1/2] STEP 3/6: COPY pom.xml .
+--> Using cache 5890d35be68e6d676c49054d442144d0d076b760368ef2c254d747aed264df24
+--> 5890d35be68e
+[1/2] STEP 4/6: RUN mvn -q -DskipTests dependency:go-offline
+--> Using cache d4a86ef443566f00fbac2592e4f8c9412c33af7a2c9ece5ea77d97dee60a45d0
+--> d4a86ef44356
+[1/2] STEP 5/6: COPY src ./src
+--> Using cache f25794f206deb8c08ed58effd37b6d9d33236ea2f5eefb65881a51bb95ce9170
+--> f25794f206de
+[1/2] STEP 6/6: RUN mvn -q -DskipTests package
+--> Using cache 6d1c48c36dcc95990df87bf3842556aba8b3a4ed6df44301549dbe61ec16ae4c
+--> 6d1c48c36dcc
+[2/2] STEP 1/5: FROM eclipse-temurin:21-jre
+[2/2] STEP 2/5: RUN apt-get update && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*
+--> Using cache a7cbd83fd87c8faab9e6d5cd8289ecdb6be596c0e06b817450d761e5598deca8
+--> a7cbd83fd87c
+[2/2] STEP 3/5: COPY --from=build /app/target/*.jar /app/app.jar
+--> Using cache cc300d26634012bf087b9a45b3f1e6891095ccf2f605baa6c072424825e6f4db
+--> cc300d266340
+[2/2] STEP 4/5: EXPOSE 8080
+--> Using cache 84528d0c2de1fe33307089555d18efa6f6cd440b8a4adab482bad76b0493f7b0
+--> 84528d0c2de1
+[2/2] STEP 5/5: ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+--> Using cache f782dea0d1f4f06c5e79806499fc884677779706196fb6824f480f224e1b6119
+[2/2] COMMIT project_log_backend
+--> f782dea0d1f4
+Successfully tagged localhost/project_log_backend:latest
+f782dea0d1f4f06c5e79806499fc884677779706196fb6824f480f224e1b6119
+[1/2] STEP 2/6: WORKDIR /app
+--> Using cache c3d8320fa3cc84c217308e75a0d7fd7bdec8ea0ec4ea3a6edc284b22375d6ad9
+--> c3d8320fa3cc
+[1/2] STEP 3/6: COPY package.json package-lock.json ./
+--> Using cache fcf6877951ea1986bcf7068534a281b592c86f854bea728d691344aab99956b5
+--> fcf6877951ea
+[1/2] STEP 4/6: RUN npm ci
+--> Using cache 6c0121a62e41849f0f5c7cb5b7651574990b43516f57d0a47aeebdc8e2d08688
+--> 6c0121a62e41
+[1/2] STEP 5/6: COPY . .
+--> Using cache 60213f9940d98b34b48eaacfca80f10b3bcd165828f420dbeb5e6e310af4853d
+--> 60213f9940d9
+[1/2] STEP 6/6: RUN npm run build
+--> Using cache d60666db03636c1e9c0cc5669f394cac3e09ebd8be4c368fe5e7be45d186d197
+--> d60666db0363
+[2/2] STEP 1/4: FROM nginx:stable-alpine
+[2/2] STEP 2/4: COPY nginx.conf /etc/nginx/conf.d/default.conf
+--> Using cache 8092a1e50c6a45dccdfd2f4ab81d00561c18cf3abf911ecb52ebe290bb51e39c
+--> 8092a1e50c6a
+[2/2] STEP 3/4: COPY --from=build /app/dist /usr/share/nginx/html
+--> Using cache 0d5fee2fdad206e19b51833074efa8c806df370758a4f35a9f9c4de71f69b923
+--> 0d5fee2fdad2
+[2/2] STEP 4/4: EXPOSE 80
+--> Using cache e4511fca3de6de845a7959bb978676429fd1c887bb0006c8b7f9c6cbd9a7ff8f
+[2/2] COMMIT project_log_frontend
+--> e4511fca3de6
+Successfully tagged localhost/project_log_frontend:latest
+e4511fca3de6de845a7959bb978676429fd1c887bb0006c8b7f9c6cbd9a7ff8f
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+project_log_frontend_1
+project_log_backend_1
+project_log_postgres_1
+cc0d472dfc12b89670258d2ce4b6f06fb23aa56c4344774970bdbc60e98f5d4c
+project_log_project_log_net
+8d9a6f8c53b254debbf19e37fcd53281bc4df173428991362f8ec61e49d06894
+6263ce0b4464c07bf68e07a04b82b4078ed5d329dc6b184db5eb6e3e0e02288a
+07d5ee349b38ad8aec6e6e219a3df53bd56fb4a9f2ddfcfe3e3378ad8ac8a6f7
+a64eeb498a78a1586a6349429c82ef2db8c475e5c1a9e84c5fb883a1db1f0d14
+project_log_postgres_1
+project_log_backend_1
+project_log_frontend_1
+[pre] healthy + login OK (higiene: JWT solo en /tmp/qa_c7_smoke.n1A8FR)
+[pre-fase] ws-console.html no publicado (200)
+=== VEREDICTOS QA C7 (por ID del spec) ===
+E7.1: BLOQUEADO (pre-fase fallida)
+E7.1: PASS
+E7.5: BLOQUEADO (pre-fase fallida)
+E7.5: PASS
+E7.6: BLOQUEADO (pre-fase fallida)
+E7.6: PASS
+E7.9: BLOQUEADO (pre-fase fallida)
+E7.9: PASS
+E7.10: BLOQUEADO (pre-fase fallida)
+E7.10: PASS
+E7.11: BLOQUEADO (pre-fase fallida)
+E7.11: PASS
+E7.14: BLOQUEADO (pre-fase fallida)
+E7.14: PASS (1013 no materializado en pila — cubierto por pareja [L] E7.13 (R-7.k; code=))
+E7.15: BLOQUEADO (pre-fase fallida)
+E7.15: PASS
+E7.17: BLOQUEADO (pre-fase fallida)
+E7.17: PASS
+C7_EXIT=2
+
+----------------------------------------------------------------
+SECCION 6/6: ws_echo_test.py SIN edición (superficie C1 intocable — E8.53)
+Comando: python3 scripts/ws_echo_test.py --solo-handshake --token <JWT> (higiene: token solo en shell efímero)
+EXIT=0
+----------------------------------------------------------------
