@@ -1,0 +1,41 @@
+[wrapper] corrida del arnés C9: python3 scripts/qa_vis_c9.py  (RAW → /home/acuelop369/Proyectos/Project_Log/.atl/sdd/C9/qa-log.txt)
+== arnés C9 qa_vis_c9 — Playwright sync, chromium headless ==
+
+== B0 · pre-comprobaciones (sin veredicto) ==
+[b0] GET / 200 (SPA servida por el proxy)
+[b0] GET /actuator/health = 200 (SPA-fallback del proxy — señal trivial, anotada)
+[b0] GET /api/v1/panel/me = 401 (backend vivo — señal de salud pineda, ver H-C9-SALUD)
+[b0] playwright 1.64.1 importable · binarios ms-playwright: chromium-1248, chromium_headless_shell-1248 · evento WS pinedo: 'framesent' (D-C9-15)
+[b0] evidencia dir: /home/acuelop369/Proyectos/Project_Log/.atl/sdd/C9/evidencia
+[b0] env cargado EN PROCESO (claves: ADMIN_INITIAL_USERNAME, ADMIN_INITIAL_PASSWORD — valores jamá a os.environ/argv/stdout)
+[b0] binario destructiva SOLO servicio backend: podman compose
+[guard] excepción global del arnés: TimeoutError: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "**/logs" until 'load'
+============================================================
+[check] E9.11 …
+E9.11: FAIL (sin parte (b) observada (ventana de kill no completada — defecto del arnés))
+
+== B8 · cierre (informe resumido + cifras RAW + residuo) ==
+[cifra] playwright 1.64.1 · chromium headless · BASE http://127.0.0.1:8080 · needles ts=20261029115239
+[cifra] peticiones/response logs: 0
+[cifra] peticiones/response projects: 0
+[cifra] peticiones/response me: 0
+[cifra] peticiones/response auth: 1×403
+[cifra] peticiones/response ingest: 0
+[cifra] requests totales observados: 4
+[cifra] WS: handshakes=0 · cierres=0 · set_filters enviados=0 · batches recibidos=0 · framesent observable=False · PLAN B aplicado=False
+[cifra] evidencia PNG en disco: 0 (NO commiteados — D-C9-12; listing + sha256 en qa-report)
+
+== RESIDUO de la siembra (R9.5.5 — NOTIFICADO, NO limpiado; la limpieza real son los DELETE de C10, jamá SQL desde C9) ==
+   · proyecto sembrado por UI: qa-c9-20261029115239-e45 (id None)
+   · logs sembrados: needles qa-c9-20261029115239-* (e35×60, e25, e16×3, e24×3, e17b...)
+   · key de ingesta del proyecto C9: ACTIVA en memoria del proceso y activa en la BD — nota de higiene local (entorno dev de una sola VM, citada en el qa-report); jamá impresa
+
+== VEREDICTOS E9 (orden por ID; el orden de corrida NO es el numérico — D-C9-8) ==
+E9.11: FAIL (sin parte (b) observada (ventana de kill no completada — defecto del arnés))
+
+resumen: 1 marcas · 1 FAIL · 0 BLOQUEADO
+[guard] límite EXACTO de G2 = 26 checks; marcados 1 (defecto del arnés — R9.6.1)
+[exit] 1
+[S16] grep del qa-log RAW: 0 hits de prefijos de credencial/token

@@ -159,15 +159,34 @@ C2→(1), C3→(2,13,14), C4→(3,4), C5→(5,6,7), C6→(8,9,10), C7→(11,12).
 - **Insumos:** UIUX v1.0 (V1–V11), maquetas = contrato visual, AppFlow §4/§5
   y flujos 2–5, Schema §3.3 (DTOs literales).
 
-### C9 — Demo + deploy + firewall (`estado: pendiente`)
+### C9 — Demo + deploy + firewall (`estado: hecho — Fase A+ B cerradas 2026-10-29; hallazgos → C10`)
 
 - **Alcance:** subida de la pila a la VM; firewall Proxmox con reglas
   nuevas (SSH desde LAN + 8080 — GATE #11); arranque en frío y reinicio de
   la VM verificados; demo de aceptación Fase 1 con app real del homelab.
+- **Hecho (2026-10-29):** Fase A — arnés Playwright headless
+  `scripts/qa_vis_c9.{py,sh}` con las 26 parejas MANUAL-Q23 + extras G2 +
+  3 criterios demo del 06 automatizados contra la PILA REAL (regla dura:
+  cero PASS sin pantalla observada): 21 PASS/PASS-CON-NOTA · 5 FAIL
+  honestos de producto (H-C9-WS-COLGADO, H-C9-E9.13 doble «?», H-C9-E9.2
+  guard-pierde-destino, H-C9-E9.10 frames set_filters — fichas en
+  `.atl/notes/`, parches en C10); Fase B — VM 108 «projectlog»
+  (192.168.1.58, IP estática fuera del pool DHCP), pila docker compose
+  v5.6.1 3/3 healthy, firewall nftables GATE #11 (SSH-LAN + 8080, orden
+  SSH-primero, boot-safe probado en frío y reinicio), `client_max_body_size
+  5m` con pareja CERO-413 (202 válido / 413 JSON del backend), smoke
+  canónico verde, S16 de fase limpio. Los 3 criterios demo: niv. navegador
+  en Fase A (1/2 PASS, 3 con el WS colgado FAIL honesto) + nivel REST/deploy
+  en la VM (verde, con el mismo límite WS anotado).
 - **Done cuando (del 06):** los 3 criterios de la demo pasan manualmente
   (batch de 3 en vivo sin refresco; ERROR/production→stacktrace en <2 min;
   kill del backend→banner+reconexión con backoff, sin duplicados ni replay)
-  y los smoke de backend y panel quedan automatizados.
+  y los smoke de backend y panel quedan automatizados. ← demo automatizada
+  y ejecutada; la reconexión WS post-restauración queda FAIL-documentada
+  (H-C9-WS-COLGADO → C10).
+- **Residuo C10:** 4 hallazgos de producto + H-C9-NGINX-UPSTREAM, UTF-8 del
+  413 (Latin-1), acotado arnés (arribo E9.2), VM 107 huérfana, re-siembra
+  opcional para demo del usuario.
 - **Insumos:** 06 (demo y riesgos), TRD §6.7 (firewall), AppFlow flujo 6.
 
 ### C10 — Fase 2: borrados, resumen, acceso remoto (`estado: pendiente`)

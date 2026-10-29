@@ -1,0 +1,320 @@
+[wrapper] corrida del arnés C9: python3 scripts/qa_vis_c9.py  (RAW → /home/acuelop369/Proyectos/Project_Log/.atl/sdd/C9/qa-log.txt)
+== arnés C9 qa_vis_c9 — Playwright sync, chromium headless ==
+
+== B0 · pre-comprobaciones (sin veredicto) ==
+[b0] GET / 200 (SPA servida por el proxy)
+[b0] GET /actuator/health = 200 (SPA-fallback del proxy — señal trivial, anotada)
+[b0] GET /api/v1/panel/me = 401 (backend vivo — señal de salud pineda, ver H-C9-SALUD)
+[b0] playwright 1.64.1 importable · binarios ms-playwright: chromium-1248, chromium_headless_shell-1248 · evento WS pinedo: 'framesent' (D-C9-15)
+[b0] evidencia dir: /home/acuelop369/Proyectos/Project_Log/.atl/sdd/C9/evidencia
+[b0] env cargado EN PROCESO (claves: ADMIN_INITIAL_USERNAME, ADMIN_INITIAL_PASSWORD — valores jamá a os.environ/argv/stdout)
+[b0] binario destructiva SOLO servicio backend: podman compose
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[run] login principal por UI (inputs + Entrar + **/logs)
+[check] E9.1 …
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[evidencia] E9.1_01_01_logs_ruta.png
+[pantalla] E9.1 · http://localhost:8080/proyectos/nuevo
+E9.1: PASS-CON-NOTA (9 rutas 1:1, sin 404 de servidor (respuesta index.html); / y /login con sesión aterrizan en /logs SIN pantalla propia)
+[check] E9.2 …
+[evidencia] E9.2_01_01_retorno_destino.png
+[pantalla] E9.2 · http://localhost:8080/logs
+E9.2: PASS-CON-NOTA (destino pinedo en vivo: /proyectos/99999999 (pathname; search vacío); durante la resolución SIN llamada /me — jamá 200 (semántica del guard C8 D4: sin token ⇒ anonimo sin /me; la mitad REST 401 de /me sin token ABSORBIDA por QP-8.15/8.48 según el qa-plan C8))
+[check] E9.3 …
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[evidencia] E9.3_01_02_token_basura_formulario.png
+[pantalla] E9.3 · http://localhost:8080/login
+E9.3: PASS-CON-NOTA (con sesión: /login redirige a /logs, formulario ausente (GET /me 200) · variante con token BASURA en storage (string corrupto, jamá un JWT real): 401 observado=False → token descartado (booleano interno) y formulario normal, sin crash/loop)
+[check] E9.4 …
+[evidencia] E9.4_01_01_404_panel.png
+[pantalla] E9.4 · http://localhost:8080/noexiste
+E9.4: PASS-CON-NOTA (literal 404 cosechado EN VIVO: '404 · Página no encontrada' + 'HTTP 404'; URL estable, jamá vacío)
+[check] E9.5 …
+[evidencia] E9.5_01_01_401_inline_limpio.png
+[pantalla] E9.5 · http://localhost:8080/login
+E9.5: PASS-CON-NOTA (401 del POST real; URL estable /login; vista no cerrada; campo culpable no revelado)
+[check] E9.6 …
+E9.6: FAIL (excepción del arnés: TimeoutError: Locator.inner_text: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("button[type=\"submit\"]")
+)
+[check] E9.7 …
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[evidencia] E9.7_01_01_restauro_logs.png
+E9.7: PASS-CON-NOTA (variante A (RECARGA de la pestaña con sesión — H-C9-E9.7A: sessionStorage es por-pestaña; la surface fiel al spec es la recarga, 'goto /logs equivalente a recarga' R9.2.7): proxy temporal t(/me) <= t(primer render protegido) — SIN captura por-frame de un flash (MATIZ declarado en spec §5) · variante B: BLOQUEADO honesto — emulación de storage bloqueado no resultó (AssertionError: panel funcional con storage bloqueado sin GET /panel/logs 200 con Bearer observado) — jamá falso PASS (R9.6.4); se cubre con la parte A)
+[check] E9.9 …
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[evidencia] E9.9_01_01_logs_pantalla_aserto.png
+E9.9: PASS-CON-NOTA (evaluate devolvió SOLO booleans/keys: token+expires_at en sessionStorage (shape interno verificado dentro del navegador), localStorage y cookies limpios — evidencia estructurada, sin screenshot de valores)
+[check] E9.8 …
+[evidencia] E9.8_01_01_login_final_limpio.png
+[pantalla] E9.8 · http://localhost:8080/login
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[run] E9.8/D-C9-10: 2.º login REAL por UI (la sesión principal quedó destruida por el logout del check)
+E9.8: PASS-CON-NOTA (logout local: URL→/login, storage limpio (booleanos), CERO requests de logout, CERO handshake WS post-click; 2.º login por UI a código (D-C9-10) para el resto de la corrida)
+[check] E9.10 …
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=140
+[ws] frame enviado · type=set_filters · len=140
+[ws] frame enviado · type=set_filters · len=140
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+E9.10: FAIL (frames sent set_filters: delta=3, forma 6 claves sin cursor=True)
+[check] E9.12 …
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[evidencia] E9.12_01_01_esqueleto.png
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=151
+[ws] frame enviado · type=set_filters · len=151
+[ws] frame enviado · type=set_filters · len=151
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=141
+[ws] frame enviado · type=set_filters · len=141
+[ws] frame enviado · type=set_filters · len=141
+[ws] frame enviado · type=set_filters · len=164
+[ws] frame enviado · type=set_filters · len=164
+[ws] frame enviado · type=set_filters · len=164
+[evidencia] E9.12_02_02_banner_400_from_to.png
+[pantalla] E9.12 · http://localhost:8080/logs?from=2026-10-28T00%3A00%3A00%2B01%3A00&to=2026-09-29T00%3A00%3A00%2B02%3A00
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+E9.12: PASS-CON-NOTA ((b) 'No hay logs que cumplan los filtros' + 'Prueba a reiniciar filtros o amplía el rango temporal' · (c) banner 400 'filter_from_to_inverted' + lista previa conservada (50 filas por timestamp|mensaje); vacío/esqueleto AUSENTES)
+[check] E9.15 …
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[evidencia] E9.15_01_01_url_level_invalido_normalizada.png
+[pantalla] E9.15 · http://localhost:8080/logs
+[ws] frame enviado · type=set_filters · len=118
+E9.15: PASS-CON-NOTA (( b ) H-C9-E9.15 — superficie DUAL: 400 con code=filter_invalid_value + field=level CONFIRMADO por API (superficie ratificada C8 de E8.26 — booleans S16); EN PANTALLA via ?level=PANICA el banner 400 NO APARECE POR DISEÑO (D-C8-6: la hidratación normaliza inválidos ⇒ null — sin crash, listado vivo): sub-aserto de pantalla field=level BLOQUEADO-anotado (R9.6.4), jamá fingido)
+[check] E9.21 …
+[evidencia] E9.21_01_01_aviso_201.png
+[pantalla] E9.21 · http://localhost:8080/proyectos/12
+E9.21: PASS-CON-NOTA (201 → ficha (id 12) + aviso literal exacto; proyecto C9 nacido por UI (DOBLE como semilla — R9.5.4/D-C9-9))
+[check] E9.19 …
+[evidencia] E9.19_01_01_tarjetas_maqueta_04.png
+[pantalla] E9.19 · http://localhost:8080/proyectos
+E9.19: PASS-CON-NOTA (tarjeta maqueta 04: STATUS 'Activo', name, description, api_y_prefijo visible + has_key, SIN bloque de resumen)
+[check] E9.20 …
+[evidencia] E9.20_01_01_ficha_maqueta_05.png
+[pantalla] E9.20 · http://localhost:8080/proyectos/12
+E9.20: PASS-CON-NOTA (ficha maqueta 05: bloque 'API key de ingesta' + has_key (sin key aún: prefijo '—' hasta el regenerate de E9.23) · variante 404: 'Este proyecto no existe (o fue eliminado)' + Volver)
+[check] E9.22 …
+[evidencia] E9.22_01_01_modal_8a_habilitado.png
+[evidencia] E9.22_02_02_modal_8c_habilitado.png
+E9.22: PASS-CON-NOTA (modales 8a/8c: deshabilitado bg-roja-300 → habilitado bg-roja-700 SOLO con nombre exacto (trim ok); CERO peticiones DELETE (los 3 DELETE reales son C10))
+[check] E9.23 …
+[evidencia] E9.23_01_01_revelacion_redactada.png
+[pantalla] E9.23 · http://localhost:8080/proyectos/12
+E9.23: PASS-CON-NOTA (regenerate 201 → revelación ÚNICA con aviso literal + Copiar (G3: presencia/habilitación); key matcheada por BOOLEANO interno; shot con overlay REDACTADO; tras cerrar SOLO prefijo corto + has_key)
+[check] E9.14 …
+E9.14: FAIL (CTA no aterrizó en el formulario real)
+
+== B5 · semillas/ingesta (sin veredicto propio) ==
+[cifra] ingesta batch: HTTP 202 · accepted=60 de 60 (X-API-Key en memoria, jamá impresa)
+[cifra] ingesta batch: HTTP 202 · accepted=1 de 1 (X-API-Key en memoria, jamá impresa)
+[cifra] ingesta batch: HTTP 202 · accepted=1 de 1 (X-API-Key en memoria, jamá impresa)
+[cifra] semillas en memoria: e35×60 · e25×1 (ERROR/production + exception+correlation) · e17b×1 (sin exception)
+[check] E9.13 …
+[ws] frame enviado · type=set_filters · len=140
+[ws] frame enviado · type=set_filters · len=140
+[ws] frame enviado · type=set_filters · len=140
+[ws] frame enviado · type=set_filters · len=140
+[ws] frame enviado · type=set_filters · len=140
+[evidencia] E9.13_01_01_acumulado_60.png
+E9.13: FAIL (excepción del arnés: RuntimeError: la query del detalle NO está intacta (http://localhost:8080/logs/320??text=qa-c9-20261029124016-e35))
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[nota] E9.13 F5 acumulado limpio: filas=50 cursor_disponible=True
+[check] E9.16 …
+[ws] frame enviado · type=set_filters · len=118
+[cifra] ingesta batch: HTTP 202 · accepted=3 de 3 (X-API-Key en memoria, jamá impresa)
+[ws] frame recibido · type=batch · len=911
+[ws] frame enviado · type=set_filters · len=118
+[evidencia] E9.16_01_01_banda_grupo_lote.png
+[pantalla] E9.16 · http://localhost:8080/logs
+E9.16: PASS-CON-NOTA (banda '● En vivo' con batch_id (b_+uuid del frame) · 3 logs del lote al comienzo (orden observado: ['n03', 'n02', 'n01']), SIN refetch (0 GET /panel/logs) e indicador sigue Conectado)
+[check] E9.24 …
+[evidencia] E9.24_01_01_antes.png
+[cifra] ingesta batch: HTTP 202 · accepted=3 de 3 (X-API-Key en memoria, jamá impresa)
+[ws] frame recibido · type=batch · len=911
+[ws] frame enviado · type=set_filters · len=118
+[evidencia] E9.24_02_02_despues_grupo.png
+[pantalla] E9.24 · http://localhost:8080/logs
+E9.24: PASS-CON-NOTA (CRITERIO 1 del 06: la app del homelab se SUSTITUYE por ingesta REST programática (misma superficie POST /ingest/batch, 202 {accepted:3}) — grupo en banda En vivo sin refresco e indicador Conectado; screenshots antes/después)
+[check] E9.11 …
+[evidencia] E9.11_01_01_conectado.png
+[check] E9.17 …
+[ws] frame enviado · type=set_filters · len=140
+[ws] frame enviado · type=set_filters · len=140
+[ws] frame enviado · type=set_filters · len=140
+[evidencia] E9.17_01_01_bloques_con_exception.png
+[pantalla] E9.17 · http://localhost:8080/logs/321??text=qa-c9-20261029124016-e25
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=141
+[ws] frame enviado · type=set_filters · len=141
+[ws] frame enviado · type=set_filters · len=141
+E9.17: PASS-CON-NOTA (bloques CON datos: 'EXCEPCIÓN Y STACKTRACE' (literal cosechado en vivo) + 'Metadata (jsonb)' + <pre> con el needle del stacktrace + correlation copiable (Copiar ×True presencia/habilitación — G3) · log SIN exception/metadata: bloques AUSENTES (ocultos) + message presente; cabecera dt maqueta 03 (Level/Environment/Proyecto/Source/Timestamp/Received_at/Id/Correlation))
+[check] E9.18 …
+[evidencia] E9.18_01_01_404_detalle.png
+[pantalla] E9.18 · http://localhost:8080/logs/99999999
+E9.18: PASS
+[check] E9.25 …
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=121
+[ws] frame enviado · type=set_filters · len=121
+[ws] frame enviado · type=set_filters · len=129
+[ws] frame enviado · type=set_filters · len=129
+[evidencia] E9.25_01_01_criterio2_cronometro.png
+E9.25: PASS-CON-NOTA (CRITERIO 2: filters→detalle con <pre> del stacktrace needle en 0.6 s (< 120 s, monotonic); contenido EXACTO sembrado visible)
+[evidencia] E9.11_01_02_proyectos_sin_indicador.png
+
+== B7 · fase destructiva (Última — ventana ÚNICA de kill, D-C9-5) ==
+[check] E9.26 …
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[evidencia] E9.26_01_01_pre_caída.png
+[cifra] pre-caída: 50 filas · set_filters acumulados 23 · handshakes 16
+[kill] docker/podman compose stop backend — ventana ÚNICA (R9.1.5/D-C9-5; JAMÁS down -v ni postgres)
+[kill] compose stop backend → rc=0 (m>>>> Executing external compose provider "/home/acuelop369/.local/bin/podman-compose". Please see podman-compose(1) for how to disable this message. <<<<
+
+[0m)
+[evidencia] E9.26_02_02_banner_caída.png
+[cifra] caída: banner=True intentos=[1] lista_persiste=True
+[kill] restauración: compose up -d backend (try/finally + bucle health 180 s)
+[kill] compose up -d backend → rc=0 (m>>>> Executing external compose provider "/home/acuelop369/.local/bin/podman-compose". Please see podman-compose(1) for how to disable this message. <<<<
+
+[0m)
+[health] pila sigue insana vía 8080 tras 20 s — recreando SOLO el proxy frontend (up -d --force-recreate frontend; JAMÁS down, jamá postgres) — upstream nginx cacheado ver H-C9-NGINX-UPSTREAM
+[health] recreate frontend → rc=0
+[health] backend vivo (/api/v1/panel/me 401) tras 60 s — ventana 180 s (ver H-C9-SALUD)
+[cifra] post: conectado=False banner_fuera=False delta_set_filters=0 delta_handshakes=0 refetch=0 delta_batch=0 unicos=True delta0=True
+E9.26: FAIL (el indicador NO volvió a Conectado tras restaurar (health 180 s ya en verde))
+[check] E9.11 …
+E9.11: FAIL ('Reconectando (intento N)…' con N creciente no observado (intentos: [1]))
+
+== B8 · cierre (informe resumido + cifras RAW + residuo) ==
+[cifra] playwright 1.64.1 · chromium headless · BASE http://localhost:8080 · needles ts=20261029124016
+[cifra] peticiones/response logs: 10×200, 1×404
+[cifra] peticiones/response projects: 8×200
+[cifra] peticiones/response me: 5×200
+[cifra] peticiones/response auth: 0
+[cifra] peticiones/response ingest: 0
+[cifra] requests totales observados: 39
+[cifra] WS: handshakes=16 · cierres=5 · set_filters enviados=23 · batches recibidos=2 · framesent observable=True · PLAN B aplicado=False
+[cifra] evidencia PNG en disco: 30 (NO commiteados — D-C9-12; listing + sha256 en qa-report)
+   - E9.11_01_01_conectado.png
+   - E9.11_01_02_proyectos_sin_indicador.png
+   - E9.12_01_01_esqueleto.png
+   - E9.12_02_02_banner_400_from_to.png
+   - E9.13_01_01_acumulado_60.png
+   - E9.14_01_02_cta_navegada_real.png
+   - E9.15_01_01_url_level_invalido_normalizada.png
+   - E9.16_01_01_banda_grupo_lote.png
+   - E9.17_01_01_bloques_con_exception.png
+   - E9.18_01_01_404_detalle.png
+   - E9.19_01_01_tarjetas_maqueta_04.png
+   - E9.1_01_01_logs_ruta.png
+   - E9.20_01_01_ficha_maqueta_05.png
+   - E9.21_01_01_aviso_201.png
+   - E9.22_01_01_modal_8a_habilitado.png
+   - E9.22_02_02_modal_8c_habilitado.png
+   - E9.23_01_01_revelacion_redactada.png
+   - E9.24_01_01_antes.png
+   - E9.24_02_02_despues_grupo.png
+   - E9.25_01_01_criterio2_cronometro.png
+   - E9.26_01_01_pre_caída.png
+   - E9.26_02_02_banner_caída.png
+   - E9.2_01_01_retorno_destino.png
+   - E9.3_01_02_token_basura_formulario.png
+   - E9.4_01_01_404_panel.png
+   - E9.5_01_01_401_inline_limpio.png
+   - E9.6_01_01_enviando_deshabilitado.png
+   - E9.7_01_01_restauro_logs.png
+   - E9.8_01_01_login_final_limpio.png
+   - E9.9_01_01_logs_pantalla_aserto.png
+
+== RESIDUO de la siembra (R9.5.5 — NOTIFICADO, NO limpiado; la limpieza real son los DELETE de C10, jamá SQL desde C9) ==
+   · proyecto sembrado por UI: qa-c9-20261029124016-e45 (id 12)
+   · logs sembrados: needles qa-c9-20261029124016-* (e35×60, e25, e16×3, e24×3, e17b...)
+   · key de ingesta del proyecto C9: ACTIVA en memoria del proceso y activa en la BD — nota de higiene local (entorno dev de una sola VM, citada en el qa-report); jamá impresa
+
+== VEREDICTOS E9 (orden por ID; el orden de corrida NO es el numérico — D-C9-8) ==
+E9.1: PASS-CON-NOTA (9 rutas 1:1, sin 404 de servidor (respuesta index.html); / y /login con sesión aterrizan en /logs SIN pantalla propia)
+E9.2: PASS-CON-NOTA (destino pinedo en vivo: /proyectos/99999999 (pathname; search vacío); durante la resolución SIN llamada /me — jamá 200 (semántica del guard C8 D4: sin token ⇒ anonimo sin /me; la mitad REST 401 de /me sin token ABSORBIDA por QP-8.15/8.48 según el qa-plan C8))
+E9.3: PASS-CON-NOTA (con sesión: /login redirige a /logs, formulario ausente (GET /me 200) · variante con token BASURA en storage (string corrupto, jamá un JWT real): 401 observado=False → token descartado (booleano interno) y formulario normal, sin crash/loop)
+E9.4: PASS-CON-NOTA (literal 404 cosechado EN VIVO: '404 · Página no encontrada' + 'HTTP 404'; URL estable, jamá vacío)
+E9.5: PASS-CON-NOTA (401 del POST real; URL estable /login; vista no cerrada; campo culpable no revelado)
+E9.6: FAIL (excepción del arnés: TimeoutError: Locator.inner_text: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("button[type=\"submit\"]")
+)
+E9.7: PASS-CON-NOTA (variante A (RECARGA de la pestaña con sesión — H-C9-E9.7A: sessionStorage es por-pestaña; la surface fiel al spec es la recarga, 'goto /logs equivalente a recarga' R9.2.7): proxy temporal t(/me) <= t(primer render protegido) — SIN captura por-frame de un flash (MATIZ declarado en spec §5) · variante B: BLOQUEADO honesto — emulación de storage bloqueado no resultó (AssertionError: panel funcional con storage bloqueado sin GET /panel/logs 200 con Bearer observado) — jamá falso PASS (R9.6.4); se cubre con la parte A)
+E9.8: PASS-CON-NOTA (logout local: URL→/login, storage limpio (booleanos), CERO requests de logout, CERO handshake WS post-click; 2.º login por UI a código (D-C9-10) para el resto de la corrida)
+E9.9: PASS-CON-NOTA (evaluate devolvió SOLO booleans/keys: token+expires_at en sessionStorage (shape interno verificado dentro del navegador), localStorage y cookies limpios — evidencia estructurada, sin screenshot de valores)
+E9.10: FAIL (frames sent set_filters: delta=3, forma 6 claves sin cursor=True)
+E9.11: FAIL ('Reconectando (intento N)…' con N creciente no observado (intentos: [1]))
+E9.12: PASS-CON-NOTA ((b) 'No hay logs que cumplan los filtros' + 'Prueba a reiniciar filtros o amplía el rango temporal' · (c) banner 400 'filter_from_to_inverted' + lista previa conservada (50 filas por timestamp|mensaje); vacío/esqueleto AUSENTES)
+E9.13: FAIL (excepción del arnés: RuntimeError: la query del detalle NO está intacta (http://localhost:8080/logs/320??text=qa-c9-20261029124016-e35))
+E9.14: FAIL (CTA no aterrizó en el formulario real)
+E9.15: PASS-CON-NOTA (( b ) H-C9-E9.15 — superficie DUAL: 400 con code=filter_invalid_value + field=level CONFIRMADO por API (superficie ratificada C8 de E8.26 — booleans S16); EN PANTALLA via ?level=PANICA el banner 400 NO APARECE POR DISEÑO (D-C8-6: la hidratación normaliza inválidos ⇒ null — sin crash, listado vivo): sub-aserto de pantalla field=level BLOQUEADO-anotado (R9.6.4), jamá fingido)
+E9.16: PASS-CON-NOTA (banda '● En vivo' con batch_id (b_+uuid del frame) · 3 logs del lote al comienzo (orden observado: ['n03', 'n02', 'n01']), SIN refetch (0 GET /panel/logs) e indicador sigue Conectado)
+E9.17: PASS-CON-NOTA (bloques CON datos: 'EXCEPCIÓN Y STACKTRACE' (literal cosechado en vivo) + 'Metadata (jsonb)' + <pre> con el needle del stacktrace + correlation copiable (Copiar ×True presencia/habilitación — G3) · log SIN exception/metadata: bloques AUSENTES (ocultos) + message presente; cabecera dt maqueta 03 (Level/Environment/Proyecto/Source/Timestamp/Received_at/Id/Correlation))
+E9.18: PASS
+E9.19: PASS-CON-NOTA (tarjeta maqueta 04: STATUS 'Activo', name, description, api_y_prefijo visible + has_key, SIN bloque de resumen)
+E9.20: PASS-CON-NOTA (ficha maqueta 05: bloque 'API key de ingesta' + has_key (sin key aún: prefijo '—' hasta el regenerate de E9.23) · variante 404: 'Este proyecto no existe (o fue eliminado)' + Volver)
+E9.21: PASS-CON-NOTA (201 → ficha (id 12) + aviso literal exacto; proyecto C9 nacido por UI (DOBLE como semilla — R9.5.4/D-C9-9))
+E9.22: PASS-CON-NOTA (modales 8a/8c: deshabilitado bg-roja-300 → habilitado bg-roja-700 SOLO con nombre exacto (trim ok); CERO peticiones DELETE (los 3 DELETE reales son C10))
+E9.23: PASS-CON-NOTA (regenerate 201 → revelación ÚNICA con aviso literal + Copiar (G3: presencia/habilitación); key matcheada por BOOLEANO interno; shot con overlay REDACTADO; tras cerrar SOLO prefijo corto + has_key)
+E9.24: PASS-CON-NOTA (CRITERIO 1 del 06: la app del homelab se SUSTITUYE por ingesta REST programática (misma superficie POST /ingest/batch, 202 {accepted:3}) — grupo en banda En vivo sin refresco e indicador Conectado; screenshots antes/después)
+E9.25: PASS-CON-NOTA (CRITERIO 2: filters→detalle con <pre> del stacktrace needle en 0.6 s (< 120 s, monotonic); contenido EXACTO sembrado visible)
+E9.26: FAIL (el indicador NO volvió a Conectado tras restaurar (health 180 s ya en verde))
+
+resumen: 26 marcas · 6 FAIL · 1 BLOQUEADO
+[exit] 1
+[S16] grep del qa-log RAW: 0 hits de prefijos de credencial/token
