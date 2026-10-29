@@ -2075,7 +2075,12 @@ def b6(page, cont: Contadores, wsc: WsContador) -> None:
             raise RuntimeError(
                 f"ingesta del lote de 3 fallida: HTTP {estado}")
         grupo_ok = esperarQue(
-            lambda: bandaEnVivoTexto(page).count("En vivo") > 0
+            # H-C9-UPPERCASE (repro e916 de corrida 4 — defecto del arnés):
+            # el span «● En vivo» se renderiza EN MAYÚSCULAS por CSS
+            # (class="uppercase" — BandaEnVivo.tsx) y innerText devuelve el
+            # texto TRANSFORMADO («● EN VIVO») ⇒ el conteo case-sensitivo
+            # daba siempre 0 aunque banda/batch/literal existieran.
+            lambda: "en vivo" in bandaEnVivoTexto(page).lower()
             and "· 3 logs ·" in bandaEnVivoTexto(page),
             page, timeout_s=15)
         # 3 filas del lote EN el orden del envío, al comienzo:
