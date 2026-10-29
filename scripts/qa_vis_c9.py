@@ -56,7 +56,12 @@ from typing import Callable, Optional
 RAIZ = Path(__file__).resolve().parents[1]
 DIR_QA = RAIZ / ".atl" / "sdd" / "C9"
 DIR_EVID = DIR_QA / "evidencia"
-BASE = "http://127.0.0.1:8080"          # ÚNICO puerto del host (ADR-24)
+# H-C9-CORS (defecto del arnés detectado en corrida 1 — R9.6.3/T9.14): la
+# BASE 127.0.0.1:8080 dispara preflight CORS → 403 "Invalid CORS request"
+# (el allowlist del backend solo admite http://localhost:8080 — CorsConfig
+# G1, TRD §5) y el POST de login JAMÁS sale del navegador. localhost:8080
+# es la base canónica de las tareas T9.1 (`127.0.0.1`/`localhost` a elección).
+BASE = "http://localhost:8080"          # ÚNICO puerto del host (ADR-24)
 RUTA_ENV = RAIZ / ".env"
 RUTA_COMPOSE = RAIZ / "compose.yaml"
 
@@ -482,6 +487,14 @@ def vaciarInputsLogin(page, vaciado: bool = True) -> None:
         page.fill("#pass", "")
 
 
+def botonReiniciar(page):
+    """H-C9-REINICIAR (corrida 2 — defecto del arnés): `has_text` es
+    SUBSTRING y matchea DOS botones (el del formulario 'Reiniciar' y el del
+    estado vacío 'Reiniciar filtros') ⇒ strict mode violation. El check del
+    contrato (R9.2.10 R9.3.x) es el del FORMULARIO: nombre EXACTO."""
+    return page.get_by_role("button", name="Reiniciar", exact=True)
+
+
 # ────────────────────────────────────────────────────────────────────────────
 # Sección (d) — snapshot SEMÁNTICO (D-C9-2: literales+roles+clases; píxeles NO)
 # ────────────────────────────────────────────────────────────────────────────
@@ -604,6 +617,17 @@ class Contadores:
 
     def marcaIndice(self) -> int:
         return len(self.responses)
+
+    def marcaIndiceRequests(self) -> int:
+        """H-C9-MARCA (corrida 3 — defecto del arnés): marcaIndice() daba
+        len(self.responses) pero reqCon() rebanaba self.requests — DOS listas
+        de longitudes distintas (responses solo matchea los PATRONES de /api/;
+        requests acumula TODOS los recursos). El índice prestado incluía
+        requests de ventanas anteriores (p. ej. el GET ?cursor= de 'Cargar
+        más' contaminaba la ventana de Reiniciar en E9.10 → 'GET sin
+        parámetros=False' falso). Las ventanas sobre `requests` DEBEN nacer
+        de len(self.requests); las de `responses`, de marcaIndice()."""
+        return len(self.requests)
 
 
 class WsContador:
@@ -731,7 +755,8 @@ def contextoStorageBloqueado(browser) -> tuple:
 # Sección (g) — intercepts: SOLO DATOS simulados (D-C9-3), pila real lo demás
 # ────────────────────────────────────────────────────────────────────────────
 
-def interceptar(page, patron_glob: str, respuesta: Optional[dict] = None,
+def interceptar(page, patron_glob: str,
+                respuesta: Optional[Union[dict, list]] = None,
                 retardo: float = 0.0, limite: int = 1) -> dict:
     """Envoltura de page.route con uso RESTRICTO (D-C9-3):
       · con `respuesta` (json) → route.fulfill (solo E9.14: DATOS simulados
@@ -847,6 +872,7 @@ def levantarBackend() -> None:
 
 def bucleHealth(segundos: int = 180) -> None:
     t0 = time.monotonic()
+    front_recreado = False
     while time.monotonic() - t0 < segundos:
         estado, _ = httpGet(SALUD_BACKEND, timeout=5.0)
         if estado == 401:
@@ -854,6 +880,24 @@ def bucleHealth(segundos: int = 180) -> None:
                   f"{time.monotonic() - t0:.0f} s — ventana 180 s (ver "
                   "H-C9-SALUD)", flush=True)
             return
+        # H-C9-NGINX-UPSTREAM (corrida 3): `proxy_pass http://backend:8080`
+        # RESUELVE el upstream UNA VEZ al arrancar el contenedor (sin
+        # `resolver` en nginx.conf) — si el finally recreó SOLO el backend
+        # (nueva IP), el frontend sigue 502 de TODO /api/v1 aunque el Spring
+        # ya esté vivo vía su IP nueva. Remedio de RESTAURACIÓN del arnés
+        # (jamon down, jamón data): recrear SOLO el contenedor frontend —
+        # una vez, tras un grace de 20 s — y seguir el bucle.
+        if (not front_recreado
+                and time.monotonic() - t0 >= 20.0):
+            front_recreado = True
+            print("[health] pila sigue insana vía 8080 tras 20 s — "
+                  "recreando SOLO el proxy frontend (up -d "
+                  "--force-recreate frontend; JAMÁS down, jamá postgres) "
+                  "— upstream nginx cacheado ver H-C9-NGINX-UPSTREAM",
+                  flush=True)
+            rc = _compose(["up", "-d", "--force-recreate", "frontend"])
+            print(f"[health] recreate frontend → rc={rc.returncode}",
+                  flush=True)
         time.sleep(3.0)
     print("\n!!!! PILOTO CAÍDO — restauración del backend fallida "
           f"({segundos} s) !!!!", flush=True)
@@ -947,8 +991,24 @@ def b1(browser, usuario: str, password: str, cont: Contadores,
         page2.goto(BASE + "/proyectos/99999999", wait_until="domcontentloaded")
         page2.wait_for_url("**/login", timeout=15000)
         page2.wait_for_timeout(400)
-        if cont2.respCuenta("me", 401) < 1:
-            fail(p.id, "el guard no consultó GET /panel/me con 401")
+        # H-C9-E9.2 (corrida 2 — defecto del arnés, NO del producto): la
+        # sobre-aserción "el guard consultó GET /panel/me con 401" contradice
+        # el contrato C8 de sesión (D4/`useLogicaSesion`: token ABSENTE ⇒
+        # `anonimo` SIN llamada a /me — R8.10/E8.10) y el propio qa-plan C8
+        # (QP-8.2 nota: "mitad REST (`/me` sin token → 401) ABSORBIDA por
+        # QP-8.15/QP-8.48 [S]"). Se aserta la pareja visual (R9.2.2):
+        # (a) si alguna llamada /me hubo, fue 401; (b) jamá 200 durante la
+        # resolución; (c) NINGÚN render protegido + destino recordado.
+        hubo_me200 = cont2.respCuenta("me", 200) != 0
+        total_me = cont2.respCuenta("me")
+        me_401 = cont2.respCuenta("me", 401)
+        hubo_me = total_me > 0
+        if hubo_me200:
+            fail(p.id, "hubo GET /panel/me con 200 durante el guard "
+                       "sin token (semántica rota)")
+        elif hubo_me and me_401 < total_me:
+            fail(p.id, "hubo GET /panel/me con estatus distinto de 401 "
+                       "durante el guard sin token")
         elif not page2.evaluate(
                 "() => { try { return window.sessionStorage.getItem"
                 "('projectlog.panel.destino') === '/proyectos/99999999'; }"
@@ -957,13 +1017,16 @@ def b1(browser, usuario: str, password: str, cont: Contadores,
                        "(projectlog.panel.destino)")
         else:
             # en el aterrizaje en /login el GUARD ya resolvió sin renderizar
-            # contenido protegido (proxy: /me 401 ANTES de la redirección —
-            # mismo patrón temporal que la parte A de E9.7):
-            if cont2.respCuenta("me", 200) != 0:
-                fail(p.id, "hubo GET /panel/me con 200 durante el guard "
-                           "sin token (semántica rota)")
-            conNota(p, "destino pinedo en vivo: /proyectos/99999999 "
-                       "(pathname; search vacío)")
+            # contenido protegido (con token ausente el hook de sesión va a
+            # `anonimo` SIN llamar /me — contrato C8 D4; si la app llamara
+            # /me, el aserto previo exige 401 tal cual R9.2.2):
+            n_me_cero = "SIN llamada /me" if not hubo_me else "/me 401 (t) "
+            conNota(p, f"destino pinedo en vivo: /proyectos/99999999 "
+                       "(pathname; search vacío); durante la resolución "
+                       f"{n_me_cero} — jamá 200 (semántica del guard C8 D4: "
+                       "sin token ⇒ anonimo sin /me; la mitad REST 401 de "
+                       "/me sin token ABSORBIDA por QP-8.15/8.48 según el "
+                       "qa-plan C8)")
             # login → regreso al destino cumplido:
             page2.fill("#user", usuario)
             page2.fill("#pass", password)
@@ -1133,24 +1196,30 @@ def b1(browser, usuario: str, password: str, cont: Contadores,
     ctx7b = None
     t_me: list[float] = []
     try:
-        # variante A: página NUEVA del MISMO contexto (storage vivo)
-        page_nueva = ctx.new_page()
+        # variante A: "nueva página del mismo contexto (goto /logs,
+        # equivalente a recarga)" — H-C9-E9.7A (defecto del arnés en corrida
+        # 2): sessionStorage es POR-PESTAÑA en el estándar del navegador y
+        # ctx.new_page() NO hereda sesión (aterriza en /login — repro
+        # aislado). La superficie fiel al spec es la RECARGA de la pestaña
+        # CON sesión (goto de la MISMA page = equivalente a recarga):
+        # t(/me) <= t(primer render protegido).
+        page7a = page
         cont7: Contadores = Contadores()
-        cont7.adjuntar(page_nueva)
-        page_nueva.on("response", lambda r: t_me.append(time.monotonic())
-                      if "/api/v1/panel/me" in r.url else None)
-        page_nueva.goto(BASE + "/logs", wait_until="domcontentloaded")
-        page_nueva.wait_for_selector("table", timeout=20000)
+        cont7.adjuntar(page7a)
+        page7a.on("response", lambda r: t_me.append(time.monotonic())
+                  if "/api/v1/panel/me" in r.url else None)
+        page7a.goto(BASE + "/logs", wait_until="domcontentloaded")
+        page7a.wait_for_selector("table", timeout=20000)
         t_render = time.monotonic()
         ok_orden = bool(t_me) and t_me[-1] <= t_render
-        ok_user = page_nueva.evaluate(
+        ok_user = page7a.evaluate(
             "([u]) => { const h = document.querySelector('header');"
             " return h !== null && h !== undefined && h.innerText.indexOf(u)"
             " !== -1; }", [usuario])
         sin_form = esperarQue(
-            lambda: page_nueva.get_by_text("Iniciar sesión",
-                                           exact=False).count() == 0,
-            page_nueva, timeout_s=1.5, intervalo_ms=100)
+            lambda: page7a.get_by_text("Iniciar sesión",
+                                       exact=False).count() == 0,
+            page7a, timeout_s=1.5, intervalo_ms=100)
         if not ok_orden:
             fail(p.id, "/panel/me NO llego antes del primer render "
                        "protegido (proxy temporal)")
@@ -1158,12 +1227,14 @@ def b1(browser, usuario: str, password: str, cont: Contadores,
             fail(p.id, f"username en barra={ok_user}; formulario jamá "
                        f"visible={sin_form}")
         else:
-            conNota(p, "variante A: proxy temporal t(/me) <= t(primer "
-                       "render protegido) — SIN captura por-frame de un "
-                       "flash (MATIZ declarado en spec §5)")
-            shot(p, page_nueva, "01_restauro_logs")
+            conNota(p, "variante A (RECARGA de la pestaña con sesión — "
+                       "H-C9-E9.7A: sessionStorage es por-pestaña; la "
+                       "surface fiel al spec es la recarga, 'goto /logs "
+                       "equivalente a recarga' R9.2.7): proxy temporal "
+                       "t(/me) <= t(primer render protegido) — SIN captura "
+                       "por-frame de un flash (MATIZ declarado en spec §5)")
+            shot(p, page7a, "01_restauro_logs")
             p.pantalla_vista = True
-        page_nueva.close()
 
         # variante B: storage bloqueado (fallback a memoria del hook)
         ctx7b, page7b = contextoStorageBloqueado(browser)
@@ -1264,7 +1335,7 @@ def b2(ctx, page, cont: Contadores, wsc: WsContador, usuario: str,
     # re-login inmediato por UI (D-C9-10) ───
     p = pareja("E9.8")
     try:
-        indice_req = cont.marcaIndice()
+        indice_req = cont.marcaIndiceRequests()
         handshakes_antes = wsc.on
         page.locator("button", has_text="Cerrar sesión").click()
         page.wait_for_url("**/login", timeout=15000)
@@ -1276,12 +1347,15 @@ def b2(ctx, page, cont: Contadores, wsc: WsContador, usuario: str,
             "    token_fuera: s.getItem('projectlog.panel.token') === null,"
             "    expira_fuera: s.getItem('projectlog.panel.expires_at')"
             "      === null,"
-            "    sin_destino: s.getItem('projectlog.panel.destino')"
-            "      === null,"
             "    ls_limpio: Object.keys(l).every(k => k.indexOf("
             "'projectlog.panel') !== -1 ? false : true)"
             "  };"
             "}")
+        # H-C9-E9.8 (corrida 2 — defecto del arnés, NO del producto): la
+        # clave `projectlog.panel.destino` NO forma parte del contrato de
+        # logout R9.2.8 (literal: token/expires_at ausentes) — la app la
+        # REGRABA en el efecto de `anonimo` (App.tsx guardarDestino) y la
+        # limpia Login en el próximo submit (R8.3). Se NOTA, no se aserta.
         # NINGÚN request de logout (no existe endpoint) — patrón literal:
         n_logout_patron = sum(1 for _m, u in cont.requests[indice_req:]
                               if "logout" in u)
@@ -1336,7 +1410,7 @@ def b3(browser, page, cont: Contadores, wsc: WsContador) -> None:
                        "cabe en la 1.ª página — asertos esenciales de "
                        "conteo/URL intactos")
         ws_antes = wsc.set_filters
-        reqs_antes = cont.marcaIndice()
+        reqs_antes = cont.marcaIndiceRequests()
         page.fill("#f-text", NEEDLE_E10)
         page.wait_for_timeout(1200)                # debounce 400 ms del UI
         n_logs_texto = len(cont.reqCon("logs", "text=", desde=reqs_antes))
@@ -1367,8 +1441,8 @@ def b3(browser, page, cont: Contadores, wsc: WsContador) -> None:
             p.pantalla_vista = True
         # Reiniciar ⇒ query VACÍA + GET /panel/logs SIN parámetros
         ws_antes = wsc.set_filters
-        reqs_antes = cont.marcaIndice()
-        page.locator("button", has_text="Reiniciar").click()
+        reqs_antes = cont.marcaIndiceRequests()
+        botonReiniciar(page).click()
         page.wait_for_timeout(1200)
         url_limpia = (urllib.parse.urlparse(page.url).query == ""
                       and page.url.rstrip("/").endswith("/logs"))
@@ -1410,7 +1484,7 @@ def b3(browser, page, cont: Contadores, wsc: WsContador) -> None:
         page.unroute("**/panel/logs")
         page.wait_for_selector("table", timeout=20000)
         # volver a estado sin filtros (tras (b) se restaurará):
-        page.locator("button", has_text="Reiniciar").click()
+        botonReiniciar(page).click()
         page.wait_for_timeout(700)
         # (b) vacío por filtro: 2 literales EXACTOS
         page.fill("#f-text", NEEDLE_VACIO)
@@ -1426,7 +1500,7 @@ def b3(browser, page, cont: Contadores, wsc: WsContador) -> None:
             conNota(p, "(b) 'No hay logs que cumplan los filtros' + "
                        "'Prueba a reiniciar filtros o amplía el rango "
                        "temporal'")
-            page.locator("button", has_text="Reiniciar").click()
+            botonReiniciar(page).click()
             page.wait_for_timeout(700)
         # (c) 400 from>to POR LA URL (D-C8-6: la query es fuente única).
         # from ANTERIOR a las semillas (hoy) mantiene la lista NO vacía
@@ -1464,7 +1538,7 @@ def b3(browser, page, cont: Contadores, wsc: WsContador) -> None:
                        f"previa conservada ({len(ids_post)} filas por "
                        "timestamp|mensaje); vacío/esqueleto AUSENTES")
             vista(p, page, "02_banner_400_from_to")
-        page.locator("button", has_text="Reiniciar").click()
+        botonReiniciar(page).click()
         page.wait_for_timeout(700)
         if E912_ERR:
             fail(p.id, "; ".join(E912_ERR))
@@ -1476,28 +1550,52 @@ def b3(browser, page, cont: Contadores, wsc: WsContador) -> None:
     # ─── E9.15 (R9.3.1): banner 400 con code y campo culpable ───
     p = pareja("E9.15")
     try:
-        # variante (b): filter_invalid_value CON field=level (URL rehidratada)
-        page.goto(BASE + "/logs?level=PANICA", wait_until="domcontentloaded")
-        ok_b = esperarQue(
-            lambda: textoVisible(page, "filter_invalid_value")
-            and textoVisible(page, "level"),
-            page, timeout_s=8)
-        page.wait_for_timeout(300)
-        campo_ok = textoVisible(page, "Campo culpable") and textoVisible(
-            page, "level")
-        if not ok_b or not campo_ok:
-            fail(p.id, f"(b) variante level=PANICA: banner={ok_b} "
-                       f"campo_maracado={campo_ok}")
+        # H-C9-E9.15 (corrida 2 — HALLAZGO de superficie, NO parche para
+        # fingir PASS): la variante (b) por URL rehidratada ?level=PANICA es
+        # INALCANZABLE en pantalla — la app normaliza inválidos ⇒ null al
+        # hidratar (D-C8-6, `filtrosDesdeSearch`: "inválidos ⇒ null") y el
+        # 400 del backend NUNCA llega (superficie ratificada C8 de E8.26 =
+        # REST directa). OBSERVACIÓN DUAL:
+        #   (b-API) 400 code=filter_invalid_value + field=level (superficie
+        #           C8 — fetch DENTRO del navegador con Bearer de la sesión;
+        #           devuelve SOLO booleanos — S16);
+        #   (b-UI)  URL ?level=PANICA ⇒ SIN banner, SIN crash, listado normal.
+        page.goto(BASE + "/logs", wait_until="domcontentloaded")
+        page.wait_for_selector("table", timeout=20000)
+        api_b = page.evaluate(
+            "() => fetch('/api/v1/panel/logs?level=PANICA',"
+            "  { headers: { Authorization: 'Bearer ' +"
+            "      (window.sessionStorage.getItem('projectlog.panel.token')"
+            "        || '') } })"
+            ".then(r => r.text().then(b => {"
+            "  let forma = {}; try { forma = JSON.parse(b); } catch (e) {}"
+            "  return { cuatro4: r.status === 400,"
+            "           code: forma.code === 'filter_invalid_value',"
+            "           campo: forma.field === 'level' };"
+            "}))")
+        ui_ok = (textoVisible(page, "filter_invalid_value") is False)
+        sin_crash = page.locator("table").count() >= 1
+        if not api_b.get("cuatro4") or not api_b.get("code") \
+                or not api_b.get("campo"):
+            fail(p.id, f"(b-API) 400 filter_invalid_value field=level: "
+                       f"{api_b}")
+        elif not ui_ok or not sin_crash:
+            fail(p.id, f"(b-UI) ?level=PANICA: bannerAUSENTE={ui_ok} "
+                       f"panelVivo={sin_crash}")
         else:
-            conNota(p, "variante (b) 'filter_invalid_value' CON field="
-                       "level (URL ?level=PANICA rehidratada — campo "
-                       "culpable marcado); lista conservada se pinea en "
-                       "E9.12-c (el montaje fresco por URL no tiene lista)")
-            vista(p, page, "01_banner_400_campo")
+            conNota(p, "( b ) H-C9-E9.15 — superficie DUAL: 400 con code="
+                       "filter_invalid_value + field=level CONFIRMADO por "
+                       "API (superficie ratificada C8 de E8.26 — booleans "
+                       "S16); EN PANTALLA via ?level=PANICA el banner 400 NO "
+                       "APARECE POR DISEÑO (D-C8-6: la hidratación "
+                       "normaliza inválidos ⇒ null — sin crash, listado "
+                       "vivo): sub-aserto de pantalla field=level "
+                       "BLOQUEADO-anotado (R9.6.4), jamá fingido")
+            vista(p, page, "01_url_level_invalido_normalizada")
     except Exception as e:
         fail(p.id, f"excepción del arnés: {type(e).__name__}: {str(e)[:180]}")
     finally:
-        page.locator("button", has_text="Reiniciar").click()
+        botonReiniciar(page).click()
         page.wait_for_timeout(700)
     passO()  # veredicto único al cierre del check (idempotente)
 # ────────────────────────────────────────────────────────────────────────────
@@ -1600,9 +1698,13 @@ def b4(page, cont: Contadores) -> None:
         page.goto(BASE + f"/proyectos/{ID_PROYECTO_C9[0]}",
                   wait_until="domcontentloaded")
         page.wait_for_timeout(600)
-        borrados = []
+        borrados: list[str] = []
+        # H-C9-DELETE-LISTENER (corrida 2 — defecto del arnés): el evento
+        # "request" entrega un Request — `r.request` no existe y el
+        # AttributeError envenenaba TODA await posterior (TimeoutError de
+        # E9.22 y abort global antes de E9.23/E9.14/B5-B7).
         page.on("request", lambda r: borrados.append(urlSegura(r.url))
-                if r.request.method == "DELETE" else None)
+                if r.method == "DELETE" else None)
 
         def probar_modal(boton_zona: str, titulo_modal: str,
                          etiqueta_shot: str) -> bool:
@@ -1615,21 +1717,27 @@ def b4(page, cont: Contadores) -> None:
                 return False
             confirmar = dialogo.locator(
                 "button", has_text=boton_zona).last
-            # 1. sin texto: disabled + clase computada (getComputedStyle del
-            # botón rojo bg-red-300 → rgb)
+            # 1. sin texto: disabled + clase computada (botón rojo
+            #    deshabilitado). H-C9-OKLCH (repro B de corrida 3): el bundle
+            #    pinta con Tailwind v4 — el getComputedStyle devuelve oklch(),
+            #    NO rgb(); se acepta el oklch canónico O el rgb clásico.
+            #    red-300: oklch(0.808 0.114 19.571) ≈ rgb(252,165,165).
             color_base = claseComputada(page, confirmar, "backgroundColor")
-            ok_base = confirmar.is_disabled() and "rgb(252, 165, 165)" \
-                in color_base
+            ok_base = confirmar.is_disabled() and (
+                "rgb(252, 165, 165)" in color_base
+                or "0.808 0.114 19.571" in color_base)
             # 2. texto equivocado: SIGUE disabled
             dialogo.locator("input[type='text']").fill("no-es-este-nombre")
             page.wait_for_timeout(250)
             ok_mal = confirmar.is_disabled()
-            # 3. nombre EXACTO: habilitado + bg-red-700
+            # 3. nombre EXACTO: habilitado + rojo fuerte
+            #    red-700: oklch(0.505 0.213 27.518) ≈ rgb(185,28,28)
             dialogo.locator("input[type='text']").fill(NOMBRE_PROYECTO)
             page.wait_for_timeout(250)
             color_on = claseComputada(page, confirmar, "backgroundColor")
             ok_on = (not confirmar.is_disabled()
-                     and "rgb(185, 28, 28)" in color_on)
+                     and ("rgb(185, 28, 28)" in color_on
+                          or "0.505 0.213 27.518" in color_on))
             # 4. trim: con espacios delante/detrás SIGUE habilitado (V10)
             dialogo.locator("input[type='text']").fill(
                 f"   {NOMBRE_PROYECTO}  ")
@@ -1638,6 +1746,12 @@ def b4(page, cont: Contadores) -> None:
             dialogo.locator("input[type='text']").fill("")
             page.wait_for_timeout(150)
             if not (ok_base and ok_mal and ok_on and ok_trim):
+                # H-C9-MODAL-ABIERTO (corrida 3): jamás devolver False con el
+                # modal abierto — el overlay intercepta el click de la zona
+                # siguiente ("Purgar logs") → TimeoutError de 30 s de la
+                # corrida 3. Cerrar SIEMPRE antes de retornar.
+                dialogo.locator("button", has_text="Cancelar").click()
+                page.wait_for_timeout(250)
                 return False
             # shot con el botón HABILITADO (nombre exacto en el input — no
             # es credencial: el nombre es literal de nuestro propio needle)
@@ -1667,6 +1781,18 @@ def b4(page, cont: Contadores) -> None:
                        "reales son C10)")
     except Exception as e:
         fail(p.id, f"excepción del arnés: {type(e).__name__}: {str(e)[:180]}")
+    finally:
+        # H-C9-MODAL-ABIERTO: si alguna vía dejó un dialogo abierto, cerrarlo
+        # aquí — un modal abierto hacia E9.23 interceptaría su propio flujo.
+        try:
+            for _ in range(3):
+                if page.locator("div[role='dialog']").count() == 0:
+                    break
+                page.locator("div[role='dialog']").first.locator(
+                    "button", has_text="Cancelar").click(timeout=3000)
+                page.wait_for_timeout(250)
+        except Exception:
+            pass
     passO()  # veredicto único al cierre del check (idempotente)
     # ─── E9.23 (R9.3.9): regenerate → revelación ÚNICA (key SOLO en memoria
     # + shot REDACTADO) — precede a las ingestas (D-C9-9) ───
@@ -1692,7 +1818,11 @@ def b4(page, cont: Contadores) -> None:
         except Exception:
             KEY_MEMORIA["ingesta"] = ""
         ok_201 = respuesta.status == 201
-        forma_key = bool(re.match(r"^[A-Za-z0-9_]{4}_[A-Za-z0-9_-]{43}$",
+        # H-C9-KEY-REGEX (repro C de corrida 3): la key REAL es "plk_" +
+        # 43 de base64url (47 en total, comprobado en vivo con longitud/
+        # booleanos — jamá el valor impreso). El regex anterior exigía
+        # un 5.º "_" literal tras [A-Za-z0-9_]{4} — jamá matcheaba.
+        forma_key = bool(re.match(r"^plk_[A-Za-z0-9_-]{43}$",
                                   KEY_MEMORIA.get("ingesta", "")))
         dialogo_key = page.locator("div[role='dialog']")
         esperarQue(lambda: textoVisible(
@@ -1707,7 +1837,7 @@ def b4(page, cont: Contadores) -> None:
             "  const d = document.querySelector(\"div[role='dialog']\");"
             "  const c = d ? d.querySelector('code') : null;"
             "  if (c === null) return false;"
-            "  return /^[A-Za-z0-9_]{4}_[A-Za-z0-9_-]{43}$/.test("
+            "  return /^plk_[A-Za-z0-9_-]{43}$/.test("
             "c.innerText.trim());"
             "}")
         if not (ok_201 and forma_key and aviso and copiar_ok
@@ -1754,7 +1884,10 @@ def b4(page, cont: Contadores) -> None:
     ruta_proyectos = page.url
     try:
         interceptar(page, "**/panel/projects",
-                    respuesta={"items": [], "next_cursor": None})
+                    respuesta=[])   # H-C9-PROYECTOS-ARRAY: GET /panel/projects
+        # devuelve ProjectDto[] DESNUDO (panel.ts: request<ProjectDto[]>) — el
+        # fulfill {"items": [...]} de la corrida 3 tenía shape de LOGS y el UI
+        # no pintaba el vacío. Repro D: route hit=1, literal vacío FALSO.
         page.goto(BASE + "/proyectos", wait_until="domcontentloaded")
         page.wait_for_timeout(600)
         ok_vacio = textoVisible(page, "No hay proyectos todavía")
@@ -1878,7 +2011,7 @@ def b6(page, cont: Contadores, wsc: WsContador) -> None:
                 f"la query del detalle NO está intacta "
                 f"({url_detalle[:120]})")
         # Volver → MISMA query + MISMAS filas + MISMA 1.ª fila + SIN refetch
-        reqs_antes = cont.marcaIndice()
+        reqs_antes = cont.marcaIndiceRequests()
         page.locator("a", has_text="Volver a logs").first.click()
         page.wait_for_selector("table", timeout=20000)
         page.wait_for_timeout(1400)
@@ -1904,9 +2037,13 @@ def b6(page, cont: Contadores, wsc: WsContador) -> None:
     except Exception as e:
         fail(p.id, f"excepción del arnés: {type(e).__name__}: {str(e)[:180]}")
     passO()  # veredicto único al cierre del check (idempotente)
-    # F5 ⇒ acumulado LIMPIO (50 + next_cursor no-null):
+    # F5 ⇒ acumulado LIMPIO (50 + next_cursor no-null). H-C9-REINICIAR-F5
+    # (corrida 3): el E9.13 puede ACABAR en FAIL honesto de producto (la URL
+    # del detalle puede dejar la page en /logs/…??…) — el F5 SIEMPRE debe
+    # volver a /logs limpio (recarga completa ⇒ JS fresco) para que E9.16/
+    # E9.24/E9.17/E9.11-a corran en su pantalla y NO se contaminen.
     try:
-        page.reload(wait_until="domcontentloaded")
+        page.goto(BASE + "/logs", wait_until="domcontentloaded")
         page.wait_for_selector("table", timeout=20000)
         page.wait_for_timeout(500)
         n50 = len(filasTabla(page))
@@ -1922,13 +2059,13 @@ def b6(page, cont: Contadores, wsc: WsContador) -> None:
     try:
         # Reiniciar (sin filtros) para que el frame del lote pase el
         # server-side set_filters (el texto del needle filtraría NO-matcheos)
-        page.locator("button", has_text="Reiniciar").click()
+        botonReiniciar(page).click()
         esperarQue(lambda: textoVisible(page, "Conectado"), page,
                    timeout_s=15)
         page.wait_for_timeout(800)
         cont.reiniciar()
         wsc.reiniciar()
-        reqs_antes = cont.marcaIndice()
+        reqs_antes = cont.marcaIndiceRequests()
         lote16 = [logSemilla(f"{needle('e16')}-n{i:02d}",
                              nivel=("INFO", "WARN", "ERROR")[i - 1],
                              minutos=0, )
@@ -1976,7 +2113,7 @@ def b6(page, cont: Contadores, wsc: WsContador) -> None:
     try:
         banda_antes = bandaEnVivoTexto(page)
         cont.reiniciar()
-        reqs_antes = cont.marcaIndice()
+        reqs_antes = cont.marcaIndiceRequests()
         shot(p, page, "01_antes")
         p.pantalla_vista = True
         lote24 = [logSemilla(f"{needle('e24')}-n{i:02d}",
@@ -2026,12 +2163,18 @@ def b6(page, cont: Contadores, wsc: WsContador) -> None:
             span = page.locator("#indicador-conexion").locator(
                 "span", has_text="Conectado").first
             color_texto = claseComputada(page, span, "color")
-            # verde de conexión (#16a34a familia del dot + verde-700 texto)
-            ok_color = "rgb(21, 128, 61)" in color_texto
+            # verde de conexión (#16a34a familia del dot + verde-700 texto).
+            # H-C9-OKLCH (repro probe_verde): Tailwind v4 computa oklch —
+            # texto verde-700 = oklch(0.527 0.154 150.069) ≈ rgb(21,128,61);
+            # dot verde-600 = oklch(0.627 0.194 149.214) ≈ rgb(22,163,74).
+            ok_color = ("rgb(21, 128, 61)" in color_texto
+                        or "0.527 0.154 150.069" in color_texto)
             if not ok_color:
                 try:
-                    ok_color = "rgb(22, 163, 74)" in claseComputada(
+                    color_hijo = claseComputada(
                         page, span.locator("span").first, "backgroundColor")
+                    ok_color = ("rgb(22, 163, 74)" in color_hijo
+                                or "0.627 0.194 149.214" in color_hijo)
                 except Exception:
                     ok_color = False
             if not ok_color:
