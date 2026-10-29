@@ -515,7 +515,14 @@ def esperarQue(condición: Callable[[], bool], page, timeout_s: float = 10.0,
         except Exception:
             pass
         page.wait_for_timeout(intervalo_ms)
-    return condición()
+    # H-C9-E9.6 (corrida 5): la llamada FINAL debe ser exception-safe — si la
+    # condición consulta un localizador que ya se desmontó (p. ej. el login
+    # navega tras el POST), Playwright propaga su TimeoutError de 30 s y mata
+    # el check en vez de devolver un False honesto.
+    try:
+        return condición()
+    except Exception:
+        return False
 
 
 def claseComputada(page, localizador, propiedad: str = "backgroundColor") -> str:
@@ -1165,9 +1172,14 @@ def b1(browser, usuario: str, password: str, cont: Contadores,
                                                           timeout=2000)
         except Exception:
             pass
+        # H-C9-E9.6 (corrida 5): timeout CORTO en las lecturas del botón —
+        # sin él, la navegación post-POST (~630 ms) desmonta el formulario y
+        # cada poll puede bloquear el default de 30 s (flake: el bloque
+        # nunca llega a observar "Enviando…").
         ok_enviando = esperarQue(
-            lambda: boton.inner_text().strip() == "Enviando…"
-            and boton.is_disabled(), page6, timeout_s=2, intervalo_ms=20)
+            lambda: boton.inner_text(timeout=200).strip() == "Enviando…"
+            and boton.is_disabled(timeout=200), page6, timeout_s=2,
+            intervalo_ms=20)
         vaciarInputsLogin(page6)                      # S16: shot sin campos
         vista_ok = ok_enviando
         if vista_ok:
@@ -1890,7 +1902,13 @@ def b4(page, cont: Contadores) -> None:
         # no pintaba el vacío. Repro D: route hit=1, literal vacío FALSO.
         page.goto(BASE + "/proyectos", wait_until="domcontentloaded")
         page.wait_for_timeout(600)
-        ok_vacio = textoVisible(page, "No hay proyectos todavía")
+        # H-C9-E9.14 (corrida 5): lecturas POLLEADAS — textoVisible es una
+        # count() instantánea y un chunk lazy / render del formulario puede
+        # aterrizar 1 frame tarde (flake honesto de la corrida 5, sin ver el
+        # literal); esperarQue acota 5 s con polling real de eventos.
+        ok_vacio = esperarQue(
+            lambda: textoVisible(page, "No hay proyectos todavía"), page,
+            timeout_s=5, intervalo_ms=100)
         if not ok_vacio:
             fail(p.id, "estado vacío legítimo no observado con datos "
                        "simulados")
@@ -1901,7 +1919,10 @@ def b4(page, cont: Contadores) -> None:
             else:
                 cta.click()
                 page.wait_for_url("**/proyectos/nuevo", timeout=15000)
-                ok_cta = textoVisible(page, "Crear proyecto")
+                # H-C9-E9.14 (corrida 5): poll en lugar de count() instantáneo
+                ok_cta = esperarQue(
+                    lambda: textoVisible(page, "Crear proyecto"), page,
+                    timeout_s=5, intervalo_ms=100)
                 if ok_cta:
                     conNota(
                         p,
