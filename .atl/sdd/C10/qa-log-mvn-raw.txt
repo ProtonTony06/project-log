@@ -1,0 +1,348 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.projectlog:project-log-backend >-----------------
+[INFO] Building project-log-backend 0.1.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ project-log-backend ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ project-log-backend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ project-log-backend ---
+[INFO] Copying 1 resource from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ project-log-backend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ project-log-backend ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.projectlog.auth.Argon2PasswordTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.764 s -- in com.projectlog.auth.Argon2PasswordTest
+[INFO] Running com.projectlog.auth.LogHygieneTest
+14:44:40.040 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.projectlog.auth.LogHygieneTest]: LogHygieneTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+14:44:40.154 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.auth.LogHygieneTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-11-04T14:44:40.535Z  INFO 75 --- [           main] com.projectlog.auth.LogHygieneTest       : Starting LogHygieneTest using Java 21.0.12.1 with PID 75 (started by root in /ws)
+2026-11-04T14:44:40.536Z  INFO 75 --- [           main] com.projectlog.auth.LogHygieneTest       : The following 1 profile is active: "test"
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/root/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-11-04T14:44:42.320Z  INFO 75 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-11-04T14:44:42.320Z  INFO 75 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-11-04T14:44:42.321Z  INFO 75 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-11-04T14:44:42.345Z  INFO 75 --- [           main] com.projectlog.auth.LogHygieneTest       : Started LogHygieneTest in 2.154 seconds (process running for 3.64)
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.554 s -- in com.projectlog.auth.LogHygieneTest
+[INFO] Running com.projectlog.auth.LoginCredentialsTest
+2026-11-04T14:44:42.526Z  INFO 75 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.auth.LoginCredentialsTest]: LoginCredentialsTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-11-04T14:44:42.538Z  INFO 75 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.auth.LoginCredentialsTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-11-04T14:44:42.577Z  INFO 75 --- [           main] c.projectlog.auth.LoginCredentialsTest   : Starting LoginCredentialsTest using Java 21.0.12.1 with PID 75 (started by root in /ws)
+2026-11-04T14:44:42.577Z  INFO 75 --- [           main] c.projectlog.auth.LoginCredentialsTest   : The following 1 profile is active: "test"
+2026-11-04T14:44:42.816Z  INFO 75 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-11-04T14:44:42.816Z  INFO 75 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-11-04T14:44:42.817Z  INFO 75 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-11-04T14:44:42.823Z  INFO 75 --- [           main] c.projectlog.auth.LoginCredentialsTest   : Started LoginCredentialsTest in 0.279 seconds (process running for 4.119)
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.361 s -- in com.projectlog.auth.LoginCredentialsTest
+[INFO] Running com.projectlog.auth.PanelAuthMvcTest
+2026-11-04T14:44:42.889Z  INFO 75 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.auth.PanelAuthMvcTest]: PanelAuthMvcTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-11-04T14:44:42.895Z  INFO 75 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.auth.PanelAuthMvcTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-11-04T14:44:42.921Z  INFO 75 --- [           main] com.projectlog.auth.PanelAuthMvcTest     : Starting PanelAuthMvcTest using Java 21.0.12.1 with PID 75 (started by root in /ws)
+2026-11-04T14:44:42.921Z  INFO 75 --- [           main] com.projectlog.auth.PanelAuthMvcTest     : The following 1 profile is active: "test"
+2026-11-04T14:44:43.064Z  INFO 75 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-11-04T14:44:43.064Z  INFO 75 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-11-04T14:44:43.064Z  INFO 75 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-11-04T14:44:43.068Z  INFO 75 --- [           main] com.projectlog.auth.PanelAuthMvcTest     : Started PanelAuthMvcTest in 0.17 seconds (process running for 4.363)
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.252 s -- in com.projectlog.auth.PanelAuthMvcTest
+[INFO] Running com.projectlog.auth.TokenServiceTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.050 s -- in com.projectlog.auth.TokenServiceTest
+[INFO] Running com.projectlog.config.CorsConfigTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in com.projectlog.config.CorsConfigTest
+[INFO] Running com.projectlog.config.EntryPointCharsetTest
+[INFO] Running 401 de ingesta (IngestAuthenticationEntryPoint) — simetría
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in 401 de ingesta (IngestAuthenticationEntryPoint) — simetría
+[INFO] Running 401 del panel (RestAuthenticationEntryPoint)
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in 401 del panel (RestAuthenticationEntryPoint)
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in com.projectlog.config.EntryPointCharsetTest
+[INFO] Running com.projectlog.projects.dto.ProjectDtoSerializationTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.016 s -- in com.projectlog.projects.dto.ProjectDtoSerializationTest
+[INFO] Running com.projectlog.projects.repository.ProjectsBorradoSqlTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in com.projectlog.projects.repository.ProjectsBorradoSqlTest
+[INFO] Running com.projectlog.projects.repository.ProjectsIngestSqlTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in com.projectlog.projects.repository.ProjectsIngestSqlTest
+[INFO] Running com.projectlog.projects.repository.ProjectsKeySqlTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in com.projectlog.projects.repository.ProjectsKeySqlTest
+[INFO] Running com.projectlog.projects.repository.ProjectsUpdateSqlTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in com.projectlog.projects.repository.ProjectsUpdateSqlTest
+[INFO] Running com.projectlog.projects.ProjectsControllerMvcTest
+2026-11-04T14:44:43.262Z  INFO 75 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.projects.ProjectsControllerMvcTest]: ProjectsControllerMvcTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-11-04T14:44:43.268Z  INFO 75 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.projects.ProjectsControllerMvcTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-11-04T14:44:43.282Z  INFO 75 --- [           main] c.p.projects.ProjectsControllerMvcTest   : Starting ProjectsControllerMvcTest using Java 21.0.12.1 with PID 75 (started by root in /ws)
+2026-11-04T14:44:43.282Z DEBUG 75 --- [           main] c.p.projects.ProjectsControllerMvcTest   : Running with Spring Boot v3.5.16, Spring v6.2.19
+2026-11-04T14:44:43.282Z  INFO 75 --- [           main] c.p.projects.ProjectsControllerMvcTest   : The following 1 profile is active: "test"
+2026-11-04T14:44:43.475Z DEBUG 75 --- [           main] com.projectlog.auth.JwtAuthFilter        : Filter 'jwtAuthFilter' configured for use
+2026-11-04T14:44:43.475Z  INFO 75 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-11-04T14:44:43.475Z  INFO 75 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-11-04T14:44:43.476Z  INFO 75 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-11-04T14:44:43.479Z  INFO 75 --- [           main] c.p.projects.ProjectsControllerMvcTest   : Started ProjectsControllerMvcTest in 0.209 seconds (process running for 4.774)
+[INFO] Tests run: 45, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.498 s -- in com.projectlog.projects.ProjectsControllerMvcTest
+[INFO] Running com.projectlog.keys.ApiKeyControllerMvcTest
+2026-11-04T14:44:43.760Z  INFO 75 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.keys.ApiKeyControllerMvcTest]: ApiKeyControllerMvcTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-11-04T14:44:43.768Z  INFO 75 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.keys.ApiKeyControllerMvcTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-11-04T14:44:43.783Z  INFO 75 --- [           main] c.p.keys.ApiKeyControllerMvcTest         : Starting ApiKeyControllerMvcTest using Java 21.0.12.1 with PID 75 (started by root in /ws)
+2026-11-04T14:44:43.783Z DEBUG 75 --- [           main] c.p.keys.ApiKeyControllerMvcTest         : Running with Spring Boot v3.5.16, Spring v6.2.19
+2026-11-04T14:44:43.783Z  INFO 75 --- [           main] c.p.keys.ApiKeyControllerMvcTest         : The following 1 profile is active: "test"
+2026-11-04T14:44:43.912Z DEBUG 75 --- [           main] com.projectlog.auth.JwtAuthFilter        : Filter 'jwtAuthFilter' configured for use
+2026-11-04T14:44:43.912Z  INFO 75 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-11-04T14:44:43.912Z  INFO 75 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-11-04T14:44:43.912Z  INFO 75 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-11-04T14:44:43.914Z  INFO 75 --- [           main] c.p.keys.ApiKeyControllerMvcTest         : Started ApiKeyControllerMvcTest in 0.144 seconds (process running for 5.21)
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.213 s -- in com.projectlog.keys.ApiKeyControllerMvcTest
+[INFO] Running com.projectlog.keys.ApiKeyLogHygieneTest
+2026-11-04T14:44:43.975Z  INFO 75 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.keys.ApiKeyLogHygieneTest]: ApiKeyLogHygieneTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-11-04T14:44:43.979Z  INFO 75 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.keys.ApiKeyLogHygieneTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in com.projectlog.keys.ApiKeyLogHygieneTest
+[INFO] Running com.projectlog.keys.ApiKeyServiceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in com.projectlog.keys.ApiKeyServiceTest
+[INFO] Running com.projectlog.ingest.IngestControllerMvcTest
+2026-11-04T14:44:44.004Z  INFO 75 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.ingest.IngestControllerMvcTest]: IngestControllerMvcTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-11-04T14:44:44.014Z  INFO 75 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.ingest.IngestControllerMvcTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-11-04T14:44:44.032Z  INFO 75 --- [           main] c.p.ingest.IngestControllerMvcTest       : Starting IngestControllerMvcTest using Java 21.0.12.1 with PID 75 (started by root in /ws)
+2026-11-04T14:44:44.032Z DEBUG 75 --- [           main] c.p.ingest.IngestControllerMvcTest       : Running with Spring Boot v3.5.16, Spring v6.2.19
+2026-11-04T14:44:44.032Z  INFO 75 --- [           main] c.p.ingest.IngestControllerMvcTest       : The following 1 profile is active: "test"
+2026-11-04T14:44:44.178Z DEBUG 75 --- [           main] com.projectlog.auth.JwtAuthFilter        : Filter 'jwtAuthFilter' configured for use
+2026-11-04T14:44:44.178Z  INFO 75 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-11-04T14:44:44.178Z  INFO 75 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-11-04T14:44:44.178Z  INFO 75 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-11-04T14:44:44.189Z  INFO 75 --- [           main] c.p.ingest.IngestControllerMvcTest       : Started IngestControllerMvcTest in 0.172 seconds (process running for 5.484)
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.353 s -- in com.projectlog.ingest.IngestControllerMvcTest
+[INFO] Running com.projectlog.ingest.IngestGuardLimitTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in com.projectlog.ingest.IngestGuardLimitTest
+[INFO] Running com.projectlog.ingest.IngestLogHygieneTest
+2026-11-04T14:44:44.363Z  INFO 75 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.ingest.IngestLogHygieneTest]: IngestLogHygieneTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-11-04T14:44:44.368Z  INFO 75 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.ingest.IngestLogHygieneTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in com.projectlog.ingest.IngestLogHygieneTest
+[INFO] Running com.projectlog.ingest.IngestServiceTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.063 s -- in com.projectlog.ingest.IngestServiceTest
+[INFO] Running com.projectlog.ingest.LogsRepoSqlTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in com.projectlog.ingest.LogsRepoSqlTest
+[INFO] Running com.projectlog.query.controller.LogsControllerMvcTest
+2026-11-04T14:44:44.446Z  INFO 75 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.query.controller.LogsControllerMvcTest]: LogsControllerMvcTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-11-04T14:44:44.457Z  INFO 75 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.query.controller.LogsControllerMvcTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-11-04T14:44:44.478Z  INFO 75 --- [           main] c.p.q.controller.LogsControllerMvcTest   : Starting LogsControllerMvcTest using Java 21.0.12.1 with PID 75 (started by root in /ws)
+2026-11-04T14:44:44.478Z DEBUG 75 --- [           main] c.p.q.controller.LogsControllerMvcTest   : Running with Spring Boot v3.5.16, Spring v6.2.19
+2026-11-04T14:44:44.478Z  INFO 75 --- [           main] c.p.q.controller.LogsControllerMvcTest   : The following 1 profile is active: "test"
+2026-11-04T14:44:44.594Z DEBUG 75 --- [           main] com.projectlog.auth.JwtAuthFilter        : Filter 'jwtAuthFilter' configured for use
+2026-11-04T14:44:44.595Z  INFO 75 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-11-04T14:44:44.595Z  INFO 75 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-11-04T14:44:44.595Z  INFO 75 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-11-04T14:44:44.599Z  INFO 75 --- [           main] c.p.q.controller.LogsControllerMvcTest   : Started LogsControllerMvcTest in 0.139 seconds (process running for 5.894)
+[INFO] Tests run: 23, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.352 s -- in com.projectlog.query.controller.LogsControllerMvcTest
+[INFO] Running com.projectlog.query.dto.DtosLogsPinTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in com.projectlog.query.dto.DtosLogsPinTest
+[INFO] Running com.projectlog.query.repository.LogsBorradoSqlTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in com.projectlog.query.repository.LogsBorradoSqlTest
+[INFO] Running com.projectlog.query.repository.LogsQuerySqlTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in com.projectlog.query.repository.LogsQuerySqlTest
+[INFO] Running com.projectlog.query.repository.PorIdsSqlPinTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.288 s -- in com.projectlog.query.repository.PorIdsSqlPinTest
+[INFO] Running com.projectlog.query.CursorCodecTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in com.projectlog.query.CursorCodecTest
+[INFO] Running com.projectlog.query.FiltrosConsultaParseTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in com.projectlog.query.FiltrosConsultaParseTest
+[INFO] Running com.projectlog.query.FiltrosConsultaTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in com.projectlog.query.FiltrosConsultaTest
+[INFO] Running com.projectlog.streaming.LatidoYBackpressureTest
+2026-11-04T14:44:45.127Z  INFO 75 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.streaming.LatidoYBackpressureTest]: LatidoYBackpressureTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-11-04T14:44:45.131Z  INFO 75 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.streaming.LatidoYBackpressureTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-11-04T14:44:45.150Z  INFO 75 --- [           main] c.p.streaming.LatidoYBackpressureTest    : Starting LatidoYBackpressureTest using Java 21.0.12.1 with PID 75 (started by root in /ws)
+2026-11-04T14:44:45.150Z DEBUG 75 --- [           main] c.p.streaming.LatidoYBackpressureTest    : Running with Spring Boot v3.5.16, Spring v6.2.19
+2026-11-04T14:44:45.150Z  INFO 75 --- [           main] c.p.streaming.LatidoYBackpressureTest    : The following 1 profile is active: "test"
+2026-11-04T14:44:45.522Z  INFO 75 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-11-04T14:44:45.530Z  INFO 75 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-04T14:44:45.531Z  INFO 75 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-11-04T14:44:45.564Z  INFO 75 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-11-04T14:44:45.564Z  INFO 75 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 414 ms
+2026-11-04T14:44:45.664Z  INFO 75 --- [           main] o.s.boot.web.servlet.RegistrationBean    : Filter filtroGuardSoloCadena1 was not registered (disabled)
+2026-11-04T14:44:45.687Z DEBUG 75 --- [           main] com.projectlog.auth.JwtAuthFilter        : Filter 'jwtAuthFilter' configured for use
+2026-11-04T14:44:45.881Z  INFO 75 --- [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-11-04T14:44:45.892Z  WARN 75 --- [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: e199e591-0dbd-4bad-9c2e-3224c34e2b61
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-11-04T14:44:45.896Z  INFO 75 --- [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2026-11-04T14:44:46.099Z  INFO 75 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 42929 (http) with context path '/'
+2026-11-04T14:44:46.103Z  INFO 75 --- [           main] c.p.streaming.LatidoYBackpressureTest    : Started LatidoYBackpressureTest in 0.969 seconds (process running for 7.398)
+2026-11-04T14:44:46.781Z  WARN 75 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : sesión cerrada por lentitud (1013)
+2026-11-04T14:44:46.808Z  WARN 75 --- [           main] c.projectlog.streaming.LogSocketHandler  : sesión cerrada por lentitud (1013)
+2026-11-04T14:44:46.892Z  INFO 75 --- [o-auto-1-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-04T14:44:46.892Z  INFO 75 --- [o-auto-1-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-04T14:44:46.893Z  INFO 75 --- [o-auto-1-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+2026-11-04T14:44:49.780Z  WARN 75 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-11-04T14:44:49.780Z  WARN 75 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-11-04T14:44:50.780Z  WARN 75 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-11-04T14:44:51.780Z  WARN 75 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-11-04T14:44:52.780Z  WARN 75 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-11-04T14:44:53.780Z  WARN 75 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.898 s -- in com.projectlog.streaming.LatidoYBackpressureTest
+[INFO] Running com.projectlog.streaming.StreamingWsClientTest
+2026-11-04T14:44:54.026Z  INFO 75 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.projectlog.streaming.StreamingWsClientTest]: StreamingWsClientTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-11-04T14:44:54.028Z  INFO 75 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.projectlog.Application for test class com.projectlog.streaming.StreamingWsClientTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-11-04T14:44:54.044Z  INFO 75 --- [           main] c.p.streaming.StreamingWsClientTest      : Starting StreamingWsClientTest using Java 21.0.12.1 with PID 75 (started by root in /ws)
+2026-11-04T14:44:54.044Z DEBUG 75 --- [           main] c.p.streaming.StreamingWsClientTest      : Running with Spring Boot v3.5.16, Spring v6.2.19
+2026-11-04T14:44:54.044Z  INFO 75 --- [           main] c.p.streaming.StreamingWsClientTest      : The following 1 profile is active: "test"
+2026-11-04T14:44:54.166Z  INFO 75 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-11-04T14:44:54.166Z  INFO 75 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-04T14:44:54.166Z  INFO 75 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-11-04T14:44:54.176Z  INFO 75 --- [           main] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-11-04T14:44:54.176Z  INFO 75 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 131 ms
+2026-11-04T14:44:54.200Z  INFO 75 --- [           main] o.s.boot.web.servlet.RegistrationBean    : Filter filtroGuardSoloCadena1 was not registered (disabled)
+2026-11-04T14:44:54.201Z DEBUG 75 --- [           main] com.projectlog.auth.JwtAuthFilter        : Filter 'jwtAuthFilter' configured for use
+2026-11-04T14:44:54.271Z  INFO 75 --- [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-11-04T14:44:54.274Z  WARN 75 --- [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: a500b448-e5a5-4581-9b1b-d86368cb3261
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-11-04T14:44:54.275Z  INFO 75 --- [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2026-11-04T14:44:54.306Z  INFO 75 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 39197 (http) with context path '/'
+2026-11-04T14:44:54.310Z  INFO 75 --- [           main] c.p.streaming.StreamingWsClientTest      : Started StreamingWsClientTest in 0.281 seconds (process running for 15.605)
+2026-11-04T14:44:54.321Z  INFO 75 --- [o-auto-2-exec-1] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-04T14:44:54.321Z  INFO 75 --- [o-auto-2-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-04T14:44:54.322Z  INFO 75 --- [o-auto-2-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-11-04T14:44:54.780Z  WARN 75 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-11-04T14:44:55.780Z  WARN 75 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-11-04T14:44:56.780Z  WARN 75 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-11-04T14:44:57.398Z DEBUG 75 --- [o-auto-2-exec-1] c.projectlog.streaming.LogSocketHandler  : mensaje no-contrato ignorado
+2026-11-04T14:44:57.780Z  WARN 75 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-11-04T14:44:57.898Z DEBUG 75 --- [o-auto-2-exec-2] c.projectlog.streaming.LogSocketHandler  : mensaje no-contrato ignorado
+2026-11-04T14:44:58.399Z DEBUG 75 --- [o-auto-2-exec-3] c.projectlog.streaming.LogSocketHandler  : mensaje no-contrato ignorado
+2026-11-04T14:44:58.780Z  WARN 75 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-11-04T14:44:58.902Z  WARN 75 --- [o-auto-2-exec-4] c.projectlog.streaming.LogSocketHandler  : set_filters inválido: filtros vigentes conservados
+2026-11-04T14:44:58.904Z  WARN 75 --- [o-auto-2-exec-5] c.projectlog.streaming.LogSocketHandler  : set_filters inválido: filtros vigentes conservados
+2026-11-04T14:44:58.906Z DEBUG 75 --- [o-auto-2-exec-6] c.projectlog.streaming.LogSocketHandler  : mensaje no-contrato ignorado
+2026-11-04T14:44:58.907Z DEBUG 75 --- [o-auto-2-exec-7] c.projectlog.streaming.LogSocketHandler  : mensaje no-contrato ignorado
+2026-11-04T14:44:58.909Z  WARN 75 --- [o-auto-2-exec-8] c.projectlog.streaming.LogSocketHandler  : set_filters inválido: filtros vigentes conservados
+2026-11-04T14:44:58.910Z DEBUG 75 --- [o-auto-2-exec-9] c.projectlog.streaming.LogSocketHandler  : mensaje no-contrato ignorado
+2026-11-04T14:44:58.912Z DEBUG 75 --- [-auto-2-exec-10] c.projectlog.streaming.LogSocketHandler  : mensaje no-contrato ignorado
+2026-11-04T14:44:59.780Z  WARN 75 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-11-04T14:45:00.780Z  WARN 75 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-11-04T14:45:01.780Z  WARN 75 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-11-04T14:45:02.780Z  WARN 75 --- [aming-heartbeat] c.projectlog.streaming.LogSocketHandler  : latido: sesión sin pong vencida, cierre 1001
+2026-11-04T14:45:03.042Z  WARN 75 --- [-auto-2-exec-10] c.p.streaming.JwtHandshakeInterceptor    : handshake WS rechazado
+2026-11-04T14:45:03.049Z  WARN 75 --- [o-auto-2-exec-1] c.p.streaming.JwtHandshakeInterceptor    : handshake WS rechazado
+2026-11-04T14:45:03.054Z  WARN 75 --- [o-auto-2-exec-5] c.p.streaming.JwtHandshakeInterceptor    : handshake WS rechazado
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.542 s -- in com.projectlog.streaming.StreamingWsClientTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 223, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  26.089 s
+[INFO] Finished at: 2026-11-04T14:45:03Z
+[INFO] ------------------------------------------------------------------------
+EXIT_CODE=0

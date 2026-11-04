@@ -2026,6 +2026,13 @@ def b6(page, cont: Contadores, wsc: WsContador) -> None:
         page.locator("table tbody tr").first.locator(
             "button", has_text="Detalle").click()
         page.wait_for_url("**/logs/*?*", timeout=15000)
+        # D-C10-16 (excepción ÚNICA ratificada 2026-11-04): estabilizar el
+        # fetch PROPIO del detalle (GET /panel/logs/{id} al montar) ANTES
+        # de muestrear reqs_antes — sin esa espera el fetch cae DENTRO de la
+        # ventana del retorno y da pseudo-FAIL permanente de E9.13 («1 GET
+        # al montar») con producto CORRECTO (re-pros C10 3/3: la ventana
+        # sólo capturaba ese GET propio; el retorno real hace 0 GETs).
+        page.wait_for_timeout(600)
         url_detalle = urlSegura(page.url)
         if query and urllib.parse.urlparse(page.url).query != query:
             raise RuntimeError(

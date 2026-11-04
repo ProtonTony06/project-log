@@ -1,0 +1,9 @@
+
+ RUN  v5.0.5 /home/acuelop369/Proyectos/Project_Log/frontend
+
+
+ Test Files  9 passed (9)
+      Tests  80 passed (80)
+   Start at  15:44:46
+   Duration  606ms (import 38%, tests 32%, transform 21%, worker 9%)
+

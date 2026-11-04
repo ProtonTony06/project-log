@@ -1,0 +1,317 @@
+[wrapper] corrida del arnés C10: python3 scripts/qa_vis_c10.py  (RAW → /home/acuelop369/Proyectos/Project_Log/.atl/sdd/C10/qa-log.txt)
+== arnés C10 qa_vis_c10 — Playwright sync, chromium headless ==
+
+== B0 · pre-comprobaciones (sin veredicto) ==
+[b0] GET / 200 (SPA servida por el proxy)
+[b0] GET /actuator/health = 200 (SPA-fallback del proxy — señal trivial, anotada)
+[b0] GET /api/v1/panel/me = 401 (backend vivo — señal de salud pineda, ver H-C9-SALUD)
+[b0] playwright 1.64.1 importable · binarios ms-playwright: chromium-1248, chromium_headless_shell-1248 · evento WS pinedo: 'framesent' (D-C9-15)
+[b0] evidencia dir: /home/acuelop369/Proyectos/Project_Log/.atl/sdd/C10/evidencia (NO commiteado)
+[b0] env cargado EN PROCESO (claves: ADMIN_INITIAL_USERNAME, ADMIN_INITIAL_PASSWORD, FRONTEND_ORIGIN — valores jamá a os.environ/argv/stdout)
+[b0] destructiva de la kill-window SOLO servicio backend: podman compose
+
+== P0 · aprovisionamiento REST (JWT/key en memoria + siembra) ==
+[p0] sesión REST 200 (JWT en memoria del proceso — jamá impresa)
+[cifra] crear+regenerate REST: proyecto id=26 · HTTP 201/201 (key en memoria, jamá impresa)
+[cifra] crear+regenerate REST: proyecto id=27 · HTTP 201/201 (key en memoria, jamá impresa)
+[cifra] ingesta batch: HTTP 202 · accepted=60 de 60 (X-API-Key en memoria, jamá impresa)
+[cifra] ingesta batch: HTTP 202 · accepted=1 de 1 (X-API-Key en memoria, jamá impresa)
+[cifra] ingesta batch: HTTP 202 · accepted=1 de 1 (X-API-Key en memoria, jamá impresa)
+[cifra] semillas re-runs: e35×60 · e25×1 (ERROR/production + exception+correlation) · e17b×1 (sin exception)
+[cifra] ingesta batch REST: HTTP 202 · accepted=9 de 9 (X-API-Key en memoria, jamá impresa)
+[cifra] ingesta batch REST: HTTP 202 · accepted=1 de 1 (X-API-Key en memoria, jamá impresa)
+[cifra] ingesta batch REST: HTTP 202 · accepted=1 de 1 (X-API-Key en memoria, jamá impresa)
+[cifra] siembra C10 completa: proyecto A total=73 (e35×60 + e25 + e17b + res×9 + e8b + e8a = 73) · proyecto B vacío
+[ws] frame enviado · type=set_filters · len=118
+[run] login principal por UI (inputs + Entrar + **/logs)
+[check] E9.1 …
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[evidencia] E9.1_01_01_logs_ruta.png
+[pantalla] E9.1 · http://localhost:8080/proyectos/nuevo
+E9.1: PASS-CON-NOTA (9 rutas 1:1, sin 404 de servidor (respuesta index.html); / y /login con sesión aterrizan en /logs SIN pantalla propia)
+[check] E9.2 …
+[evidencia] E9.2_01_01_retorno_destino.png
+[pantalla] E9.2 · http://localhost:8080/proyectos/99999999
+E9.2: PASS-CON-NOTA (destino pinedo en vivo: /proyectos/99999999 (pathname; search vacío); durante la resolución SIN llamada /me — jamá 200 (semántica del guard C8 D4: sin token ⇒ anonimo sin /me; la mitad REST 401 de /me sin token ABSORBIDA por QP-8.15/8.48 según el qa-plan C8))
+[check] E9.3 …
+[ws] frame enviado · type=set_filters · len=118
+[evidencia] E9.3_01_02_token_basura_formulario.png
+[pantalla] E9.3 · http://localhost:8080/login
+E9.3: PASS-CON-NOTA (con sesión: /login redirige a /logs, formulario ausente (GET /me 200) · variante con token BASURA en storage (string corrupto, jamá un JWT real): 401 observado=False → token descartado (booleano interno) y formulario normal, sin crash/loop)
+[check] E9.4 …
+[evidencia] E9.4_01_01_404_panel.png
+[pantalla] E9.4 · http://localhost:8080/noexiste
+E9.4: PASS-CON-NOTA (literal 404 cosechado EN VIVO: '404 · Página no encontrada' + 'HTTP 404'; URL estable, jamá vacío)
+[check] E9.5 …
+[evidencia] E9.5_01_01_401_inline_limpio.png
+[pantalla] E9.5 · http://localhost:8080/login
+E9.5: PASS-CON-NOTA (401 del POST real; URL estable /login; vista no cerrada; campo culpable no revelado)
+[check] E9.6 …
+[evidencia] E9.6_01_01_enviando_deshabilitado.png
+E9.6: PASS-CON-NOTA (route delay 600 ms del POST (respuesta REAL continuada — D-C9-3); botón 'Enviando…' + deshabilitado observados con shot de campos vacíos)
+[check] E9.7 …
+[ws] frame enviado · type=set_filters · len=118
+[evidencia] E9.7_01_01_restauro_logs.png
+E9.7: PASS-CON-NOTA (variante A (RECARGA de la pestaña con sesión — H-C9-E9.7A: sessionStorage es por-pestaña; la surface fiel al spec es la recarga, 'goto /logs equivalente a recarga' R9.2.7): proxy temporal t(/me) <= t(primer render protegido) — SIN captura por-frame de un flash (MATIZ declarado en spec §5) · variante B: BLOQUEADO honesto — emulación de storage bloqueado no resultó (AssertionError: panel funcional con storage bloqueado sin GET /panel/logs 200 con Bearer observado) — jamá falso PASS (R9.6.4); se cubre con la parte A)
+[check] E9.10 …
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=140
+[evidencia] E9.10_01_01_filtro_aplicado.png
+[ws] frame enviado · type=set_filters · len=118
+E9.10: PASS-CON-NOTA (1 GET /panel/logs con text=needle · 1 set_filters (6 claves, nulls, SIN cursor — S8-8) · URL rehidratada · sin recarga · cursor avanzado · Reiniciar: query de URL VACÍA + GET /panel/logs sin parámetros)
+[check] E9.12 …
+[ws] frame enviado · type=set_filters · len=118
+[evidencia] E9.12_01_01_esqueleto.png
+[ws] frame enviado · type=set_filters · len=151
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=141
+[ws] frame enviado · type=set_filters · len=164
+[evidencia] E9.12_02_02_banner_400_from_to.png
+[pantalla] E9.12 · http://localhost:8080/logs?from=2026-11-03T00%3A00%3A00%2B01%3A00&to=2026-10-05T00%3A00%3A00%2B02%3A00
+[ws] frame enviado · type=set_filters · len=118
+E9.12: PASS-CON-NOTA ((b) 'No hay logs que cumplan los filtros' + 'Prueba a reiniciar filtros o amplía el rango temporal' · (c) banner 400 'filter_from_to_inverted' + lista previa conservada (50 filas por timestamp|mensaje); vacío/esqueleto AUSENTES)
+[check] E9.15 …
+[ws] frame enviado · type=set_filters · len=118
+[evidencia] E9.15_01_01_url_level_invalido_normalizada.png
+[pantalla] E9.15 · http://localhost:8080/logs
+E9.15: PASS-CON-NOTA (( b ) H-C9-E9.15 — superficie DUAL: 400 con code=filter_invalid_value + field=level CONFIRMADO por API (superficie ratificada C8 de E8.26 — booleans S16); EN PANTALLA via ?level=PANICA el banner 400 NO APARECE POR DISEÑO (D-C8-6: la hidratación normaliza inválidos ⇒ null — sin crash, listado vivo): sub-aserto de pantalla field=level BLOQUEADO-anotado (R9.6.4), jamá fingido)
+[check] E9.13 …
+[ws] frame enviado · type=set_filters · len=140
+[evidencia] E9.13_01_01_acumulado_60.png
+[ws] frame enviado · type=set_filters · len=140
+[evidencia] E9.13_02_02_volver_query_intacta.png
+[pantalla] E9.13 · http://localhost:8080/logs?text=qa-c9-20261104165000-e35
+E9.13: PASS-CON-NOTA (acumulado keyset post-parche (D-C8-8): query y filas (60 por claves timestamp|mensaje) intactas, 1.ª fila idéntica, CERO refetch al montar (store consume una sola vez), dedup sin duplicados)
+[ws] frame enviado · type=set_filters · len=118
+[nota] E9.13 F5 acumulado limpio: filas=50 cursor_disponible=True
+[check] E9.16 …
+[cifra] ingesta batch: HTTP 202 · accepted=3 de 3 (X-API-Key en memoria, jamá impresa)
+[ws] frame recibido · type=batch · len=914
+[evidencia] E9.16_01_01_banda_grupo_lote.png
+[pantalla] E9.16 · http://localhost:8080/logs
+E9.16: PASS-CON-NOTA (banda '● En vivo' con batch_id (b_+uuid del frame) · 3 logs del lote al comienzo (orden observado: ['n03', 'n02', 'n01']), SIN refetch (0 GET /panel/logs) e indicador sigue Conectado)
+[check] E9.24 …
+[evidencia] E9.24_01_01_antes.png
+[cifra] ingesta batch: HTTP 202 · accepted=3 de 3 (X-API-Key en memoria, jamá impresa)
+[ws] frame recibido · type=batch · len=914
+[evidencia] E9.24_02_02_despues_grupo.png
+[pantalla] E9.24 · http://localhost:8080/logs
+E9.24: PASS-CON-NOTA (CRITERIO 1 del 06: la app del homelab se SUSTITUYE por ingesta REST programática (misma superficie POST /ingest/batch, 202 {accepted:3}) — grupo en banda En vivo sin refresco e indicador Conectado; screenshots antes/después)
+[check] E9.11 …
+[evidencia] E9.11_01_01_conectado.png
+[check] E9.17 …
+[ws] frame enviado · type=set_filters · len=140
+[evidencia] E9.17_01_01_bloques_con_exception.png
+[pantalla] E9.17 · http://localhost:8080/logs/1020?text=qa-c9-20261104165000-e25
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=141
+E9.17: PASS-CON-NOTA (bloques CON datos: 'EXCEPCIÓN Y STACKTRACE' (literal cosechado en vivo) + 'Metadata (jsonb)' + <pre> con el needle del stacktrace + correlation copiable (Copiar ×True presencia/habilitación — G3) · log SIN exception/metadata: bloques AUSENTES (ocultos) + message presente; cabecera dt maqueta 03 (Level/Environment/Proyecto/Source/Timestamp/Received_at/Id/Correlation))
+[check] E9.18 …
+[evidencia] E9.18_01_01_404_detalle.png
+[pantalla] E9.18 · http://localhost:8080/logs/99999999
+E9.18: PASS
+[check] E9.25 …
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=121
+[ws] frame enviado · type=set_filters · len=129
+[evidencia] E9.25_01_01_criterio2_cronometro.png
+E9.25: PASS-CON-NOTA (CRITERIO 2: filters→detalle con <pre> del stacktrace needle en 0.6 s (< 120 s, monotonic); contenido EXACTO sembrado visible)
+[evidencia] E9.11_01_02_proyectos_sin_indicador.png
+[check] E10.1 …
+[evidencia] E10.1_01_01_tarjeta_resumen_banda.png
+[pantalla] E10.1 · http://localhost:8080/proyectos
+E10.1: PASS-CON-NOTA (banda de severidad de la tarjeta == NÚMEROS Y ORDEN del JSON REST vivo (n_lv=5/n_env=2, total 79) — el ORDEN es el del CASE del backend (nota c10-orden-bandas: DEBUG=4 ANTES de INFO=5) y la UI jamá reordena · franja «79 logs · último:» · GET /projects?include=summary observado en la ventana)
+[check] E10.2 …
+[evidencia] E10.2_01_02_ficha_resumen_bloque.png
+[pantalla] E10.2 · http://localhost:8080/proyectos/26
+E10.2: PASS-CON-NOTA (GET /projects/{id}/summary → 200 y la ficha lo renderiza FIEL: bloque «79 logs totales · último:» (maqueta-05) + last_log_at del cuerpo visible + badges en el ORDEN del by_level/by_environment del JSON (REQ-C10-UI-7/RESUMEN-3/RESUMEN-4))
+[check] E10.3 …
+[evidencia] E10.3_01_03_actualizar_refresca.png
+[pantalla] E10.3 · http://localhost:8080/proyectos
+E10.3: PASS-CON-NOTA (resumen refrescado SÓLO por botón (NUNCA en vivo por WebSocket — flujo 9 paso 5; re-fetch del include=summary observado en la ventana))
+[check] E10.4 …
+[evidencia] E10.4_01_04_ficha_estado_vacio.png
+[pantalla] E10.4 · http://localhost:8080/proyectos/27
+E10.4: PASS-CON-NOTA («sin logs todavía» como texto informativo italic (M4) en tarjeta (franja) y ficha (bloque) — sin error, sin bandas (RESUMEN-5/RESPUMEN-4 solo claves presentes))
+[check] E10.5 …
+[cifra] ingesta batch REST: HTTP 202 · accepted=3 de 3 (X-API-Key en memoria, jamá impresa)
+[evidencia] E10.5_01_05_archivado_resumen_intacto.png
+[pantalla] E10.5 · http://localhost:8080/proyectos
+E10.5: PASS-CON-NOTA (opacity-80 == 0.8 en la tarjeta archivada y el resumen sigue INTACTO (franja 3 logs == REST vivo, sin rama especial del componente — flujo 9 paso 3); vuelto a ACTIVE para la limpieza del corte)
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame enviado · type=set_filters · len=118
+[cifra] observador /logs: 2.º contexto con loginPorUI propio + handshake WS vivo (deltas de purga/8a medidos sobre él)
+[check] E10.6 …
+[evidencia] E10.6_01_06_purga_mismatch_dentro_modal.png
+[pantalla] E10.6 · http://localhost:8080/proyectos/26
+E10.6: PASS-CON-NOTA (NBSP extremo (U+00A0) pasa el gate por trim (coincideLiteralConTrim) pero el servidor compara EXACTO → 400 confirm_mismatch DENTRO del modal, sin logout (G6) y sin borrar NADA (summary igual; REQ-C10-UI-2/UX401-2; los espacios extremos se recortan en TRANSPORTE (RFC 9110) — nota c10-http-recorta-ows…))
+[check] E10.7 …
+[evidencia] E10.7_01_07_eliminacion_mismatch_dentro_modal.png
+[pantalla] E10.7 · http://localhost:8080/proyectos/26
+E10.7: PASS
+[check] E10.8 …
+[ws] frame enviado · type=set_filters · len=141
+[evidencia] E10.8_01_08_modal_8b_sentencia_v11.png
+[pantalla] E10.8 · http://localhost:8080/logs/1031?text=qa-c10-20261104165000-e8b
+E10.8: PASS-CON-NOTA (sentencia literal V11 construida al milímetro (#1031) DENTRO del modal — es donde el producto la pinta (ModalBorrado8b; la ficha solo pone el botón que la abre) — y botón red-300→red-700 con trim (REQ-C10-UI-1/LOGDEL-2; el 400 con mal-id lo cubre el smoke C10-S3 en REST))
+[check] E10.9 …
+[ws] frame enviado · type=set_filters · len=141
+[evidencia] E10.9_01_09_post_8b_banner_query.png
+[pantalla] E10.9 · http://localhost:8080/logs?text=qa-c10-20261104165000-e8b
+E10.9: PASS-CON-NOTA (post-204: modal cerrado, aviso «Registro eliminado» por location.state y VUELTA a /logs con la query text=<needle> INTACTA (D-C10-8/REQ-C10-E913-1) · filas visibles: 1 — la fila borrada queda STALE hasta el próximo refetch (snapshot E8.35 sin refetch + WS sin borrados: nota c10-nota-8b-fila-stale-snapshot-sin-refetch.md, decisión pendiente del dueño))
+[check] E10.10 …
+[cifra] purga 8c: total leído por REST justo antes = 78
+[evidencia] E10.10_01_10_purga_banner_n_real.png
+[pantalla] E10.10 · http://localhost:8080/proyectos/26
+E10.10: PASS-CON-NOTA (banner literal con el N REAL del cuerpo (78) y «el proyecto y su key siguen intactos» (REQ-C10-DEL-5/PURGA-2/REQ-C10-UI-3); resumen de la ficha a «sin logs todavía» tras el refresh de cargar() — DTO **y resumen**)
+[check] E10.11 …
+[ws] frame enviado · type=set_filters · len=141
+[evidencia] E10.11_01_11_post_purga_delta0_refetch.png
+[pantalla] E10.11 · http://localhost:8080/logs?text=qa-c10-20261104165000-res
+E10.11: PASS-CON-NOTA (LiveBroadcaster SÓLO emite con ingesta (jamá por borrados): 0 handshakes/0 set_filters/0 batches con /logs abierto durante toda la purga (REQ-C10-WS-2) · refetch /logs?text=<needle resumen> → vacío literal)
+[check] E10.12 …
+[ws] frame enviado · type=set_filters · len=118
+[ws] frame recibido · type=batch · len=668
+[evidencia] E10.12_01_12_key_sobrevive_batch_vivo.png
+[pantalla] E10.12 · http://localhost:8080/logs
+E10.12: PASS-CON-NOTA (POST /ingest/batch con la key del purgado → 202 y delta WS ≥ 1 con la fila en vivo — «sigue aceptando ingesta» en el canal también (REQ-C10-PURGA-2; counterpart UI del smoke C10-S6))
+[check] E10.13 …
+[evidencia] E10.13_01_13_post_8a_banner_tarjeta.png
+[pantalla] E10.13 · http://localhost:8080/proyectos
+E10.13: PASS-CON-NOTA (post-204: navega a /proyectos con el aviso por location.state (D-C10-8) y la tarjeta desaparece (REQ-C10-UI-3/DEL-1))
+[check] E10.14 …
+[evidencia] E10.14_01_14_post_8a_key_muerta_cascade_404.png
+[pantalla] E10.14 · http://localhost:8080/proyectos/26
+E10.14: PASS-CON-NOTA (la key vivía en columnas de projects → muere con la fila (401 api_key_invalid); el ingesta pre-8a desapareció por CASCADE (0 items; DELETE-5/E9.26-del-sabor-SQL pero vía REST); ficha del eliminado → 404 §5 literal)
+[check] E10.15 …
+[evidencia] E10.15_01_15_cors_latente_preflight.png
+[pantalla] E10.15 · http://localhost:8080/proyectos
+E10.15: PASS-CON-NOTA (preflight OPTIONS con ACR-Method DELETE y ACR-Headers X-Confirm-Name → ACAO = origin EXACTA (reflejo, sin wildcard) y las cabeceras de confirmación admitidas; origin ajena → 403 sin ACAO (REQ-C10-CORS-1/3) · con UNA sola origin el comportamiento en pantalla es idéntico al C9 (CORS-2/5: latente, sin cambio observable))
+[cifra] observador cerrado (2.º contexto) — fin de la fase E10
+
+== L · limpieza del residuo de arneses (guard ^qa-c9-|^qa-c10-) ==
+[cifra] limpieza: eliminados 1 de arnés (qa-c9-*/qa-c10-*) · saltados (NO matchean el guard) 1 · fallos 0
+   [skip] smoke-c8-20261029171145-proyecto (id 1) — no matchea ^qa-c9-|^qa-c10- (datos del usuario, JAMÁS tocados — skip-and-report)
+
+== B7 · fase destructiva (Última — ventana ÚNICA de kill, D-C9-5) ==
+[check] E9.26 …
+[ws] frame enviado · type=set_filters · len=118
+[evidencia] E9.26_01_01_pre_caída.png
+[cifra] pre-caída: 50 filas · set_filters acumulados 13 · handshakes 21
+[kill] docker/podman compose stop backend — ventana ÚNICA (R9.1.5/D-C9-5; JAMÁS down -v ni postgres)
+[kill] compose stop backend → rc=0 (m>>>> Executing external compose provider "/home/acuelop369/.local/bin/podman-compose". Please see podman-compose(1) for how to disable this message. <<<<
+
+[0m)
+[evidencia] E9.26_02_02_banner_caída.png
+[cifra] caída: banner=True intentos=[1, 2, 3] lista_persiste=True
+[kill] restauración: compose up -d backend (try/finally + bucle health 180 s)
+[kill] compose up -d backend → rc=0 (m>>>> Executing external compose provider "/home/acuelop369/.local/bin/podman-compose". Please see podman-compose(1) for how to disable this message. <<<<
+
+[0m)
+[health] pila sigue insana vía 8080 tras 20 s — recreando SOLO el proxy frontend (up -d --force-recreate frontend; JAMÁS down, jamá postgres) — upstream nginx cacheado ver H-C9-NGINX-UPSTREAM
+[health] recreate frontend → rc=0
+[health] backend vivo (/api/v1/panel/me 401) tras 60 s — ventana 180 s (ver H-C9-SALUD)
+[ws] frame enviado · type=set_filters · len=118
+[cifra] post: conectado=True banner_fuera=True delta_set_filters=1 delta_handshakes=6 refetch=1 delta_batch=0 unicos=True delta0=True
+[evidencia] E9.26_03_03_post_restaurado.png
+[pantalla] E9.26 · http://localhost:8080/logs
+E9.26: PASS-CON-NOTA (post-restauración: '● Conectado', banner RETIRADO, set_filters reenviado (delta 1), refetch EXACTO de 1 (alReconectar), ids únicos con DELTA 0 del id-set vs pre-caída; en la caída CERO frames batch (sin ingesta posible: sin replay por AUSENCIA) — CRITERIO 3 del 06 (D-C9-5))
+[check] E9.11 …
+E9.11: PASS-CON-NOTA (parte (a): literal REAL cosechado en vivo 'Conectado' + color computado verde conexión · parte (c): en /proyectos el slot #indicador-conexion queda VACÍO (portal SOLO /logs — S8-4) y banner AUSENTE · parte (b) de la MISMA ventana de kill (D-C9-5): banner 'Streaming inactivo…' + 'Reconectando (intento N)…' creciente (intentos [1, 2, 3]) + lista sigue pintada por REST-idle tras perder el WS)
+
+== B8 · informe C10 (cifras RAW + residuo + guard de 33) ==
+[cifra] playwright 1.64.1 · chromium headless · BASE http://localhost:8080 · TS C10=20261104165000 (needles qa-c10-*)
+[cifra] peticiones/response logs: 17×200, 1×204, 1×404
+[cifra] peticiones/response projects: 47×200, 1×204, 2×400, 2×404
+[cifra] peticiones/response me: 23×200
+[cifra] peticiones/response auth: 1×200
+[cifra] peticiones/response ingest: 0
+[cifra] requests totales observados: 167
+[cifra] WS: handshakes=27 · cierres=11 · set_filters enviados=14 · batches recibidos=3 · framesent observable=True · PLAN B aplicado=False
+[cifra] evidencia PNG en disco: 39 (NO commiteados — D-C9-12/C10: sha256 en qa-report)
+   - E10.10_01_10_purga_banner_n_real.png
+   - E10.11_01_11_post_purga_delta0_refetch.png
+   - E10.12_01_12_key_sobrevive_batch_vivo.png
+   - E10.13_01_13_post_8a_banner_tarjeta.png
+   - E10.14_01_14_post_8a_key_muerta_cascade_404.png
+   - E10.15_01_15_cors_latente_preflight.png
+   - E10.1_01_01_tarjeta_resumen_banda.png
+   - E10.2_01_02_ficha_resumen_bloque.png
+   - E10.3_01_03_actualizar_refresca.png
+   - E10.4_01_04_ficha_estado_vacio.png
+   - E10.5_01_05_archivado_resumen_intacto.png
+   - E10.6_01_06_purga_mismatch_dentro_modal.png
+   - E10.7_01_07_eliminacion_mismatch_dentro_modal.png
+   - E10.8_01_08_modal_8b_sentencia_v11.png
+   - E10.9_01_09_post_8b_banner_query.png
+   - E9.10_01_01_filtro_aplicado.png
+   - E9.11_01_01_conectado.png
+   - E9.11_01_02_proyectos_sin_indicador.png
+   - E9.12_01_01_esqueleto.png
+   - E9.12_02_02_banner_400_from_to.png
+   - E9.13_01_01_acumulado_60.png
+   - E9.13_02_02_volver_query_intacta.png
+   - E9.15_01_01_url_level_invalido_normalizada.png
+   - E9.16_01_01_banda_grupo_lote.png
+   - E9.17_01_01_bloques_con_exception.png
+   - E9.18_01_01_404_detalle.png
+   - E9.1_01_01_logs_ruta.png
+   - E9.24_01_01_antes.png
+   - E9.24_02_02_despues_grupo.png
+   - E9.25_01_01_criterio2_cronometro.png
+   - E9.26_01_01_pre_caída.png
+   - E9.26_02_02_banner_caída.png
+   - E9.26_03_03_post_restaurado.png
+   - E9.2_01_01_retorno_destino.png
+   - E9.3_01_02_token_basura_formulario.png
+   - E9.4_01_01_404_panel.png
+   - E9.5_01_01_401_inline_limpio.png
+   - E9.6_01_01_enviando_deshabilitado.png
+   - E9.7_01_01_restauro_logs.png
+
+== RESIDUO tras la fase L (estado NOTIFICADO en las cifras de la limpieza; sin limpiar SOLO si la fase L guardó fallos) ==
+   · proyecto A qa-c10-20261104165000-purga-8c (id 26): purga 8c EJECUTADO y VERDE en la corrida (E10.10 → PASS) · eliminación 8a EJECUTADO y VERDE en la corrida (E10.13 → PASS)
+   · proyecto B qa-c10-20261104165000-par-b (id 27): vivió para los checks E10.4/E10.5 (veredicto PASS-CON-NOTA) — eliminado en la fase L
+   · semillas congeladas del módulo C9 (e35×60, e25, e17b): vivieron en el proyecto A y murieron con él (CASCADE)
+   · keys del arnés: SOLO en memoria del proceso (muerto al salir); en la BD sobrevivieron SOLO a la PURGA (§3.3 literal), no a la eliminación de la fila (S16: jamá impresas)
+
+== VEREDICTOS C10 (orden por ID; re-runs E9 + checks E10.x) ==
+E9.1: PASS-CON-NOTA (9 rutas 1:1, sin 404 de servidor (respuesta index.html); / y /login con sesión aterrizan en /logs SIN pantalla propia)
+E9.2: PASS-CON-NOTA (destino pinedo en vivo: /proyectos/99999999 (pathname; search vacío); durante la resolución SIN llamada /me — jamá 200 (semántica del guard C8 D4: sin token ⇒ anonimo sin /me; la mitad REST 401 de /me sin token ABSORBIDA por QP-8.15/8.48 según el qa-plan C8))
+E9.3: PASS-CON-NOTA (con sesión: /login redirige a /logs, formulario ausente (GET /me 200) · variante con token BASURA en storage (string corrupto, jamá un JWT real): 401 observado=False → token descartado (booleano interno) y formulario normal, sin crash/loop)
+E9.4: PASS-CON-NOTA (literal 404 cosechado EN VIVO: '404 · Página no encontrada' + 'HTTP 404'; URL estable, jamá vacío)
+E9.5: PASS-CON-NOTA (401 del POST real; URL estable /login; vista no cerrada; campo culpable no revelado)
+E9.6: PASS-CON-NOTA (route delay 600 ms del POST (respuesta REAL continuada — D-C9-3); botón 'Enviando…' + deshabilitado observados con shot de campos vacíos)
+E9.7: PASS-CON-NOTA (variante A (RECARGA de la pestaña con sesión — H-C9-E9.7A: sessionStorage es por-pestaña; la surface fiel al spec es la recarga, 'goto /logs equivalente a recarga' R9.2.7): proxy temporal t(/me) <= t(primer render protegido) — SIN captura por-frame de un flash (MATIZ declarado en spec §5) · variante B: BLOQUEADO honesto — emulación de storage bloqueado no resultó (AssertionError: panel funcional con storage bloqueado sin GET /panel/logs 200 con Bearer observado) — jamá falso PASS (R9.6.4); se cubre con la parte A)
+E9.10: PASS-CON-NOTA (1 GET /panel/logs con text=needle · 1 set_filters (6 claves, nulls, SIN cursor — S8-8) · URL rehidratada · sin recarga · cursor avanzado · Reiniciar: query de URL VACÍA + GET /panel/logs sin parámetros)
+E9.11: PASS-CON-NOTA (parte (a): literal REAL cosechado en vivo 'Conectado' + color computado verde conexión · parte (c): en /proyectos el slot #indicador-conexion queda VACÍO (portal SOLO /logs — S8-4) y banner AUSENTE · parte (b) de la MISMA ventana de kill (D-C9-5): banner 'Streaming inactivo…' + 'Reconectando (intento N)…' creciente (intentos [1, 2, 3]) + lista sigue pintada por REST-idle tras perder el WS)
+E9.12: PASS-CON-NOTA ((b) 'No hay logs que cumplan los filtros' + 'Prueba a reiniciar filtros o amplía el rango temporal' · (c) banner 400 'filter_from_to_inverted' + lista previa conservada (50 filas por timestamp|mensaje); vacío/esqueleto AUSENTES)
+E9.13: PASS-CON-NOTA (acumulado keyset post-parche (D-C8-8): query y filas (60 por claves timestamp|mensaje) intactas, 1.ª fila idéntica, CERO refetch al montar (store consume una sola vez), dedup sin duplicados)
+E9.15: PASS-CON-NOTA (( b ) H-C9-E9.15 — superficie DUAL: 400 con code=filter_invalid_value + field=level CONFIRMADO por API (superficie ratificada C8 de E8.26 — booleans S16); EN PANTALLA via ?level=PANICA el banner 400 NO APARECE POR DISEÑO (D-C8-6: la hidratación normaliza inválidos ⇒ null — sin crash, listado vivo): sub-aserto de pantalla field=level BLOQUEADO-anotado (R9.6.4), jamá fingido)
+E9.16: PASS-CON-NOTA (banda '● En vivo' con batch_id (b_+uuid del frame) · 3 logs del lote al comienzo (orden observado: ['n03', 'n02', 'n01']), SIN refetch (0 GET /panel/logs) e indicador sigue Conectado)
+E9.17: PASS-CON-NOTA (bloques CON datos: 'EXCEPCIÓN Y STACKTRACE' (literal cosechado en vivo) + 'Metadata (jsonb)' + <pre> con el needle del stacktrace + correlation copiable (Copiar ×True presencia/habilitación — G3) · log SIN exception/metadata: bloques AUSENTES (ocultos) + message presente; cabecera dt maqueta 03 (Level/Environment/Proyecto/Source/Timestamp/Received_at/Id/Correlation))
+E9.18: PASS
+E9.24: PASS-CON-NOTA (CRITERIO 1 del 06: la app del homelab se SUSTITUYE por ingesta REST programática (misma superficie POST /ingest/batch, 202 {accepted:3}) — grupo en banda En vivo sin refresco e indicador Conectado; screenshots antes/después)
+E9.25: PASS-CON-NOTA (CRITERIO 2: filters→detalle con <pre> del stacktrace needle en 0.6 s (< 120 s, monotonic); contenido EXACTO sembrado visible)
+E9.26: PASS-CON-NOTA (post-restauración: '● Conectado', banner RETIRADO, set_filters reenviado (delta 1), refetch EXACTO de 1 (alReconectar), ids únicos con DELTA 0 del id-set vs pre-caída; en la caída CERO frames batch (sin ingesta posible: sin replay por AUSENCIA) — CRITERIO 3 del 06 (D-C9-5))
+E10.1: PASS-CON-NOTA (banda de severidad de la tarjeta == NÚMEROS Y ORDEN del JSON REST vivo (n_lv=5/n_env=2, total 79) — el ORDEN es el del CASE del backend (nota c10-orden-bandas: DEBUG=4 ANTES de INFO=5) y la UI jamá reordena · franja «79 logs · último:» · GET /projects?include=summary observado en la ventana)
+E10.2: PASS-CON-NOTA (GET /projects/{id}/summary → 200 y la ficha lo renderiza FIEL: bloque «79 logs totales · último:» (maqueta-05) + last_log_at del cuerpo visible + badges en el ORDEN del by_level/by_environment del JSON (REQ-C10-UI-7/RESUMEN-3/RESUMEN-4))
+E10.3: PASS-CON-NOTA (resumen refrescado SÓLO por botón (NUNCA en vivo por WebSocket — flujo 9 paso 5; re-fetch del include=summary observado en la ventana))
+E10.4: PASS-CON-NOTA («sin logs todavía» como texto informativo italic (M4) en tarjeta (franja) y ficha (bloque) — sin error, sin bandas (RESUMEN-5/RESPUMEN-4 solo claves presentes))
+E10.5: PASS-CON-NOTA (opacity-80 == 0.8 en la tarjeta archivada y el resumen sigue INTACTO (franja 3 logs == REST vivo, sin rama especial del componente — flujo 9 paso 3); vuelto a ACTIVE para la limpieza del corte)
+E10.6: PASS-CON-NOTA (NBSP extremo (U+00A0) pasa el gate por trim (coincideLiteralConTrim) pero el servidor compara EXACTO → 400 confirm_mismatch DENTRO del modal, sin logout (G6) y sin borrar NADA (summary igual; REQ-C10-UI-2/UX401-2; los espacios extremos se recortan en TRANSPORTE (RFC 9110) — nota c10-http-recorta-ows…))
+E10.7: PASS
+E10.8: PASS-CON-NOTA (sentencia literal V11 construida al milímetro (#1031) DENTRO del modal — es donde el producto la pinta (ModalBorrado8b; la ficha solo pone el botón que la abre) — y botón red-300→red-700 con trim (REQ-C10-UI-1/LOGDEL-2; el 400 con mal-id lo cubre el smoke C10-S3 en REST))
+E10.9: PASS-CON-NOTA (post-204: modal cerrado, aviso «Registro eliminado» por location.state y VUELTA a /logs con la query text=<needle> INTACTA (D-C10-8/REQ-C10-E913-1) · filas visibles: 1 — la fila borrada queda STALE hasta el próximo refetch (snapshot E8.35 sin refetch + WS sin borrados: nota c10-nota-8b-fila-stale-snapshot-sin-refetch.md, decisión pendiente del dueño))
+E10.10: PASS-CON-NOTA (banner literal con el N REAL del cuerpo (78) y «el proyecto y su key siguen intactos» (REQ-C10-DEL-5/PURGA-2/REQ-C10-UI-3); resumen de la ficha a «sin logs todavía» tras el refresh de cargar() — DTO **y resumen**)
+E10.11: PASS-CON-NOTA (LiveBroadcaster SÓLO emite con ingesta (jamá por borrados): 0 handshakes/0 set_filters/0 batches con /logs abierto durante toda la purga (REQ-C10-WS-2) · refetch /logs?text=<needle resumen> → vacío literal)
+E10.12: PASS-CON-NOTA (POST /ingest/batch con la key del purgado → 202 y delta WS ≥ 1 con la fila en vivo — «sigue aceptando ingesta» en el canal también (REQ-C10-PURGA-2; counterpart UI del smoke C10-S6))
+E10.13: PASS-CON-NOTA (post-204: navega a /proyectos con el aviso por location.state (D-C10-8) y la tarjeta desaparece (REQ-C10-UI-3/DEL-1))
+E10.14: PASS-CON-NOTA (la key vivía en columnas de projects → muere con la fila (401 api_key_invalid); el ingesta pre-8a desapareció por CASCADE (0 items; DELETE-5/E9.26-del-sabor-SQL pero vía REST); ficha del eliminado → 404 §5 literal)
+E10.15: PASS-CON-NOTA (preflight OPTIONS con ACR-Method DELETE y ACR-Headers X-Confirm-Name → ACAO = origin EXACTA (reflejo, sin wildcard) y las cabeceras de confirmación admitidas; origin ajena → 403 sin ACAO (REQ-C10-CORS-1/3) · con UNA sola origin el comportamiento en pantalla es idéntico al C9 (CORS-2/5: latente, sin cambio observable))
+
+resumen: 33 marcas · 0 FAIL · 1 BLOQUEADO
+[exit] 1
+[S16] grep del qa-log RAW: 0 hits de prefijos de credencial/token
