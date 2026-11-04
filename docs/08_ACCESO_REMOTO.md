@@ -142,7 +142,7 @@ root@192.168.1.58` y usar `http://localhost:8080` en el navegador local),
 con el mismo efecto de acceso y cero reglas nuevas. El CORS de ese origen
 es el de hoy (`http://localhost:8080`, ya permitido).
 
-## 4. CORS-LAN — condicionada (a+), pendiente de ratificación del usuario
+## 4. CORS-LAN — condicionada (a+), RATIFICADA por el dueño — a ejecutar JUNTO AL DEPLOY de C10 en la VM
 
 **Estado VERDADERO HOY (condicionada — NO implementada en la VM):** accediendo
 al panel por `http://192.168.1.58:8080` desde la LAN, el HTML del frontend
@@ -157,8 +157,9 @@ intocable):** `CorsConfig` divide `FRONTEND_ORIGIN` por comas y llena
 (G1-C2): nunca `*` como origin, nunca `setAllowedOriginPatterns`, nunca una
 env var nueva — la misma `FRONTEND_ORIGIN` con semántica ampliada.
 
-**Paso de deploy futuro EXACTO — PENDIENTE DE RATIFICACIÓN DEL USUARIO (no
-ejecutar sin su aprobación):**
+**Paso de deploy futuro EXACTO — RATIFICADO por el dueño (2026-11-04): se
+ejecuta JUNTO al deploy del código C10 en la VM, en una sesión futura que
+arranca solo cuando el usuario la pida (NO ejecutarlo antes):**
 
 ```bash
 # Solo si el usuario RATIFICA la variante (a+) de G1:
@@ -171,8 +172,10 @@ docker compose up -d backend
 ```
 
 Este paso **no está hecho** y no forma parte del estado de la VM: el corte C10
-deja la VM 108 y su `.env` intocables (dif-0). Si el usuario no ratifica, el
-comportamiento sigue siendo el de hoy (403 desde la IP LAN / tailnet y OK
+deja la VM 108 y su `.env` intocables (dif-0); la RATIFICACIÓN del dueño
+autoriza el paso pero solo DENTRO de la sesión futura de deploy de C10. Si el
+usuario no pide esa sesión, el comportamiento sigue siendo el de hoy (403
+desde la IP LAN / tailnet y OK
 desde `localhost`) y este doc no cambia. Si un día se accede por IP de
 tailnet, la lista admitiría añadir también ese origen por el mismo mecanismo,
 siempre con ratificación previa.
@@ -224,7 +227,7 @@ toca `frontend/nginx.conf` (dif-0) ni la Compose.
 |---|---|
 | REQ-C10-DOC-1 (operativa Tailscale P1 documentada) | §2 (estado FB-0 + ProxyJump), §3 (instalación, IP de tailnet, mismo puerto 8080 con cero cambios en la Compose, firewall GATE #11) |
 | REQ-C10-DOC-2 (TLS P2 documentado SIN implementar) | §5 (estructura prevista, upgrade headers + timeouts 3600 s, Let's Encrypt/nginx TLS, SIN implementar) |
-| REQ-C10-DOC-3 (verdad condicionada y paso pendiente) | §4 (403 hoy por `192.168.1.58:8080` en `/ws` y API; backend ya soporta lista por coma; paso de deploy futuro EXACTO marcado «pendiente de ratificación») |
+| REQ-C10-DOC-3 (verdad condicionada y paso pendiente) | §4 (403 hoy por `192.168.1.58:8080` en `/ws` y API; backend ya soporta lista por coma; paso de deploy futuro EXACTO — RATIFICADO por el dueño 2026-11-04, a ejecutar SOLO junto al deploy de C10 en la VM) |
 | REQ-C10-DOC-4 (README índice intacto, D1) | — (dif-0 garantizado: `docs/README.md` no se edita; el doc entra en `/docs` por la primera rama del done-when) |
 
 ---

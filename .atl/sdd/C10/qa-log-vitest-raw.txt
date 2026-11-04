@@ -1,9 +1,23 @@
 
+================================================================
+REFRESH — corrida canónica POST-todo, corte C10 (Project_Log)
+================================================================
+Fecha/ts de la re-corrida : 2026-11-04T19:07:10+01:00 (arranque de vitest, según RUN v5.0.5)
+Comandos exactos ejecutados (desde frontend/):
+  npx tsc --noEmit
+  npx vitest run
+Alcance                   : refresco ratificado por el dueño (punto W-1) — post-COMPLETO del corte C10: incluye fix CORS D-C10-15 (mvn 225/225 con pins de preflight), fix Reloj, y fix fila stale 8b expulsión-por-id (Vitest 86/86 con 5 tests nuevos)
+Resultado                 : tsc sin errores (sin salida); vitest v5.0.5 — Test Files 9 passed (9), Tests 86 passed (86)
+================================================================
+
+TSC_EXIT=0
+
  RUN  v5.0.5 /home/acuelop369/Proyectos/Project_Log/frontend
 
 
  Test Files  9 passed (9)
-      Tests  80 passed (80)
-   Start at  15:44:46
-   Duration  606ms (import 38%, tests 32%, transform 21%, worker 9%)
+      Tests  86 passed (86)
+   Start at  19:07:10
+   Duration  1.07s (import 46%, tests 23%, transform 19%, worker 13%)
 
+VITEST_EXIT=0

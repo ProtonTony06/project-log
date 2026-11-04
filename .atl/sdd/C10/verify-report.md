@@ -575,3 +575,22 @@ oficiales; qa-log truncado a la última corrida), no de comportamiento; los 4
 pendientes del dueño (commit CORS → E3.24, ratificar N/A-post-C10, fila
 stale 8b, canon qa_c7 al documento) y las tareas T10.35/T10.36 quedan a la
 fase archive.
+
+## Anexo de RATIFICACIONES posteriores al verify (2026-11-04, vía orquestador)
+
+Después de emitirse este informe, el DUEÑO ratificó (pregunta cerrada del
+orquestador) los puntos que quedaban vivos: **(a)** lectura
+**N/A-post-C10 RATIFICADA-POR-EL-DUEÑO** para los 6 FAIL E8.x de la
+regresión qa_c8 (E8.38/E8.47/E8.14/E8.15/E8.39/E8.27 — espejo E3.22-post-D2),
+**paute a para regresiones futuras**; **(b)** E3.24 resolto (artefacto
+git-diff) — verdea con el commit del paquete C10 (0c7c320/c6f3270/d2e8075);
+**(c)** fila stale 8b — DECIDIDO expulsar por id (fix delegado a frontend
+con su propio commit pendiente de permiso — NO invalida este veredicto:
+concede una pieza UI nueva fuera del alcance original de C10); **(d)**
+W-1 — RATIFICADO refrescar los 2 RAWs (mvn/Vitest post-todo, commit 4.º);
+**(e)** canon qa_c7 ya reconciliado al documento (exit 2 legítimo);
+**(f)** CORS-LAN (a+) RATIFICADO por el dueño — a ejecutar solo JUNTO AL
+DEPLOY de C10 en la VM en una sesión futura a petición del usuario
+(anclado en state.md, ficha 07 y docs/08 §4). Este anexo NO altera el
+veredicto PASS-with-notes ni la compliance matrix: documenta el ciclo de
+ratificaciones sobre los pendientes que este informe dejó abiertos.

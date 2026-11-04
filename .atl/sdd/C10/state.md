@@ -35,12 +35,13 @@ artifacts:
   verify-report: complete (PASS-with-notes; 0 CRITICAL/2 W/5 S)
   archive-report: complete
   notes: .atl/notes/c10-nota-orden-bandas-resumen-case-info-debug.md · c10-nota-crash-logs-ws-reloj-natives-desenlazados.md (+Resolución) · c10-nota-cors-preflight-x-confirm-wildcard-no-matcheado.md (+Resolución D-C10-15)
-pendientes-del-dueño (no bloqueantes):
-  1. PERMISO para los commits preparados (producto + qa + docs(SDD); git add -f para docs/08 y docs/07 — SIN tocar .gitignore)
-  2. Ratificar lectura N/A-post-C10 de los 6 FAIL E8.x de la regresión qa_c8
-  3. Fila stale tras borrado 8b en listados — opción abierta (expulsión por id / refetch con aviso / aceptar-documentar), sin pin del arnés
-  4. Variante CORS-LAN (a+): añadir http://192.168.1.58:8080 al .env de la VM (VM intocada)
-  5. E3.24 de qa_c3 verdea tras el commit del fix CORS (artefacto del guard git-diff)
+pendientes-del-dueño → RATIFICACIONES (2026-11-04, post-cierre):
+  1. COMMITS: usuario autorizó «Autorizar los 3» → ejecutados 0c7c320 (producto) · c6f3270 (test qa) · d2e8075 (docs SDD; tras --amend con registro de hashes) — SIN push; E3.24 de qa_c3 verdea desde aquí
+  2. Lectura N/A-post-C10 de los 6 FAIL E8.x de qa_c8 — RATIFICADA-POR-EL-DUEÑO (espejo E3.22-post-D2; pauta regresiones futuras: E8.38/E8.47/E8.14/E8.15/E8.39/E8.27 = N/A-post-C10)
+  3. Fila stale tras borrado 8b — DECIDIDO expulsar por id; fix delegado a frontend (sin refetch, storeListado/ws intocables) — COMMIT PROPIO PENDIENTE de permiso (5.º)
+  4. RAWs W-1 — RATIFICADO refrescar (mvn+Vitest post-todo) con commit 4.º test(qa) que también ancla estas ratificaciones (NUNCA el código del fix 8b)
+  5. Variante CORS-LAN (a+) — RATIFICADA: a ejecutar JUNTO AL DEPLOY de C10 en la VM, sesión futura a petición del usuario (anclada en docs/08 §4 + ficha 07)
+  6. Canon de chat vs documentos — reconciliado AL DOCUMENTO (qa_c7 exit 2 legítimo)
 desviaciones:
   - "D-C10-1..14: del design (aplicadas; D-C10-3 CASE corregido por spec+maqueta — nota orden bandas)"
   - "D-C10-15 (RATIFICADA orquestador): CORS setAllowedHeaders por LITERALES EXACTOS X-Confirm-Name/X-Confirm-Log-Id — DefaultCorsProcessor matchea por igualdad, la ortografía X-Confirm-* del spec no era materializable; REQ-C10-CORS-3/design L146 exigen el COMPORTAMIENTO (2 pins MockMvc de preflight real + verify en vivo 200/403)"

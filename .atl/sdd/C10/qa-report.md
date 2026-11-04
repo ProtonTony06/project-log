@@ -96,13 +96,31 @@ ACAO reflejada EXACTA + ACAM DELETE (post-D-C10-15)**.
   Reloj desenlazado (crash /logs) y CORS allowHeaders (403 preflight en
   cliente cross-origin).
 
-## PENDIENTES-DEL-DUEÑO (no bloqueantes del corte, NO ratificados)
+## PENDIENTES-DEL-DUEÑO → RATIFICACIONES (2026-11-04, post-cierre — pregunta cerrada del orquestador)
 
-1. Commit del fix CORS (el guard E3.24 de qa_c3 verdea después del commit).
-2. Ratificar la lectura **N/A-post-C10** de los 6 FAIL E8.x de la regresión qa_c8.
-3. Fila stale tras borrado 8b en listados — opción abierta (expulsión por id /
-   refetch con aviso / aceptar-documentar), sin pin del arnés.
-4. Canon de chat vs documentos: reconciliado AL DOCUMENTO (exit 2 de qa_c7).
+1. **Lectura N/A-post-C10 de los 6 FAIL E8.x de la regresión qa_c8 — RATIFICADA-POR-EL-DUEÑO**
+   (espejo de la pauta E3.22-post-D2). **PAUTA PARA REGRESIONES FUTURAS**:
+   E8.38 · E8.47 · E8.14 · E8.15 · E8.39 · E8.27 = **N/A-post-C10**
+   (premisas C8 invalidadas por el diseño C10 ratificado: destructivos
+   reales, 400 `confirm_mismatch`, summary presente, key muerta con la fila).
+2. **E3.24 de qa_c3 — verdea con el commit del fix CORS** (artefacto del
+   guard git-diff): resuelto con el commit del paquete C10 autorizado por el
+   dueño («Autorizar los 3», hashes 0c7c320/c6f3270/d2e8075) — el guard ya
+   considera `CorsConfig.java` commiteado.
+3. **Fila stale tras borrado 8b — DECIDIDO: expulsar por id**
+   (sin refetch; coherente con el round-trip E8.35 y con el delta-0 del WS
+   para borrados). Fix delegado a frontend; su commit va APARTE y espera
+   permiso (no forma parte del commit 4.º).
+4. **W-1 (RAWs desfasados) — RATIFICADO refrescar**: mvn canónico + Vitest
+   completos SOBRESCRIBEN `qa-log-mvn-raw.txt` / `qa-log-vitest-raw.txt`
+   post-todo (con ts y alcance en cada RAW) y van en el **commit 4.º**
+   `test(qa): refresco RAWs post-fix + ratificaciones del dueño` junto a
+   estos anclajes (NUNCA el código del fix de fila stale, que va aparte).
+5. **CORS-LAN (a+) — RATIFICADO por el dueño: a ejecutar JUNTO AL DEPLOY de
+   C10 en la VM** (futura sesión iniciada solo a su petición): deploy del
+   código C10 a la VM + añadir `http://192.168.1.58:8080` al `.env` +
+   `docker compose up -d backend` + verificación del preflight en vivo
+   (anclada también en state.md, ficha 07 y docs/08 §CORS-LAN).
 
 ## Higiene
 

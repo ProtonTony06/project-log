@@ -189,7 +189,7 @@ C2→(1), C3→(2,13,14), C4→(3,4), C5→(5,6,7), C6→(8,9,10), C7→(11,12).
   opcional para demo del usuario.
 - **Insumos:** 06 (demo y riesgos), TRD §6.7 (firewall), AppFlow flujo 6.
 
-### C10 — Fase 2: borrados, resumen, acceso remoto (`estado: hecho` 2026-11-04 · apply 36/36 tareas T10.1–T10.36 en 6 bloques (0 toques a intocables; única excepción RATIFICADA D-C10-16: 1 hunk de 7 inserciones en `qa_vis_c9.py` b6 — «C9 tocado en su guion por C10»), mvn 225/225 [48 C10 + 177 heredados sin relajar; builder podman canon, incluidos 2 pins de preflight real D-C10-15], Vitest 81/81 [60 previos sin relajar + 20 C10 + pin del default del Reloj del fix ratificado] con tsc 0, smoke `qa_c10` 10/10 PASS exit 0 (SQL real: purga `{"deleted":N}`/`{"deleted":0}`, CASCADE, key muere `401 api_key_invalid`, key sobrevive a la purga 202), arnés visual `qa_vis_c10.{py,sh}` 33 marcas · 0 FAIL · 1 BLOQUEADO (E9.7 variante B — su canon honesto) exit 1 canónico con 8 re-corridas hasta convergir (2 hallazgos de PRODUCTO remediados RATIFICADOS: Reloj natives desenlazados → `/logs` en blanco [nota+Resolución]; CORS `X-Confirm-*` no materializable en DefaultCorsProcessor → literales exactos X-Confirm-Name/X-Confirm-Log-Id [nota+Resolución]), kill-window E9.11/E9.26 corrió, fase L con guard `^qa-c9-|^qa-c10-` (1 proyecto del usuario INTOCADO), 39 PNGs en `.atl/sdd/C10/evidencia/` con MANIFEST-sha256 `sha256sum -c` 39/39, S16 0 hits en todos los RAW, regresiones seriales AL FINAL: qa_c3 22 PASS · 2 FAIL (E3.22 = N/A-post-D2 ratificada; E3.24 = ARTEFACTO del guard git-diff sin el commit pendiente — «verde tras commit») · qa_c7 9/9 PASS exit 2 (canon-documento C8 §4.5; «exit 0» de chat = errata reconciliada) · qa_c8 17 PASS · 6 FAIL · 1 BLOQUEADO Q23 (raíz única: premisas C8 invalidadas POR EL DISEÑO C10 ratificado — CERO defectos de producto; lectura recomendada N/A-post-C10 PENDIENTE-DE-RATIFICAR-POR-EL-DUEÑO), verify PASS-with-notes 0 CRITICAL / 2 W (RAWs desfasados pre-fix en disco) / 5 S, commit docs(SDD) SELECTIVO PREPARADO SIN EJECUTAR — espera permiso del dueño)
+### C10 — Fase 2: borrados, resumen, acceso remoto (`estado: hecho` 2026-11-04 · apply 36/36 tareas T10.1–T10.36 en 6 bloques (0 toques a intocables; única excepción RATIFICADA D-C10-16: 1 hunk de 7 inserciones en `qa_vis_c9.py` b6 — «C9 tocado en su guion por C10»), mvn 225/225 [48 C10 + 177 heredados sin relajar; builder podman canon, incluidos 2 pins de preflight real D-C10-15], Vitest 81/81 [60 previos sin relajar + 20 C10 + pin del default del Reloj del fix ratificado] con tsc 0, smoke `qa_c10` 10/10 PASS exit 0 (SQL real: purga `{"deleted":N}`/`{"deleted":0}`, CASCADE, key muere `401 api_key_invalid`, key sobrevive a la purga 202), arnés visual `qa_vis_c10.{py,sh}` 33 marcas · 0 FAIL · 1 BLOQUEADO (E9.7 variante B — su canon honesto) exit 1 canónico con 8 re-corridas hasta convergir (2 hallazgos de PRODUCTO remediados RATIFICADOS: Reloj natives desenlazados → `/logs` en blanco [nota+Resolución]; CORS `X-Confirm-*` no materializable en DefaultCorsProcessor → literales exactos X-Confirm-Name/X-Confirm-Log-Id [nota+Resolución]), kill-window E9.11/E9.26 corrió, fase L con guard `^qa-c9-|^qa-c10-` (1 proyecto del usuario INTOCADO), 39 PNGs en `.atl/sdd/C10/evidencia/` con MANIFEST-sha256 `sha256sum -c` 39/39, S16 0 hits en todos los RAW, regresiones seriales AL FINAL: qa_c3 22 PASS · 2 FAIL (E3.22 = N/A-post-D2 ratificada; E3.24 = ARTEFACTO del guard git-diff resuelto tras el commit — verdea) · qa_c7 9/9 PASS exit 2 (canon-documento C8 §4.5; «exit 0» de chat = errata reconciliada) · qa_c8 17 PASS · 6 FAIL · 1 BLOQUEADO Q23 (raíz única: premisas C8 invalidadas POR EL DISEÑO C10 ratificado — CERO defectos de producto; lectura N/A-post-C10 RATIFICADA-POR-EL-DUEÑO para E8.38/E8.47/E8.14/E8.15/E8.39/E8.27), verify PASS-with-notes 0 CRITICAL / 2 W (RAWs desfasados pre-fix en disco) / 5 S, COMMITS EJECUTADOS CON PERMISO DEL DUEÑO («Autorizar los 3», 2026-11-04): 0c7c320 feat(C10) producto · c6f3270 test(qa) arnés+smoke+RAW+notas · d2e8075 docs(SDD) — sin push)
 
 - **Hecho (2026-11-04):** 3 DELETE con doble confirmación (UI texto tecleado
   G2-a/M1 + cabeceras `X-Confirm-Name`/`X-Confirm-Log-Id`) con el orden
@@ -220,10 +220,15 @@ C2→(1), C3→(2,13,14), C4→(3,4), C5→(5,6,7), C6→(8,9,10), C7→(11,12).
   banners con N real; WS delta 0 en purgas); el resumen aparece en
   lista/ficha ← E10.1–E10.5; el doc está en /docs ← `docs/08` (rama /docs,
   `docs/README.md` dif-0).
-- **Residuo (pendientes del dueño, no bloqueantes):** commit del fix CORS
-  (E3.24 verdea después), ratificar lectura N/A-post-C10 de los 6 FAIL
-  E8.x de qa_c8, fila stale tras borrado 8b (opción abierta sin pin del
-  arnés), variante CORS-LAN (a+) en la VM.
+- **Residuo (ratificación del dueño 2026-11-04):** commits autorizados y
+  ejecutados («Autorizar los 3» — ver cabecera); lectura **N/A-post-C10
+  RATIFICADA** de los 6 FAIL E8.x de qa_c8 (E8.38/E8.47/E8.14/E8.15/
+  E8.39/E8.27 — espejo E3.22-post-D2, pauta para regresiones futuras);
+  fila stale tras borrado 8b — **DECIDIDO expulsar por id** (fix delegado
+  a frontend, commit propio pendiente de permiso); RAWs W-1 — **RATIFICADO
+  refrescar** (mvn+Vitest post-todo, commit 4.º); variante CORS-LAN (a+) —
+  **RATIFICADA: a ejecutar JUNTO AL DEPLOY de C10 en la VM** en sesión
+  futura a petición del usuario (anclada en docs/08 §4).
 - **Insumos:** Schema §3.2/§3.3, AppFlow flujo 8/9, maquetas 03/04/05, TRD §2.3.
 
 ## Vigilancia de riesgos entre cortes (del 06)
