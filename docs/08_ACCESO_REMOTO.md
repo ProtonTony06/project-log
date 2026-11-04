@@ -19,7 +19,7 @@ fuera-del-paquete: si
 1. [Objetivo y alcance](#1-objetivo-y-alcance)
 2. [Estado de partida (corte C9)](#2-estado-de-partida-corte-c9)
 3. [Acceso remoto Tailscale (P1 del PRD)](#3-acceso-remoto-tailscale-p1-del-prd)
-4. [CORS-LAN — condicionada (a+), pendiente de ratificación](#4-cors-lan--condicionada-a-pendiente-de-ratificación-del-usuario)
+4. [CORS-LAN — EJECUTADA (a+) el 2026-11-04](#4-cors-lan--ejecutada-a-el-2026-11-04-junto-al-deploy-del-código-c10-en-la-vm)
 5. [Proxy inverso con HTTPS (P2) — SIN implementar](#5-proxy-inverso-con-https-p2--sin-implementar)
 6. [Referencias](#6-referencias)
 
@@ -167,43 +167,29 @@ root@192.168.1.58` y usar `http://localhost:8080` en el navegador local),
 con el mismo efecto de acceso y cero reglas nuevas. El CORS de ese origen
 es el de hoy (`http://localhost:8080`, ya permitido).
 
-## 4. CORS-LAN — condicionada (a+), RATIFICADA por el dueño — a ejecutar JUNTO AL DEPLOY de C10 en la VM
+## 4. CORS-LAN — EJECUTADA (a+) el 2026-11-04, junto al deploy del código C10 en la VM
 
-**Estado VERDADERO HOY (condicionada — NO implementada en la VM):** accediendo
-al panel por `http://192.168.1.58:8080` desde la LAN, el HTML del frontend
-sirve, pero las llamadas a la API y al WebSocket (`/ws/logs`) responden **403**
-por CORS: el `Origin` visto por el backend es `http://192.168.1.58:8080` y el
-`.env` de la VM contiene solo `FRONTEND_ORIGIN=http://localhost:8080`
-(estado LATENTE, REQ-C10-CORS-5). Lo mismo aplicaría a un origen de tailnet.
+**Estado VERDADERO HOY (ejecutada y verificada en vivo el 2026-11-04):** la
+variante ratificada quedó aplicada en la VM con el deploy del código C10
+(backup in situ `.env.pre-c10-corslan`, recreate SOLO del backend — postgres
+jamás recreado). El `.env` de la VM contiene la lista de 3 orígenes:
 
-**Lo que YA soporta el backend tras el corte C10 (código aplicado, VM
-intocable):** `CorsConfig` divide `FRONTEND_ORIGIN` por comas y llena
-`setAllowedOrigins` con la lista (G1 activado LATENTE). Prohibiciones vigentes
-(G1-C2): nunca `*` como origin, nunca `setAllowedOriginPatterns`, nunca una
-env var nueva — la misma `FRONTEND_ORIGIN` con semántica ampliada.
-
-**Paso de deploy futuro EXACTO — RATIFICADO por el dueño (2026-11-04): se
-ejecuta JUNTO al deploy del código C10 en la VM, en una sesión futura que
-arranca solo cuando el usuario la pida (NO ejecutarlo antes):**
-
-```bash
-# Solo si el usuario RATIFICA la variante (a+) de G1:
-# 1. En el .env de la VM 108, la variable pasa de un origen a la lista:
-#    FRONTEND_ORIGIN=http://localhost:8080,http://192.168.1.58:8080
-# 2. Recrear solo el backend con la nueva env:
-docker compose up -d backend
-# 3. Verificar: docker compose ps (backend healthy) y login + /ws/logs
-#    desde http://192.168.1.58:8080 sin 403.
+```env
+FRONTEND_ORIGIN=http://localhost:8080,http://192.168.1.58:8080,http://100.97.243.102:8080
 ```
 
-Este paso **no está hecho** y no forma parte del estado de la VM: el corte C10
-deja la VM 108 y su `.env` intocables (dif-0); la RATIFICACIÓN del dueño
-autoriza el paso pero solo DENTRO de la sesión futura de deploy de C10. Si el
-usuario no pide esa sesión, el comportamiento sigue siendo el de hoy (403
-desde la IP LAN / tailnet y OK
-desde `localhost`) y este doc no cambia. Si un día se accede por IP de
-tailnet, la lista admitiría añadir también ese origen por el mismo mecanismo,
-siempre con ratificación previa.
+Verificación en vivo (evidencia en `.atl/notes/c10-nota-deploy-vm-corslan.md`):
+panel **200** por LAN y por tailnet; preflight con `X-Confirm-*` → **200** con
+ACAO/ACAH reflejados (fix D-C10-15); origin ajena → **403**; smoke real con
+residuo 0. El estado anterior «403 desde LAN/tailnet» ya no existe.
+
+**Lo que soporta el backend tras el corte C10:** `CorsConfig` divide
+`FRONTEND_ORIGIN` por comas y llena `setAllowedOrigins` con la lista
+(G1 activado). Prohibiciones vigentes (G1-C2): nunca `*` como origin, nunca
+`setAllowedOriginPatterns`, nunca una env var nueva — la misma
+`FRONTEND_ORIGIN` con semántica ampliada. Añadir un origen nuevo sigue siendo:
+una línea en el `.env` + `docker compose up -d backend`, con ratificación
+previa del dueño y backup in situ del `.env`.
 
 ## 5. Proxy inverso con HTTPS (P2) — SIN implementar
 
@@ -252,7 +238,7 @@ toca `frontend/nginx.conf` (dif-0) ni la Compose.
 |---|---|
 | REQ-C10-DOC-1 (operativa Tailscale P1 documentada) | §2 (estado FB-0 + ProxyJump), §3 (instalación, IP de tailnet, mismo puerto 8080 con cero cambios en la Compose, firewall GATE #11) |
 | REQ-C10-DOC-2 (TLS P2 documentado SIN implementar) | §5 (estructura prevista, upgrade headers + timeouts 3600 s, Let's Encrypt/nginx TLS, SIN implementar) |
-| REQ-C10-DOC-3 (verdad condicionada y paso pendiente) | §4 (403 hoy por `192.168.1.58:8080` en `/ws` y API; backend ya soporta lista por coma; paso de deploy futuro EXACTO — RATIFICADO por el dueño 2026-11-04, a ejecutar SOLO junto al deploy de C10 en la VM) |
+| REQ-C10-DOC-3 (verdad condicionada) | §4 — EJECUTADA y verificada en vivo el 2026-11-04 junto al deploy de C10 (lista de 3 orígenes activa en el `.env` de la VM; evidencia en `.atl/notes/c10-nota-deploy-vm-corslan.md`) |
 | REQ-C10-DOC-4 (README índice intacto, D1) | — (dif-0 garantizado: `docs/README.md` no se edita; el doc entra en `/docs` por la primera rama del done-when) |
 
 ---
