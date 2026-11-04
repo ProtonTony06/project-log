@@ -1,9 +1,12 @@
-// Ficha de proyecto (maqueta 05 — R8.38–R8.41/R8.44/E8.41–E8.44+E8.47):
-// datos + bloque "API key de ingesta" (flujo 3: generar/regenerar → 201 →
-// revelación ÚNICA; revocar → 204) + Archivar/Desarchivar SIEMPRE por PATCH
-// {status} (NUNCA DELETE — E8.41) + zona destructiva con modales 8a/8c
-// construidos NO operativos (DELETE + X-Confirm-Name formados → hoy 405/404
-// — §5 sin fingir éxito, E8.47). 404 del detalle → nunca vacío (R8.34-like).
+// Ficha de proyecto (maqueta 05 — R8.38–R8.41/R8.44/E8.41–E8.44+E8.47, C10):
+// datos + bloque "API key de ingesta" (flujo 3) + Archivar/Desarchivar SIEMPRE
+// por PATCH {status} (NUNCA DELETE — E8.41) + bloque "Resumen de logs"
+// (GET /projects/{id}/summary — flujo 9/maqueta 05, REQ-C10-UI-7) + zona
+// destructiva con modales 8a/8c OPERATIVOS: el TEXTO TECLEADO viaja al header
+// X-Confirm-Name tal cual (G2-a/M1 — REQ-C10-UI-1) y los post-estados son los
+// del flujo 8 (D-C10-8): 8a 204 → banner en /proyectos; 8c 200 → banner con
+// el N REAL + ficha y resumen refrescados; 400 → error DENTRO del modal sin
+// logout (G6/UX401-2); 404 → §5 (banner de ficha en 8c / retorno a lista 8a).
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
@@ -12,12 +15,14 @@ import {
   proyecto as proyectoApi,
   purgarLogs,
   regenerarApiKey,
+  resumenProyecto,
   revocarApiKey,
 } from "../api/panel";
 import { ApiError } from "../api/client";
-import type { ProjectDto } from "../api/types";
+import type { ProjectDto, SummaryDto } from "../api/types";
 import { Modal, coincideLiteralConTrim } from "../components/Modal";
 import { ModalRevelacionKey } from "../components/ModalRevelacionKey";
+import { ResumenLogs } from "../components/ResumenLogs";
 import { Banner } from "../components/Banner";
 
 type Confirmacion =
@@ -38,6 +43,12 @@ export default function ProyectoDetalle() {
   const aviso = (location.state as { aviso?: string } | null)?.aviso ?? null;
 
   const [dto, setDto] = useState<ProjectDto | null>(null);
+  // Resumen de logs de la ficha (flujo 9): complementario — si falla, el
+  // bloque se OMITE sin romper la ficha (D-C10-9).
+  const [resumen, setResumen] = useState<SummaryDto | null>(null);
+  // Banner de estado local post-8c (D-C10-8, REQ-C10-UI-4): literal con el
+  // N REAL del cuerpo {"deleted": N}.
+  const [avisoAccion, setAvisoAccion] = useState<string | null>(null);
   const [cargando, setCargando] = useState(true);
   const [noExiste, setNoExiste] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -51,11 +62,21 @@ export default function ProyectoDetalle() {
     setCargando(true);
     setNoExiste(false);
     setError(null);
+    // El resumen se re-pide en cada carga (flujos 8c/9 paso 5: "se refresca
+    // al recargar o con Actualizar" — NUNCA en vivo por WebSocket).
+    setResumen(null);
     if (!Number.isFinite(idNum) || Number.isNaN(idNum)) {
       setNoExiste(true);
       setCargando(false);
       return;
     }
+    // En PARALELO al DTO (flujo 9): fallo ⇒ catch vacío, bloque omitido.
+    resumenProyecto(idNum)
+      .then((r) => setResumen(r))
+      .catch(() => {
+        // Degradación honesta (D-C10-9): el resumen es complementario, NO
+        // blocker — la ficha sigue funcionando sin él.
+      });
     proyectoApi(idNum)
       .then((p) => {
         setDto(p);
@@ -72,7 +93,11 @@ export default function ProyectoDetalle() {
 
   const archivado = dto?.status === "ARCHIVED";
 
-  const ejecutarConfirmado = async () => {
+  // El TEXTO TECLEADO del modal viaja tal cual al header (G2-a/M1 — REQ-
+  // C10-UI-1: sin re-trim en el cliente; el trim SOLO es gate del botón, y
+  // la comparación EXACTA es del servidor — un trim-igual-no-exacto produce
+  // 400 confirm_mismatch visible DENTRO del modal, REQ-C10-UI-2).
+  const ejecutarConfirmado = async (texto: string) => {
     if (dto === null || confirmacion === null || ejecutando) return;
     setEjecutando(true);
     setErrorAccion(null);
@@ -95,23 +120,39 @@ export default function ProyectoDetalle() {
         setConfirmacion(null);
         cargar();
       } else if (confirmacion === "purgar") {
-        // S8-2/E8.47: header X-Confirm-Name FORMADO — hoy 405/404, §5.
-        await purgarLogs(dto.id, dto.name);
-        // inalcanzable hoy; si C10 lo hace, el refresco es correcto:
+        // Flujo 8c: 200 {"deleted": N} — banner con el N REAL del cuerpo,
+        // y cargar() refresca DTO **y resumen** (bloque a «sin logs todavía»).
+        const r = await purgarLogs(dto.id, texto);
         setConfirmacion(null);
+        setAvisoAccion(
+          `${r.deleted} logs eliminados; el proyecto y su key siguen intactos`,
+        );
         cargar();
       } else if (confirmacion === "eliminar") {
-        await eliminarProyecto(dto.id, dto.name);
+        // Flujo 8a: 204 sin cuerpo → setConfirmacion(null) + navegar a
+        // /proyectos con el banner literal (REQ-C10-UI-3).
+        await eliminarProyecto(dto.id, texto);
         setConfirmacion(null);
-        navegar("/proyectos");
+        navegar("/proyectos", {
+          state: { aviso: "Proyecto y sus logs eliminados definitivamente" },
+        });
       }
     } catch (err) {
-      setErrorAccion(
-        err instanceof ApiError ? err : new ApiError(0, undefined, "HTTP 0"),
-      );
-      // el modal de 8a/8c queda abierto con el error visible (E8.47/R8.36)
-      if (confirmacion !== "purgar" && confirmacion !== "eliminar") {
+      const fallo = err instanceof ApiError ? err : new ApiError(0, undefined, "HTTP 0");
+      setErrorAccion(fallo);
+      // El 400 (confirm_required/confirm_mismatch) NO desloguea (el
+      // interceptor 401 no entra: solo con status 401 — G6/R8.14) y en 8a/8c
+      // el modal PERMANECE ABIERTO con el error visible DENTRO (reintento
+      // directo — E8.47/R8.36/REQ-C10-UI-2). El 404 SÍ se propaga §5: en 8a
+      // retorno a la lista con banner (D-C10-8); en 8c banner rojo de la
+      // ficha (errorAccion, visible con el modal cerrado).
+      if (confirmacion === "eliminar" && fallo.status === 404) {
         setConfirmacion(null);
+        navegar("/proyectos", {
+          state: { aviso: "No existe (quizás fue eliminado)" },
+        });
+      } else if (confirmacion === "purgar" && fallo.status === 404) {
+        setConfirmacion(null); // banner rojo §5 de la ficha muestra errorAccion
       }
     } finally {
       setEjecutando(false);
@@ -202,6 +243,14 @@ export default function ProyectoDetalle() {
         </div>
       )}
 
+      {/* Banner post-8c (D-C10-8/REQ-C10-UI-4): «N logs eliminados; el
+          proyecto y su key siguen intactos» con el N REAL del cuerpo. */}
+      {avisoAccion !== null && (
+        <div className="mb-5" role="status">
+          <Banner variante="info" message={avisoAccion} />
+        </div>
+      )}
+
       {errorAccion !== null && confirmacion === null && (
         <div className="mb-5">
           <Banner
@@ -247,6 +296,21 @@ export default function ProyectoDetalle() {
               </div>
             </dl>
           </section>
+
+          {/* Resumen de logs (flujo 9, maqueta 05 — REQ-C10-UI-7): vía el
+              endpoint dedicado (M3: el include SOLO existe en la lista). El
+              bloque se OMITE si el resumen no llegó (degradación honesta). */}
+          {resumen !== null && (
+            <section className="bg-white border border-stone-200 rounded-xl p-5">
+              <h2 className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-3">
+                Resumen de logs
+              </h2>
+              <p className="text-xs text-stone-500 mono mb-3">
+                GET /projects/{dto.id}/summary
+              </p>
+              <ResumenLogs resumen={resumen} variante="bloque" />
+            </section>
+          )}
 
           {/* API key de ingesta (flujo 3) */}
           <section className="bg-white border border-stone-200 rounded-xl overflow-hidden">
@@ -431,7 +495,7 @@ X-API-Key: plk_…
           <button
             type="button"
             disabled={ejecutando}
-            onClick={ejecutarConfirmado}
+            onClick={() => { void ejecutarConfirmado(""); }}
             className="bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium rounded-lg px-3 py-2 disabled:opacity-50"
           >
             {ejecutando ? "Aplicando…" : "Confirmar (PATCH status)"}
@@ -474,7 +538,7 @@ X-API-Key: plk_…
           <button
             type="button"
             disabled={ejecutando}
-            onClick={ejecutarConfirmado}
+            onClick={() => { void ejecutarConfirmado(""); }}
             className="bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium rounded-lg px-3 py-2 disabled:opacity-50"
           >
             {ejecutando ? "Aplicando…" : "Confirmar"}
@@ -482,7 +546,9 @@ X-API-Key: plk_…
         </div>
       </Modal>
 
-      {/* ── Modal 8c: purgar logs — nombre EXACTO + trim; hoy 405/404 (§5) ── */}
+      {/* ── Modal 8c: purgar logs — nombre EXACTO + trim SOLO como gate del
+          botón (V10); el TEXTO TECLEADO viaja al header X-Confirm-Name tal
+          cual (G2-a/M1 — REQ-C10-UI-1); 400 → error dentro del modal. ── */}
       <ModalPurga8c
         abierto={confirmacion === "purgar"}
         id={dto.id}
@@ -493,7 +559,8 @@ X-API-Key: plk_…
         alConfirmar={ejecutarConfirmado}
       />
 
-      {/* ── Modal 8a: eliminar definitiva — nombre EXACTO; hoy 405/404 (§5) ── */}
+      {/* ── Modal 8a: eliminar definitivamente — idem: texto tecleado tal
+          cual al header (G2-a — REQ-C10-UI-1); post-estados flujo 8. ── */}
       <ModalEliminar8a
         abierto={confirmacion === "eliminar"}
         id={dto.id}
@@ -521,8 +588,10 @@ X-API-Key: plk_…
   );
 }
 
-/** Modal 8c — purgar logs (E8.47): exige el nombre EXACTO (trim); el header
- * X-Confirm-Name se envía formado; hoy el backend responde 405/404 → §5. */
+/** Modal 8c — purgar logs (flujo 8c, V10): exige el nombre EXACTO (trim,
+ * SOLO gate del botón); al confirmar invoca alConfirmar(texto) con el TEXTO
+ * TECLEADO tal cual (G2-a/M1 — REQ-C10-UI-1); 400 → error literal DENTRO del
+ * modal sin cerrar ni desloguear (REQ-C10-UI-2/UX401-2). */
 function ModalPurga8c(props: {
   abierto: boolean;
   id: number;
@@ -530,7 +599,7 @@ function ModalPurga8c(props: {
   ejecutando: boolean;
   errorAccion: ApiError | null;
   alCerrar: () => void;
-  alConfirmar: () => void;
+  alConfirmar: (texto: string) => void;
 }) {
   const { abierto, id, nombre, ejecutando, errorAccion, alCerrar, alConfirmar } = props;
   const [texto, setTexto] = useState("");
@@ -577,7 +646,7 @@ function ModalPurga8c(props: {
         <button
           type="button"
           disabled={!coincide || ejecutando}
-          onClick={alConfirmar}
+          onClick={() => alConfirmar(texto)}
           title="Envía DELETE /projects/{id}/logs con header X-Confirm-Name"
           className={
             "text-white text-sm font-medium rounded-lg px-4 py-2 " +
@@ -593,8 +662,10 @@ function ModalPurga8c(props: {
   );
 }
 
-/** Modal 8a — eliminar definitivamente (E8.47): nombre EXACTO + trim; texto
- * con la consecuencia; hoy 405/404 → error visible, ficha intacta. */
+/** Modal 8a — eliminar definitivamente (flujo 8a, V10): nombre EXACTO + trim
+ * SOLO como gate del botón; al confirmar invoca alConfirmar(texto) con el
+ * TEXTO TECLEADO tal cual (G2-a/M1 — REQ-C10-UI-1); 404 → retorno §5 a la
+ * lista (D-C10-8); 400 → reintento directo dentro del modal. */
 function ModalEliminar8a(props: {
   abierto: boolean;
   id: number;
@@ -602,7 +673,7 @@ function ModalEliminar8a(props: {
   ejecutando: boolean;
   errorAccion: ApiError | null;
   alCerrar: () => void;
-  alConfirmar: () => void;
+  alConfirmar: (texto: string) => void;
 }) {
   const { abierto, id, nombre, ejecutando, errorAccion, alCerrar, alConfirmar } = props;
   const [texto, setTexto] = useState("");
@@ -650,7 +721,7 @@ function ModalEliminar8a(props: {
         <button
           type="button"
           disabled={!coincide || ejecutando}
-          onClick={alConfirmar}
+          onClick={() => alConfirmar(texto)}
           title={`Envía DELETE /projects/${id} con header X-Confirm-Name`}
           className={
             "text-white text-sm font-medium rounded-lg px-4 py-2 " +

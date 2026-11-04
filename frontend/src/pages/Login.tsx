@@ -1,15 +1,18 @@
 // Login (R8.8–R8.9/E8.7–E8.9, maqueta 01): POST /auth/login SIN Bearer FUERA
 // del interceptor (opción bearer:false, D-C8-3); 200 ⇒ guarda token+expires_at
-// y navega al DESTINO guardado con query intacta (R8.5/E8.3); 401 ⇒ inline
-// "✕ Usuario o contraseña incorrectos" (sin revelar campo, sin redirect,
-// E8.8); fallo de red ⇒ banner "No se puede conectar con el servidor";
-// botón deshabilitado "Enviando…" (anti-doble-submit, E8.9); con sesión ⇒
-// <Navigate to="/"/> (R8.3/E8.4).
-import { useState } from "react";
+// y navega al DESTINO guardado con query intacta (R8.5/E8.3 — C10 D-C10-11:
+// `destinoPropio` se lee ANTES del await y `navegar(destinoPropio, replace)`
+// es la ÚNICA navegación post-login — el `<Navigate to="/">` SOLO gana en
+// llegadas YA autenticadas via elNavigateGana, fix H-C9-E9.2/REQ-C10-E92-1);
+// error: destinoPropio a null; 401 ⇒ inline "✕ Usuario o contraseña
+// incorrectos" (sin revelar campo, sin redirect, E8.8); fallo de red ⇒ banner
+// "No se puede conectar con el servidor"; botón deshabilitado "Enviando…"
+// (anti-doble-submit, E8.9).
+import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { borrarDestino, obtenerDestino } from "../hooks/useAuth";
+import { destinoTrasLogin, borrarDestino, elNavigateGana, obtenerDestino } from "../hooks/useAuth";
 import { ApiError } from "../api/client";
 import { Banner } from "../components/Banner";
 
@@ -24,11 +27,19 @@ export default function Login() {
   const [credencialesInvalidas, setCredencialesInvalidas] = useState(false);
   const [falloRed, setFalloRed] = useState<string | null>(null);
 
+  // D-C10-11: transición iniciada por enviar() — leída de storage ANTES del
+  // await (borrarDestino() de dentro de login() no la toca). En errores se
+  // pone a null; tras el éxito el componente se desmonta con la navegación.
+  const destinoPropio = useRef<string | null>(null);
+
   const motivoExpirada =
     (location.state as { motivo?: string } | null)?.motivo === "expirada";
 
-  // R8.3/E8.4: con sesión activa el formulario no se muestra.
-  if (sesion.estado === "autenticado") {
+  // R8.3/E8.4: con sesión activa el formulario no se muestra — SOLO en
+  // llegadas ya autenticadas (restore/back); la transición propia del login
+  // tiene destinoPropio ≠ null ⇒ elNavigateGana false ⇒ UNA sola navegación
+  // (la de enviar(), hacia el destino guardado — REQ-C10-E92-1).
+  if (elNavigateGana(sesion.estado, destinoPropio.current !== null)) {
     return <Navigate to="/" replace />;
   }
 
@@ -38,12 +49,15 @@ export default function Login() {
     setEnviando(true);
     setCredencialesInvalidas(false);
     setFalloRed(null);
-    // El destino lo guardó RequireAuth al desviar (path+query intactos, E8.3).
+    // El destino lo guardó RequireAuth al desviar (path+query intactos, E8.3);
+    // se lee y se fija ANTES del await (D-C10-11/explore B.4).
     const destino = obtenerDestino();
+    destinoPropio.current = destinoTrasLogin(destino);
     try {
       await sesion.login(usuario, password);
-      navegar(destino ?? "/logs", { replace: true });
+      navegar(destinoPropio.current, { replace: true });
     } catch (err) {
+      destinoPropio.current = null; // higiene: el reintento re-lee el destino
       if (err instanceof ApiError && err.status === 401) {
         // E8.8: mensaje inline; NUNCA se revela qué campo falló (S8-1).
         setCredencialesInvalidas(true);

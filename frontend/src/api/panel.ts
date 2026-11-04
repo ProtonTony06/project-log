@@ -1,5 +1,6 @@
 // Una función por endpoint del panel (§5.3, D-C8-3/D-C8-10). Rutas RELATIVAS
-// de mismo origen (R8.53). Sin ?include=summary en C8 (R8.18).
+// de mismo origen (R8.53). C10: el resumen viaja en `GET /projects?include=summary`
+// (lista) y `GET /projects/{id}/summary` (ficha — REQ-C10-UI-8/RESUMEN-1/3).
 import {
   asignarBearer,
   request,
@@ -13,6 +14,7 @@ import type {
   LogsPagina,
   MeResponse,
   ProjectDto,
+  SummaryDto,
 } from "./types";
 
 /** POST /api/v1/panel/auth/login — ÚNICO endpoint sin Bearer y FUERA del
@@ -37,6 +39,19 @@ export function me(): Promise<MeResponse> {
 
 export function listaProyectos(): Promise<ProjectDto[]> {
   return request<ProjectDto[]>("/api/v1/panel/projects");
+}
+
+/** GET /api/v1/panel/projects?include=summary — cada ProjectDto lleva su
+ * SummaryDto (flujo 9, REQ-C10-RESUMEN-1); sin include queda listaProyectos()
+ * para los mapas de nombres de Logs.tsx. */
+export function listaProyectosConResumen(): Promise<ProjectDto[]> {
+  return request<ProjectDto[]>("/api/v1/panel/projects?include=summary");
+}
+
+/** GET /api/v1/panel/projects/{id}/summary — resumen de la ficha (M3: el
+ * include SOLO existe en la lista; REQ-C10-RESUMEN-3). 404 not_found. */
+export function resumenProyecto(id: number): Promise<SummaryDto> {
+  return request<SummaryDto>(`/api/v1/panel/projects/${id}/summary`);
 }
 
 export function proyecto(id: number): Promise<ProjectDto> {
@@ -114,37 +129,42 @@ export function log(id: number | string): Promise<LogDto> {
   return request<LogDto>(`/api/v1/panel/logs/${id}`);
 }
 
-// ─── DELETEs de C10: hoy 405/404 — Promise<never> documenta que no hay happy
-// path sin fingir éxito. Las cabeceras X-Confirm-* ya se envían FORMADAS (S8-2).
+// ─── DELETEs de C10: estados REALES del flujo 8 (REQ-C10-UI-8/F1). Las
+// cabeceras X-Confirm-* viajan con el TEXTO TECLEADO del modal (G2-a):
+// 8a/8b → 204 sin cuerpo ⇒ Promise<void>; 8c → 200 {"deleted": N} ⇒
+// Promise<{deleted: number}> (parser tolerante de finalizar() en client.ts,
+// SIN TOCAR — G6/B.1).
 
-/** DELETE /api/v1/panel/projects/{id} con X-Confirm-Name (modal 8a). */
+/** DELETE /api/v1/panel/projects/{id} con X-Confirm-Name (modal 8a) → 204. */
 export async function eliminarProyecto(
   id: number,
   nombreConfirmado: string,
-): Promise<never> {
-  return request<never>(`/api/v1/panel/projects/${id}`, {
+): Promise<void> {
+  return request<void>(`/api/v1/panel/projects/${id}`, {
     method: "DELETE",
     headers: { "X-Confirm-Name": nombreConfirmado },
   });
 }
 
-/** DELETE /api/v1/panel/projects/{id}/logs con X-Confirm-Name (modal 8c). */
+/** DELETE /api/v1/panel/projects/{id}/logs con X-Confirm-Name (modal 8c)
+ * → 200 {"deleted": N} con el N REAL del retorno del DELETE sql. */
 export async function purgarLogs(
   id: number,
   nombreConfirmado: string,
-): Promise<never> {
-  return request<never>(`/api/v1/panel/projects/${id}/logs`, {
+): Promise<{ deleted: number }> {
+  return request<{ deleted: number }>(`/api/v1/panel/projects/${id}/logs`, {
     method: "DELETE",
     headers: { "X-Confirm-Name": nombreConfirmado },
   });
 }
 
-/** DELETE /api/v1/panel/logs/{id} con X-Confirm-Log-Id (modal 8b — E8.38). */
+/** DELETE /api/v1/panel/logs/{id} con X-Confirm-Log-Id (modal 8b — E8.38)
+ * → 204. */
 export async function eliminarLog(
   id: number,
   confirmacionId: number,
-): Promise<never> {
-  return request<never>(`/api/v1/panel/logs/${id}`, {
+): Promise<void> {
+  return request<void>(`/api/v1/panel/logs/${id}`, {
     method: "DELETE",
     headers: { "X-Confirm-Log-Id": String(confirmacionId) },
   });

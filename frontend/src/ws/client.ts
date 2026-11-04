@@ -9,9 +9,20 @@
 //   cierres del servidor tratados UNIFORMEMENTE sin oráculo (R8.30).
 // - close SIN open previo ⇒ alCierreInaugural(): el hook lo resuelve con
 //   me() (401 → interceptor; 200 → backoff normal — D-C8-5.6).
+// - C10 (D-C10-7/G3-a/M9 — fix H-C9-WS-COLGADO): TODO intento tiene un
+//   timer de apertura T=10 s: un socket colgado en CONNECTING jamás
+//   recibe onclose, y sin close NO hay intento+1 (backoff self-sustaining
+//   POR CIERRES). El timeout SOLO introduce el close que faltaba — el
+//   enrutado por abiertoAlgunaVez (cadena intenta+1 / inaugural no) queda
+//   intacto; heartbeat del servidor 30 s y backoff mínimo 800 ms ⇒ 10 s no
+//   compite con ninguno de los dos.
 import type { FrameBatch, SetFilters } from "../api/types";
 
 export type EstadoWs = "conectado" | "desconectado" | "reconectando";
+
+/** Timeout de la fase CONNECTING (D-C10-7): 10 000 ms EXACTOS (pin Vitest).
+ * < heartbeat 30 s del servidor; > backoff mínimo 800 ms. */
+export const T_TIMEOUT_CONNECTING_MS = 10_000;
 
 export interface WsCallbacks {
   alFrame(batch: FrameBatch): void;
@@ -87,8 +98,21 @@ export class ClienteWsLogs {
   private detenido = false;
   private abiertoAlgunaVez = false;
   private timer: ReturnType<typeof setTimeout> | null = null;
+  // D-C10-7: timer de la fase CONNECTING — DISTINTO del timer de backoff
+  // (reconectar() usa el guard timer !== null y NO se confunde con este).
+  private timerApertura: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(callbacks: WsCallbacks, reloj: Reloj = { setTimeout, clearTimeout }) {
+  // Default ENVUELTO en arrows (fix C10): los natives desenlazados lanzan
+  // "TypeError: Illegal invocation" en Chromium — sin receiver hay que fijar
+  // el receptor al invocar (el timer de CONNECTING de D-C10-7 usa este Reloj
+  // en la vía feliz de cada conexión).
+  constructor(
+    callbacks: WsCallbacks,
+    reloj: Reloj = {
+      setTimeout: (fn, ms) => setTimeout(fn, ms),
+      clearTimeout: (t) => clearTimeout(t),
+    },
+  ) {
     this.callbacks = callbacks;
     this.reloj = reloj;
   }
@@ -115,6 +139,7 @@ export class ClienteWsLogs {
   /** Cierre definitivo: SIN reconexión ulterior (S8-4 — desmontar /logout/401). */
   cerrar(): void {
     this.detenido = true;
+    this.cancelarTimerApertura();
     if (this.timer !== null) {
       this.reloj.clearTimeout(this.timer);
       this.timer = null;
@@ -151,7 +176,22 @@ export class ClienteWsLogs {
     const socket = new WebSocket(url);
     this.socket = socket;
 
+    // D-C10-7: TODO intento arma el timer de CONNECTING. El socket va
+    // CAPTURADO en la closure (no this.socket): una carrera de reconexión
+    // jamás cierra el socket equivocado.
+    this.timerApertura = this.reloj.setTimeout(() => {
+      this.timerApertura = null;
+      // Doble-close inofensivo: si el socket ya abrió o ya cerró, NO está
+      // en CONNECTING ⇒ no-op (el onclose real ya enrutó por alCierre).
+      if (socket.readyState === WebSocket.CONNECTING) {
+        socket.close();
+      }
+    }, T_TIMEOUT_CONNECTING_MS);
+
     socket.onopen = () => {
+      // REQ-C10-WS-1: el timer se cancela ANTES de enviarFiltros() — sin
+      // cierres espurios sobre sockets sanos.
+      this.cancelarTimerApertura();
       this.abiertoAlgunaVez = true;
       this.intento = 0;
       this.callbacks.alEstado("conectado", 0);
@@ -178,7 +218,20 @@ export class ClienteWsLogs {
     }
   }
 
+  /** D-C10-7: cancela (clearTimeout + null) el timer de CONNECTING —
+   * idempotente. Distinto del timer de backoff. */
+  private cancelarTimerApertura(): void {
+    if (this.timerApertura !== null) {
+      this.reloj.clearTimeout(this.timerApertura);
+      this.timerApertura = null;
+    }
+  }
+
   private alCierre(): void {
+    // D-C10-7: si un close REAL llega con el timer aún corriendo, el timer
+    // queda anulado (y su disparo tardío sería no-op por el guard) —
+    // doble-close inofensivo por partida doble.
+    this.cancelarTimerApertura();
     this.socket = null;
     if (this.detenido) return;
 

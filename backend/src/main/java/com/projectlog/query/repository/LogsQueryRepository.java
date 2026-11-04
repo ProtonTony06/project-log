@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.projectlog.auth.LoginController;
+import com.projectlog.projects.dto.SummaryDto;
 import com.projectlog.query.dto.LogDto;
 import com.projectlog.query.dto.LogListItemDto;
 
@@ -28,10 +29,14 @@ import com.projectlog.query.dto.LogListItemDto;
  * documentada de mono-sentencia (patrón R3.2).
  *
  * <p>El repo NO valida NADA (los 8 checks viven en el controller — frontera
- * de capas, R6.18b); NINGÚN método toca la tabla {@code projects} (FK
- * CASCADE regla 3); NUNCA {@code queryForObject} en las 2 lecturas (fila-0
- * es el caso LEGAL del 404 — R6.18a). CERO SQL dinámico (E1): el estamento
- * de listado es ÚNICO para TODAS las combinaciones de filtros; la primera
+ * de capas, R6.18b); NINGÚN método ESCRIBE la tabla {@code logs} (las
+ * mutaciones del panel — 8b/8c — viven en {@code LogsBorradoRepository} de
+ * este mismo paquete, D-C10-2/D-C10-3). C10: dependencia DECLARADA
+ * {@code query.repository → projects.dto} por {@code SummaryDto} (el
+ * resumen ES parte del contrato del proyecto; mismo patrón ya existente
+ * {@code query → auth} por el formatter del C2). CERO SQL dinámico (E1):
+ * el estamento de listado es ÚNICO para TODAS las combinaciones de filtros;
+ * la primera
  * página usa EL MISMO estamento con los 3 params del keyset {@code null}.</p>
  */
 @Repository
@@ -102,6 +107,38 @@ public class LogsQueryRepository {
             "SELECT id, project_id, level, environment, timestamp, received_at,"
                     + " message, exception, metadata, source, correlation_id"
                     + " FROM logs WHERE id = ANY (?)";
+
+    /**
+     * C10 (D-C10-3, literal del design con el ORDEN maqueta-04 del spec —
+     * REQ-C10-UI-6/maqueta 04: «FATAL 1 · ERROR 148 · WARN 63 · DEBUG 1 000 ·
+     * INFO 24 118» — DEBUG ANTES de INFO, mapeo del CASE 4/5; los
+     * literales EXACTOS del design):
+     * los 3 estamentos del
+     * RESUMEN por proyecto (flujo 9). Todos resueltos por el PREFIJO
+     * {@code project_id} de {@code logs_dashboard_idx} (V1 — sin migración).
+     * SQL plano con {@code GROUP BY}+{@code CASE} (orden maqueta-04) —
+     * {@code jsonb_object_agg} descartado (D-C10-3: 3 estamentos por
+     * proyecto, mapas Java naturales, cero SQL dinámico). Los mapas salen de
+     * {@code LinkedHashMap} SOLO con las claves PRESENTES
+     * (REQ-C10-RESUMEN-4). Package-private por el pin de
+     * {@code LogsQuerySqlTest}.
+     */
+    static final String SELECT_RESUMEN_NIVELES =
+            "SELECT level, COUNT(*) FROM logs WHERE project_id = ? GROUP BY level"
+                    + " ORDER BY CASE level WHEN 'FATAL' THEN 1 WHEN 'ERROR' THEN 2"
+                    + " WHEN 'WARN' THEN 3 WHEN 'DEBUG' THEN 4 WHEN 'INFO' THEN 5"
+                    + " ELSE 6 END";
+
+    /** Entornos alfabéticos (ORDER BY environment — literal D-C10-3). */
+    static final String SELECT_RESUMEN_ENTORNOS =
+            "SELECT environment, COUNT(*) FROM logs WHERE project_id = ?"
+                    + " GROUP BY environment ORDER BY environment";
+
+    /** TOTALES: {@code total} = COUNT(*); {@code last_log_at} = MAX(received_at)
+     * (null si no hay logs — proyecto sin logs ⇒ UNA fila con COUNT=0 y
+     * MAX=NULL: NUNCA {@code queryForObject} sobre ausencia real). */
+    static final String SELECT_RESUMEN_TOTALES =
+            "SELECT COUNT(*), MAX(received_at) FROM logs WHERE project_id = ?";
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -203,6 +240,56 @@ public class LogsQueryRepository {
     public Optional<LogDto> porId(long id) {
         List<LogDto> filas = jdbcTemplate.query(SELECT_POR_ID, FILA_DETALLE, id);
         return filas.isEmpty() ? Optional.empty() : Optional.of(filas.get(0));
+    }
+
+    /**
+     * Fila ÚNICA del TOTALES (D-C10-3): {@code COUNT(*)} + {@code MAX(
+     * received_at)} — MAX llega {@code null} cuando no hay logs (proyecto
+     * vacío ⇒ UNA fila siempre: NUNCA {@code queryForObject} sobre ausencia
+     * real). Record privado de traducción.
+     */
+    private record TotalResumen(long total, OffsetDateTime last_log_at) {
+    }
+
+    /**
+     * C10 (D-C10-3, REQ-C10-RESUMEN-3/4): {@code resumen(projectId)} —
+     * 3 llamadas {@code query} sobre los estamentos pinados arriba. Los dos
+     * mapas se construyen en {@code LinkedHashMap} SOLO con las claves
+     * PRESENTES (sin claves a 0) — el orden maqueta-04 de la banda de
+     * niveles sale del {@code CASE} EN SQL (FATAL→ERROR→WARN→DEBUG→INFO→
+     * ELSE 6 — DEBUG ANTES de INFO, mapeo 4/5 del contrato maqueta-04) y el
+     * de entornos de {@code ORDER BY environment}. {@code last_log_at}: el
+     * máximo {@code received_at} RAW con el formatter PÚBLICO de C2
+     * ({@code LoginController.EXPIRES_AT_FORMATTER}, reutilizado por
+     * referencia — jamás otra convención), {@code null} si el proyecto aún
+     * no recibe logs (estado vacío informativo, M4). Los ARCHIVADOS cuentan
+     * igual (M5/flujo 9 paso 3: el resumen NO mira {@code status}).
+     */
+    @Transactional // defensa documentada (patrón R3.2): mono-sentencia por estamento
+    public SummaryDto resumen(long projectId) {
+        Map<String, Long> porNivel = jdbcTemplate.query(SELECT_RESUMEN_NIVELES,
+                rs -> {
+                    Map<String, Long> mapa = new LinkedHashMap<>();
+                    while (rs.next()) {
+                        mapa.put(rs.getString(1), rs.getLong(2));
+                    }
+                    return mapa;
+                }, projectId);
+        Map<String, Long> porEntorno = jdbcTemplate.query(SELECT_RESUMEN_ENTORNOS,
+                rs -> {
+                    Map<String, Long> mapa = new LinkedHashMap<>();
+                    while (rs.next()) {
+                        mapa.put(rs.getString(1), rs.getLong(2));
+                    }
+                    return mapa;
+                }, projectId);
+        List<TotalResumen> totales = jdbcTemplate.query(SELECT_RESUMEN_TOTALES,
+                (rs, numeroFila) -> new TotalResumen(rs.getLong(1),
+                        rs.getObject(2, OffsetDateTime.class)), projectId);
+        TotalResumen total = totales.get(0);
+        String lastLogAt = total.last_log_at() == null ? null
+                : total.last_log_at().format(LoginController.EXPIRES_AT_FORMATTER);
+        return new SummaryDto(porNivel, porEntorno, total.total(), lastLogAt);
     }
 
     /**

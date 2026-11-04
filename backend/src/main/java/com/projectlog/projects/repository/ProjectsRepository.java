@@ -25,8 +25,11 @@ import com.projectlog.projects.dto.UpdateProjectRequest;
  * <p>{@code @Transactional} queda como <b>defensa documentada</b> (R3.2):
  * las 4 operaciones de C3 son mono-sentencia ({@code INSERT/UPDATE ...
  * RETURNING} — una sola ida y vuelta), así que el autocommit de
- * {@code JdbcTemplate} basta; lo multi-sentencia (batch all-or-nothing,
- * CASCADE) llega en C5/C10.</p>
+ * {@code JdbcTemplate} basta; con C10 el borrado ({@link #borrar}) es la
+ * primera operación destructiva y SIEMPRE mono-sentencia (D-C10-2: la
+ * CASCADE de logs y la muerte de la key las ejecuta el MOTOR en la MISMA
+ * transacción — {@code logs_project_fk ON DELETE CASCADE} de V1 — sin pasos
+ * intermedios).</p>
  *
  * <p>El repo NO valida longitudes ni enum (la validación de borde es del
  * controller, R3.3/CD-3.7): nunca recibe un {@code status} fuera del enum
@@ -92,6 +95,18 @@ public class ProjectsRepository {
                     .format(LoginController.EXPIRES_AT_FORMATTER),
             rs.getString("api_key_prefix"),
             rs.getBoolean("has_key"));
+
+    /**
+     * C10 (D-C10-2, literal EXACTO del spec): borrado DEFINITIVO del
+     * proyecto — UNA sentencia, SIN pasos intermedios (REQ-C10-DEL-5):
+     * PostgreSQL purga los logs por la FK {@code logs_project_fk
+     * ON DELETE CASCADE} de V1 en la MISMA transacción del motor y la API
+     * key muere con la fila (columnas DENTRO de {@code projects}, §2 —
+     * nada que purgar aparte). Package-private por el pin D-9 de
+     * {@code ProjectsBorradoSqlTest} (mismo paquete — mismo patrón que
+     * {@link #COLS}).
+     */
+    static final String SQL_BORRAR = "DELETE FROM projects WHERE id = ?";
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -304,5 +319,20 @@ public class ProjectsRepository {
         List<ProjectDto> filas = jdbcTemplate.query(
                 SELECT_POR_API_KEY_HASH, FILA, hash);
         return filas.isEmpty() ? Optional.empty() : Optional.of(filas.get(0));
+    }
+
+    /**
+     * C10 (D-C10-2): borrado definitivo — {@code update == 1} → 204;
+     * {@code false} ⇒ 404 de carrera (la fila desapareció entre el
+     * {@code findById} del controller y este DELETE — mismo patrón
+     * empty-RETURNING de {@code ApiKeyController.regenerar}). SIN chequeo de
+     * {@code status} (M5: el archivado NO bloquea los DELETE).
+     *
+     * @return {@code true} si la fila existió y se borró (y con ella sus
+     *         logs por CASCADE); {@code false} si el id ya no existía (→ 404)
+     */
+    @Transactional // defensa documentada (R3.2): mono-sentencia — CASCADE del motor
+    public boolean borrar(long id) {
+        return jdbcTemplate.update(SQL_BORRAR, id) == 1;
     }
 }

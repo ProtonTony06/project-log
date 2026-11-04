@@ -93,4 +93,64 @@ class LogsQuerySqlTest {
         assertThat(LogsQueryRepository.SELECT_POR_ID.chars()
                 .filter(c -> c == '?').count()).isEqualTo(1);
     }
+
+    // ==================================================================
+    // C10 (T10.6 — D-C10-3, REQ-C10-RESUMEN-3/4): pins de los 3
+    // SELECT_RESUMEN_* — literales EXACTOS, GROUP BY + CASE del orden
+    // maqueta-04, ORDER BY environment, COUNT(*)+MAX(received_at)
+    // ==================================================================
+
+    @Test
+    void selectResumenNivelesPinaElLiteralConGroupByYCaseDelOrdenMaqueta04() {
+        // literal EXACTO D-C10-3 con el ORDEN maqueta-04 del spec (REQ-C10-UI-6
+        // /maqueta 04: «FATAL 1 · ERROR 148 · WARN 63 · DEBUG 1 000 · INFO
+        // 24 118» — DEBUG ANTES de INFO: mapeo del CASE FATAL 1 · ERROR 2 ·
+        // WARN 3 · DEBUG 4 · INFO 5 · ELSE 6; decisión C10 del orquestador,
+        // nota c10-nota-orden-bandas-resumen-case-info-debug.md)
+        assertThat(LogsQueryRepository.SELECT_RESUMEN_NIVELES).isEqualTo(
+                "SELECT level, COUNT(*) FROM logs WHERE project_id = ? GROUP BY level"
+                        + " ORDER BY CASE level WHEN 'FATAL' THEN 1 WHEN 'ERROR' THEN 2"
+                        + " WHEN 'WARN' THEN 3 WHEN 'DEBUG' THEN 4 WHEN 'INFO' THEN 5"
+                        + " ELSE 6 END");
+        // 1 placeholder (cero SQL dinámico — frontera E1/C6)
+        assertThat(LogsQueryRepository.SELECT_RESUMEN_NIVELES.chars()
+                .filter(c -> c == '?').count()).isEqualTo(1L);
+        // GROUP BY + CASE presentes; solo claves PRESENTES el lo materializa
+        // el Java (LinkedHashMap) — el SQL no rellena niveles a 0. El DEBUG
+        // (4) precede al INFO (5) — orden maqueta-04, NO alfabético
+        assertThat(LogsQueryRepository.SELECT_RESUMEN_NIVELES)
+                .contains("GROUP BY level").contains("WHEN 'FATAL' THEN 1")
+                .contains("WHEN 'DEBUG' THEN 4").contains("WHEN 'INFO' THEN 5")
+                .contains("ELSE 6")
+                .doesNotContain(";").doesNotContain("COALESCE")
+                .doesNotContain("exception");
+    }
+
+    @Test
+    void selectResumenEntornosPinaElLiteralConOrderByEnvironment() {
+        // entornos ALFABÉTICOS (ORDER BY environment — literal D-C10-3)
+        assertThat(LogsQueryRepository.SELECT_RESUMEN_ENTORNOS).isEqualTo(
+                "SELECT environment, COUNT(*) FROM logs WHERE project_id = ?"
+                        + " GROUP BY environment ORDER BY environment");
+        assertThat(LogsQueryRepository.SELECT_RESUMEN_ENTORNOS.chars()
+                .filter(c -> c == '?').count()).isEqualTo(1L);
+        assertThat(LogsQueryRepository.SELECT_RESUMEN_ENTORNOS)
+                .contains("GROUP BY environment").contains("ORDER BY environment")
+                .doesNotContain("CASE").doesNotContain(";");
+    }
+
+    @Test
+    void selectResumenTotalesPinaElLiteralCountMaxYSinExceptionMetadata() {
+        // TOTALES: total = COUNT(*); last_log_at = MAX(received_at) — con
+        // proyecto sin logs devuelve UNA fila con COUNT=0 y MAX=NULL (nunca
+        // queryForObject sobre ausencia real — D-C10-3/M4)
+        assertThat(LogsQueryRepository.SELECT_RESUMEN_TOTALES).isEqualTo(
+                "SELECT COUNT(*), MAX(received_at) FROM logs WHERE project_id = ?");
+        assertThat(LogsQueryRepository.SELECT_RESUMEN_TOTALES.chars()
+                .filter(c -> c == '?').count()).isEqualTo(1L);
+        assertThat(LogsQueryRepository.SELECT_RESUMEN_TOTALES)
+                .contains("COUNT(*)").contains("MAX(received_at)")
+                .doesNotContain("GROUP BY").doesNotContain("ORDER BY")
+                .doesNotContain(";").doesNotContain("exception");
+    }
 }

@@ -63,4 +63,21 @@ describe("storeListado (E8.35 — acumulado entre el detalle y el retorno)", () 
     expect(tomada?.search).toBe("text=b");
     expect(tomada?.acumulado.nextCursor).toBe("c2");
   });
+
+  it("pin F7 (D-C10-10/REQ-C10-E913-1): la search viaja CON su «?» inicial y coincide EXACTA", () => {
+    // Forma nueva de las pages (fix E9.13): location.search tal cual —
+    // `?text=…`. La igualdad EXACTA del consumo la recupera (round-trip E8.35).
+    guardarListado("?text=qa-c10", { items: [item], nextCursor: null });
+    const tomada = consumirListado("?text=qa-c10");
+    expect(tomada?.search).toBe("?text=qa-c10");
+    expect(tomada?.acumulado.items).toEqual([item]);
+  });
+
+  it("la search MALFORMADA con doble «?» JAMÁS consume la snapshot viva", () => {
+    // La forma antigua (bug E9.13: «?» interpolado sobre location.search)
+    // daba "??text=…" — la igualdad EXACTA del store la rechaza ⇒ el
+    // acumulado se hubiese perdido. Pin: con snapshot viva, «??» ⇒ null.
+    guardarListado("?text=qa-c10", { items: [item], nextCursor: null });
+    expect(consumirListado("??text=qa-c10")).toBeNull();
+  });
 });

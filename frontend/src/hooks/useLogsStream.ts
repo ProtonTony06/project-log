@@ -27,6 +27,20 @@ export interface EstadoStream {
   intento: number;
 }
 
+// ── D-C10-12 (fix H-C9-E9.10): defensa por CONTENIDO, testeable ─────────
+// Helper PURO exportado (REQ-C10-E910-1): UN frame set_filters por cambio
+// REAL de filtro (R9.2.10) — identidad estable del objeto (el useMemo de
+// Logs.tsx) YA basta, y este guard además cubre renders no memoizados
+// futuros: la clave compara CONTENIDO (JSON de 6 claves fijas con orden
+// literal ⇒ determinista). El reenvío de reconexión vive en onopen →
+// enviarFiltros del client — FUERA de este guard (intacto).
+export function debeReenviarFiltros(
+  clavePrevia: string | null,
+  filtros: SetFilters,
+): boolean {
+  return JSON.stringify(filtros) !== clavePrevia;
+}
+
 export function useLogsStream(p: ParametrosStream): EstadoStream {
   const [estado, setEstado] = useState<EstadoWs>("desconectado");
   const [intento, setIntento] = useState(0);
@@ -85,10 +99,15 @@ export function useLogsStream(p: ParametrosStream): EstadoStream {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.activo, p.token]);
 
-  // Cambio de filtro ⇒ set_filters reenviado (R8.22/S8-8) sin reconectar.
+  // Cambio de filtro ⇒ set_filters reenviado (R8.22/S8-8/D-C10-12) — por
+  // CONTENIDO: renders ajenos (batches, banners, toggles) ⇒ delta 0, un
+  // cambio real ⇒ delta 1 (re-run E9.10 con WsContador).
   const filtrosRef = useRef(p.filtros);
+  const claveFiltros = useRef<string | null>(null);
   useEffect(() => {
     filtrosRef.current = p.filtros;
+    if (!debeReenviarFiltros(claveFiltros.current, p.filtros)) return;
+    claveFiltros.current = JSON.stringify(p.filtros);
     clienteRef.current?.aplicarFiltros(p.filtros);
   }, [p.filtros]);
 

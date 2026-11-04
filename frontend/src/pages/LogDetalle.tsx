@@ -1,11 +1,20 @@
 // Detalle de log (maqueta 03 — R8.32–R8.36/E8.34–E8.38): LogDto COMPLETO de
 // 11 campos; bloques "Excepción y stacktrace" y "Metadata" SOLO si no nulos
-// (se ocultan, no quedan vacíos); modal 8b con sentencia literal y trim;
+// (se ocultan, no quedan vacíos); modal 8b con sentencia literal y trim,
+// OPERATIVO desde C10: tras el 204 la prop alExito pone el aviso «Registro
+// eliminado» y regresa a /logs CONSERVANDO LA QUERY (D-C10-8/REQ-C10-UI-5);
+// los 2 "Volver a logs" viajan con la search TAL CUAL — location.search YA
+// trae su ?: JAMÁS un ? extra (fix E9.13 doble interrogante — D-C10-10);
 // Volver a /logs conserva filtros (search en la URL — D-C8-6) y acumulado
 // (store en memoria — E8.35 post-parche D-C8-8: el detalle es RUTA HERMANA;
 // al montar aquí /logs se desmonta y su WS se cierra — decisión C).
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import { listaProyectos, log } from "../api/panel";
 import { ApiError } from "../api/client";
 import type { ProjectDto } from "../api/types";
@@ -42,6 +51,7 @@ function Copiar({
 export default function LogDetalle() {
   const { id } = useParams();
   const location = useLocation();
+  const navegar = useNavigate();
   const idNum = Number(id);
   const [dto, setDto] = useState<Awaited<ReturnType<typeof log>> | null>(null);
   const [cargando, setCargando] = useState(true);
@@ -109,8 +119,11 @@ export default function LogDetalle() {
     return (
       <main className="max-w-6xl mx-auto px-4 py-6" role="alert">
         <div className="mb-5">
+          {/* E9.13/D-C10-10: la search viaja TAL CUAL (con su ? propia); la
+              igualdad EXACTA del consumo del store recupera el round-trip
+              E8.35 (acumulado intacto, CERO refetch). */}
           <Link
-            to={`/logs${location.search ? `?${location.search}` : ""}`}
+            to={`/logs${location.search}`}
             className="text-sm text-teal-700 hover:underline"
           >
             ← Volver a logs
@@ -135,8 +148,9 @@ export default function LogDetalle() {
   return (
     <main className="max-w-6xl mx-auto px-4 py-6">
       <div className="flex flex-wrap items-center gap-3 mb-5">
+        {/* Idem: search tal cual, sin «?» extra (D-C10-10). */}
         <Link
-          to={`/logs${location.search ? `?${location.search}` : ""}`}
+          to={`/logs${location.search}`}
           className="text-sm text-teal-700 hover:underline"
         >
           ← Volver a logs (filtros y página intactos)
@@ -256,12 +270,20 @@ export default function LogDetalle() {
         </button>
       </section>
 
-      {/* Modal 8b V11 (R8.35–R8.36): 405/404 se muestran SIN fingir éxito (E8.38). */}
+      {/* Modal 8b V11 (R8.35–R8.36): OPERATIVO (REQ-C10-UI-5) — tras el 204
+          se cierra, se pone el aviso en el state y se regresa a /logs
+          conservando la query (D-C10-8); 400/404 → error dentro del modal. */}
       <ModalBorrado8b
         abierto={modalAbierto}
         id={dto.id}
         nombreProyecto={nombreProyecto}
         alCerrar={() => setModalAbierto(false)}
+        alExito={() => {
+          setModalAbierto(false);
+          navegar(`/logs${location.search}`, {
+            state: { aviso: "Registro eliminado" },
+          });
+        }}
       />
     </main>
   );

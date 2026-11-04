@@ -1,10 +1,12 @@
-// /proyectos (maqueta 04 — R8.37/E8.39–E8.40): tarjetas ProjectDto SIN
-// resumen P1 (el summary no viaja en C8); archivados VISIBLES con toggle
-// (histórico consultable); estado vacío ≠ error (E8.40); esqueleto y banner
-// con Reintentar.
+// /proyectos (maqueta 04 — R8.37/E8.39–E8.40 + flujo 9 C10): tarjetas con
+// resumen vía `GET /projects?include=summary` (REQ-C10-UI-6); archivados
+// VISIBLES con toggle (histórico consultable, resumen intacto); estado vacío
+// ≠ error (E8.40); esqueleto y banner con Reintentar; banner de `aviso` de
+// location.state (regreso post-8a — D-C10-8) y botón «Actualizar» que
+// re-invoca cargar() (flujo 9 paso 5: el resumen NO se recalcula en vivo).
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { listaProyectos } from "../api/panel";
+import { Link, useLocation } from "react-router-dom";
+import { listaProyectosConResumen } from "../api/panel";
 import { ApiError } from "../api/client";
 import type { ProjectDto } from "../api/types";
 import { TarjetaProyecto } from "../components/TarjetaProyecto";
@@ -12,6 +14,10 @@ import { EsqueletoTarjetas } from "../components/Esqueleto";
 import { Banner } from "../components/Banner";
 
 export default function Proyectos() {
+  const location = useLocation();
+  // Aviso de la navegación previa (post-8a: «Proyecto y sus logs eliminados
+  // definitivamente»; también «No existe (quizás fue eliminado)» — D-C10-8).
+  const aviso = (location.state as { aviso?: string } | null)?.aviso ?? null;
   const [proyectos, setProyectos] = useState<ProjectDto[] | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [cargando, setCargando] = useState(true);
@@ -20,7 +26,7 @@ export default function Proyectos() {
   const cargar = () => {
     setCargando(true);
     setError(null);
-    listaProyectos()
+    listaProyectosConResumen()
       .then((ps) => {
         setProyectos(ps);
         setCargando(false);
@@ -45,15 +51,30 @@ export default function Proyectos() {
       <div className="flex flex-wrap items-center gap-3 mb-5">
         <h1 className="text-lg font-semibold tracking-tight">Proyectos</h1>
         <p className="text-xs text-stone-500 mono">
-          GET /projects · {proyectos === null ? "…" : `${proyectos.length} proyectos · ${archivados} archivados`}
+          GET /projects?include=summary · {proyectos === null ? "…" : `${proyectos.length} proyectos · ${archivados} archivados`}
         </p>
         <Link
           to="/proyectos/nuevo"
-          className="ml-auto bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium rounded-lg px-4 py-2"
+          className="bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium rounded-lg px-4 py-2"
         >
           + Nuevo proyecto
         </Link>
+        <button
+          type="button"
+          onClick={cargar}
+          // flujo 9 paso 5 (REQ-C10-RESUMEN-7): el resumen se refresca al
+          // recargar o con Actualizar — nunca en vivo por WebSocket.
+          className="ml-auto border border-stone-300 bg-white hover:bg-stone-50 text-stone-700 text-sm font-medium rounded-lg px-4 py-2"
+        >
+          Actualizar
+        </button>
       </div>
+
+      {aviso !== null && (
+        <div className="mb-5" role="status">
+          <Banner variante="info" message={aviso} />
+        </div>
+      )}
 
       <label className="flex items-center gap-2 text-xs text-stone-600 mb-5">
         <input

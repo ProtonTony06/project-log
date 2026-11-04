@@ -46,6 +46,11 @@ export default function Logs() {
   const navegar = useNavigate();
   const location = useLocation();
 
+  // Banner de aviso de la navegación previa (C10 — flujo 8b: tras eliminar
+  // un registro el detalle regresa con state.aviso «Registro eliminado»,
+  // REQ-C10-UI-5; patrón ya usado por ProyectoDetalle).
+  const aviso = (location.state as { aviso?: string } | null)?.aviso ?? null;
+
   // E8.35 (post-parche D-C8-8): si volvemos del detalle con la MISMA query
   // string, la instantánea del acumulado se consume AQUÍ (una sola vez por
   // montaje) y el PRIMER refetch de página 1 se salta — los filtros ya
@@ -138,10 +143,14 @@ export default function Logs() {
   }
 
   // ── WS en vivo (S8-4: solo esta vista) ────────────────────────────────
+  // D-C10-12 (fix E9.10): el objeto set_filters se MEMOIZA — identidad
+  // estable por render ⇒ UN frame set_filters por cambio REAL de filtro
+  // (R9.2.10). El refetch de página 1 ([…, filtros]) NO se toca.
+  const filtrosSet = useMemo(() => toSetFilters(filtros), [filtros]);
   const estadoStream = useLogsStream({
     activo: true,
     token: leerTokenSesion() ?? "",
-    filtros: toSetFilters(filtros),
+    filtros: filtrosSet,
     alFrame: (frameBatch) => {
       const previo = refAcumulado.current;
       const ids = new Set(previo.items.map((l) => l.id));
@@ -242,6 +251,13 @@ export default function Logs() {
           </p>
         </div>
 
+        {/* Banner de aviso de la navegación previa (flujo 8b — D-C10-8). */}
+        {aviso !== null && (
+          <div className="mb-5" role="status">
+            <Banner variante="info" message={aviso} />
+          </div>
+        )}
+
         <FiltrosLogs
           proyectos={proyectos}
           filtros={filtros}
@@ -316,10 +332,11 @@ export default function Logs() {
             nombresProyectos={nombres}
             alVerDetalle={(id) => {
               // E8.35 post-parche (D-C8-8): el acumulado viaja por store y
-              // los filtros siguen en la URL (se añaden a la del detalle —
-              // las query strings no afectan a /logs/:id ni al fallback).
+              // los filtros siguen en la URL (se añaden a la del detalle).
+              // D-C10-10 (fix E9.13): location.search YA trae su «?» — se
+              // interpola TAL CUAL, jamás un segundo «?».
               guardarListado(location.search, refAcumulado.current);
-              navegar(`/logs/${id}${location.search ? `?${location.search}` : ""}`);
+              navegar(`/logs/${id}${location.search}`);
             }}
           />
         )}

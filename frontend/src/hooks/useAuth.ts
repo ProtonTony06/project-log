@@ -87,6 +87,30 @@ export function borrarDestino(): void {
   storageRemove(CLAVE_DESTINO);
 }
 
+// ── D-C10-11 (fix H-C9-E9.2): helpers PUROS del arranque post-login ─────
+// Extraídos del render de Login para el Vitest SIN DOM (REQ-C10-E92-1/2).
+// El `borrarDestino()` de dentro de sesion.login() NO toca la variable ya
+// leída (se lee de storage ANTES del await — explore B.4).
+
+/** Destino tras un login exitoso: el destino guardado viaja TAL CUAL,
+ * incluida su query (`/proyectos/99999999?text=…` — R8.5/E8.3/R9.2.2);
+ * sin destino ⇒ /logs (REQ-C10-E92-2, sin doble salto). */
+export function destinoTrasLogin(destinoGuardado: string | null): string {
+  return destinoGuardado ?? "/logs";
+}
+
+/** Predicate EXACTO del render de Login: el `<Navigate to="/" replace />`
+ * SOLO gana en LLEGADAS ya autenticadas (restore/me, back sobre /login —
+ * R8.3/E8.4) y NUNCA en la transición propia del login (el envío ya navega
+ * a su propio destino con la ref `destinoPropio` — una sola navegación,
+ * REQ-C10-E92-1: el arribo post-login PERDURANDO es el destino guardado). */
+export function elNavigateGana(
+  estado: EstadoSesion,
+  transicionPropia: boolean,
+): boolean {
+  return estado === "autenticado" && !transicionPropia;
+}
+
 export interface ValorSesion {
   estado: EstadoSesion;
   username: string | null;

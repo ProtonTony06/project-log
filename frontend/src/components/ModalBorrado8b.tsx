@@ -1,8 +1,12 @@
 // Modal 8b — eliminar log (R8.35–R8.36/D-C8-10, V11/E8.37): sentencia EXACTA
 // `DELETE /logs/<id> · header X-Confirm-Log-Id: <id>` (id REAL), comparación
 // coincideLiteralConTrim; botón bg-red-300 deshabilitado → bg-red-700 al
-// coincidir. Al confirmar llama eliminarLog (D2): hoy 405/404 del backend ⇒
-// §5 SIN fingir éxito (E8.38) — el error se muestra literal dentro del modal.
+// coincidir. Al confirmar llama eliminarLog (C10: 204 REAL — REQ-C10-UI-5):
+// el error (400/404) se muestra literal DENTRO del modal sin fingir éxito
+// (E8.38) y sin desloguear el 400 (G6/UX401-2); tras el 204 se invoca la
+// prop alExito — que la página usa para cerrar el modal, poner el aviso
+// «Registro eliminado» y volver a /logs con la query intacta (D-C10-8).
+// Guard interno `enviando/error` INTACTO.
 import { useState } from "react";
 import { eliminarLog } from "../api/panel";
 import { ApiError } from "../api/client";
@@ -14,6 +18,9 @@ export interface ModalBorrado8bProps {
   /** Nombre del proyecto para la frase literal (puede llegar del Map S8-6). */
   nombreProyecto: string;
   alCerrar: () => void;
+  /** Opcional (C10): invocada tras el 204 de eliminarLog — sin ella el
+   * modal queda como siempre (degradación honesta). */
+  alExito?: () => void;
 }
 
 export function ModalBorrado8b({
@@ -21,6 +28,7 @@ export function ModalBorrado8b({
   id,
   nombreProyecto,
   alCerrar,
+  alExito,
 }: ModalBorrado8bProps) {
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -34,8 +42,9 @@ export function ModalBorrado8b({
     setEnviando(true);
     setError(null);
     try {
-      // Promise<never> POR DISEÑO (D2): 405/404 hoy — nunca se finge éxito.
-      await eliminarLog(id, id);
+      // X-Confirm-Log-Id con el id REAL del registro (8b — REQ-C10-UI-1).
+      await eliminarLog(id, id); // 204 sin cuerpo
+      alExito?.();
     } catch (e) {
       if (e instanceof ApiError) setError(e);
       else setError(new ApiError(0, undefined, "HTTP 0"));

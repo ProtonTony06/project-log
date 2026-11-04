@@ -9,8 +9,10 @@ import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +22,7 @@ import com.projectlog.query.FiltrosConsulta;
 import com.projectlog.query.dto.LogDto;
 import com.projectlog.query.dto.LogListItemDto;
 import com.projectlog.query.dto.LogsPaginaResponse;
+import com.projectlog.query.repository.LogsBorradoRepository;
 import com.projectlog.query.repository.LogsQueryRepository;
 import com.projectlog.query.repository.LogsQueryRepository.FilaConsulta;
 
@@ -48,6 +51,17 @@ import com.projectlog.query.repository.LogsQueryRepository.FilaConsulta;
  * {@code field} (gate P2). El estado del recorrido vive ÍNTEGRAMENTE en el
  * token opaco ({@code next_cursor}) — SIN {@code HttpSession} (stateless de
  * la cadena 2).</p>
+ *
+ * <p>C10 (D-C10-1, REQ-C10-LOGDEL-1..3): {@code DELETE /{id}} (flujo 8b) con
+ * la doble confirmación por cabecera {@code X-Confirm-Log-Id} y el orden
+ * fail-fast EXACTO — (1) cabecera ausente → 400 {@code confirm_required};
+ * (2) valor ≠ {@code String.valueOf(id)} EXACTO → 400
+ * {@code confirm_mismatch} (SIN BD: el id viaja en la propia ruta, así que
+ * una petición con id inexistente Y cabecera desigual responde 400
+ * determinista — M10); (3) {@code borrarPorId} → 0 filas ⇒ 404 / ≥1 ⇒ 204.
+ * Los errores de confirmación NO llevan {@code field} (patrón
+ * ApiKeyController). El borrado de un log NUNCA toca el proyecto
+ * (REQ-C10-LOGDEL-4).</p>
  */
 @RestController
 @RequestMapping("/api/v1/panel/logs")
@@ -56,17 +70,25 @@ public class LogsController {
     /** Codes EXACTOS de R6.21 (ningún code nuevo fuera de la tabla R6.22).
      * C7 (R7.27/D-7.12): los codes de los checks 2–7 MUDAN a
      * {@code FiltrosConsulta} (única fuente ADR-7); quedan SOLO los no
-     * aplicables al stream. */
+     * aplicables al stream. C10: codes de la doble confirmación 8b
+     * (ancla §3.3/flujo 8 — AppFlow). */
     static final String CODE_FILTER_LIMIT_INVALID = "filter_limit_invalid";
     static final String CODE_FILTER_CURSOR_INVALID = "filter_cursor_invalid";
     static final String CODE_NOT_FOUND = "not_found";
+    static final String CODE_CONFIRM_REQUIRED = "confirm_required";
+    static final String CODE_CONFIRM_MISMATCH = "confirm_mismatch";
 
     /** Messages EXACTOS de R6.21/R6.22 (cortos, español — patrón C3). Los
-     * de checks 2–7 mudaron con sus codes a {@code FiltrosConsulta} (C7). */
+     * de checks 2–7 mudaron con sus codes a {@code FiltrosConsulta} (C7).
+     * C10: «La confirmación no coincide» ES el texto que la UI pinta dentro
+     * del modal (REQ-C10-UI-2). */
     private static final String MSG_LIMIT_INVALID =
             "El filtro limit debe ser un número entre 1 y 200";
     private static final String MSG_CURSOR_INVALID =
             "El parámetro cursor no es válido";
+    static final String MSG_CONFIRM_REQUIRED =
+            "La cabecera X-Confirm-Log-Id es obligatoria";
+    static final String MSG_CONFIRM_MISMATCH = "La confirmación no coincide";
 
     /**
      * C3, reutilizado por referencia (MSG_NOT_FOUND de ProjectsController);
@@ -83,11 +105,14 @@ public class LogsController {
     private static final int LIMIT_MAX = 200;
 
     private final LogsQueryRepository logsQueryRepository;
+    private final LogsBorradoRepository logsBorradoRepository;
     private final ObjectMapper objectMapper;
 
     public LogsController(LogsQueryRepository logsQueryRepository,
+            LogsBorradoRepository logsBorradoRepository,
             ObjectMapper objectMapper) {
         this.logsQueryRepository = logsQueryRepository;
+        this.logsBorradoRepository = logsBorradoRepository;
         this.objectMapper = objectMapper;
     }
 
@@ -210,6 +235,39 @@ public class LogsController {
         return fila.<ResponseEntity<Object>>map(ResponseEntity::ok)
                 .orElseGet(() -> error(HttpStatus.NOT_FOUND, CODE_NOT_FOUND,
                         MSG_NOT_FOUND));
+    }
+
+    /**
+     * C10 (flujo 8b, D-C10-1, REQ-C10-LOGDEL-1..3): {@code DELETE /{id}} —
+     * borrado de UN registro. Orden fail-fast EXACTO: (1) cabecera
+     * {@code X-Confirm-Log-Id} ausente → 400 {@code confirm_required};
+     * (2) valor ≠ {@code String.valueOf(id)} EXACTO (sin trim, sin
+     * numéricos con espacios) → 400 {@code confirm_mismatch} — SIN BD
+     * (la comparación es contra la PROPIA ruta, así que el 400 gana incluso
+     * con id inexistente — M10); (3) {@code borrarPorId} → 0 filas ⇒ 404
+     * {@code not_found} (el log ya no existe) / ≥1 ⇒ 204 SIN cuerpo. El
+     * borrado NO toca el proyecto ni su key (REQ-C10-LOGDEL-4). El 8b NO
+     * comparte el guard de filtro: el id viaja en la ruta, sin check previo.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Object> eliminar(@PathVariable long id,
+            @RequestHeader(name = "X-Confirm-Log-Id", required = false)
+            String confirmacion) {
+        // (1) cabecera obligatoria — cero E/S
+        if (confirmacion == null) {
+            return error(HttpStatus.BAD_REQUEST, CODE_CONFIRM_REQUIRED,
+                    MSG_CONFIRM_REQUIRED);
+        }
+        // (2) igualdad EXACTA contra la PROPIA ruta — SIN tocar la BD (M10)
+        if (!String.valueOf(id).equals(confirmacion)) {
+            return error(HttpStatus.BAD_REQUEST, CODE_CONFIRM_MISMATCH,
+                    MSG_CONFIRM_MISMATCH);
+        }
+        // (3) borrado — 0 filas ⇒ 404, ≥1 ⇒ 204 (patrón empty-RETURNING C4)
+        if (logsBorradoRepository.borrarPorId(id) == 0) {
+            return error(HttpStatus.NOT_FOUND, CODE_NOT_FOUND, MSG_NOT_FOUND);
+        }
+        return ResponseEntity.noContent().build();
     }
 
     /**

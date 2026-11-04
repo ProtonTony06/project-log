@@ -200,6 +200,41 @@ describe("éxito y cabeceras", () => {
   });
 });
 
+describe("DELETEs del flujo 8 (C10) — parser REQ-C10-QA-2", () => {
+  it("200 con {\"deleted\": N} en un DELETE parsea el objeto (purga 8c)", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(respJson(200, { deleted: 55 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const r = await request<{ deleted: number }>(
+      "/api/v1/panel/projects/3/logs",
+      { method: "DELETE", headers: { "X-Confirm-Name": "payments-service" } },
+    );
+    expect(r).toEqual({ deleted: 55 });
+    expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe("DELETE");
+  });
+
+  it("204 en un DELETE devuelve void SIN tocar el cuerpo vacío (8a/8b)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 204,
+        json: () => {
+          throw new Error("json() invocado en 204 — prohibido");
+        },
+        text: () => Promise.reject(new Error("no se debe leer un 204")),
+      } as unknown as Response),
+    );
+    const r = await request<void>("/api/v1/panel/projects/3", {
+      method: "DELETE",
+      headers: { "X-Confirm-Name": "payments-service" },
+    });
+    expect(r).toBeUndefined();
+  });
+});
+
 describe("red caída (E8.17/F-C11)", () => {
   it("fetch rechaza ⇒ ApiError status 0 message 'HTTP 0'", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("network down")));

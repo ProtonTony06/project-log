@@ -1,6 +1,7 @@
 package com.projectlog.projects.controller;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Optional;
@@ -11,19 +12,24 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.projectlog.projects.dto.CreateProjectRequest;
 import com.projectlog.projects.dto.ProjectDto;
+import com.projectlog.projects.dto.SummaryDto;
 import com.projectlog.projects.dto.UpdateProjectRequest;
 import com.projectlog.projects.repository.ProjectsRepository;
+import com.projectlog.query.repository.LogsBorradoRepository;
+import com.projectlog.query.repository.LogsQueryRepository;
 
 /**
  * {@code ProjectsController} (R3.2/R3.3, CD-3.6): controller FINO — sin capa
@@ -43,6 +49,21 @@ import com.projectlog.projects.repository.ProjectsRepository;
  * {@code name_duplicate} (409) · {@code not_found} (404) — cero literales
  * nuevos sin ancla; los mensajes son descriptivos en español y el cuerpo
  * estándar es {@code {code, message, field?}}.</p>
+ *
+ * <p>C10 (D-C10-1/D-C10-2/D-C10-5): 3 operaciones destructivas del flujo 8
+ * — {@code DELETE /{id}} (8a), {@code DELETE /{id}/logs} (8c) con la doble
+ * confirmación por cabecera {@code X-Confirm-Name} y el orden fail-fast
+ * EXACTO: (1) cabecera ausente → 400 {@code confirm_required} SIN tocar BD;
+ * (2) {@code findById} vacío → 404; (3) Igualdad EXACTA contra el name de BD
+ * → 400 {@code confirm_mismatch} (los errors de confirmación NO llevan
+ * {@code field} — patrón ApiKeyController); (4) el DELETE. La purga responde
+ * 200 {@code {"deleted": N}} con el N REAL del retorno de
+ * {@code JdbcTemplate.update} (primer cuerpo de un DELETE del proyecto) y
+ * desambigua N=0 con un re-{@code findById} (M4). El {@code GET /{id}/summary}
+ * sirve el {@code SummaryDto} §3.3 vía {@code LogsQueryRepository.resumen}
+ * (flujo 9). {@code include=summary} SOLO existe en el listado (M3) y se
+ * valida fail-fast ANTES de BD DESPUÉS del check de {@code status} (D-C10-5).
+ * Archivado NO bloquea los DELETE (M5).</p>
  */
 @RestController
 @RequestMapping("/api/v1/panel/projects")
@@ -55,9 +76,20 @@ public class ProjectsController {
     static final String CODE_NAME_DUPLICATE = "name_duplicate";
     static final String CODE_NOT_FOUND = "not_found";
 
-    /** Mensajes con ancla: 409 = AppFlow flujo 2; 404 = AppFlow §5 (fila 404). */
+    /** C10, D-C10-1: codes de la doble confirmación (8a/8c) — sin ancla
+     * textual en el vocabulario C3 y CON ancla en §3.3/flujo 8 (AppFlow). */
+    static final String CODE_CONFIRM_REQUIRED = "confirm_required";
+    static final String CODE_CONFIRM_MISMATCH = "confirm_mismatch";
+
+    /** Mensajes con ancla: 409 = AppFlow flujo 2; 404 = AppFlow §5 (fila 404);
+     * confirm_required/mismatch = §3.3/flujo 8 (el mismatch ES el texto que
+     * la UI pinta dentro del modal — REQ-C10-UI-2). Los errores de
+     * confirmación NO llevan {@code field} (patrón ApiKeyController). */
     static final String MSG_NAME_DUPLICATE = "Ya existe un proyecto con ese nombre";
     static final String MSG_NOT_FOUND = "No existe (quizás fue eliminado)";
+    static final String MSG_CONFIRM_REQUIRED =
+            "La cabecera X-Confirm-Name es obligatoria";
+    static final String MSG_CONFIRM_MISMATCH = "La confirmación no coincide";
     private static final String MSG_CUERPO_ILEGIBLE =
             "El cuerpo de la petición debe ser JSON válido";
 
@@ -65,12 +97,22 @@ public class ProjectsController {
     private static final int LIMITE_NAME = 200;
     private static final int LIMITE_DESCRIPTION = 2000;
 
+    /** Único valor legal del query param {@code include} (§3.2 — M3: SOLO
+     * en el LISTADO; la ficha consume el endpoint dedicado). */
+    static final String INCLUDE_SUMMARY = "summary";
+
     private final ProjectsRepository projectsRepository;
+    private final LogsQueryRepository logsQueryRepository;
+    private final LogsBorradoRepository logsBorradoRepository;
     private final ObjectMapper objectMapper;
 
     public ProjectsController(ProjectsRepository projectsRepository,
+            LogsQueryRepository logsQueryRepository,
+            LogsBorradoRepository logsBorradoRepository,
             ObjectMapper objectMapper) {
         this.projectsRepository = projectsRepository;
+        this.logsQueryRepository = logsQueryRepository;
+        this.logsBorradoRepository = logsBorradoRepository;
         this.objectMapper = objectMapper;
     }
 
@@ -82,25 +124,147 @@ public class ProjectsController {
      * 200 con array plano {@code [ProjectDto]} (L10: sin
      * {@code {items, next_cursor}} — keyset exclusivo de logs, C6); vacío →
      * {@code 200 []} legítimo. Minúsculas no se normalizan (CHECK literal).
+     *
+     * <p>C10 (D-C10-5, M3): {@code include} presente ≠ {@code summary} →
+     * {@code 400 filter_invalid_value} con {@code field=include} — ANTES de
+     * BD y SIEMPRE DESPUÉS del check de {@code status} (orden additivo
+     * determinista: (1) status, (2) include). Con
+     * {@code include=summary} cada elemento compone {@code summary} vía
+     * {@link LogsQueryRepository#resumen} (3N idas aceptadas por diseño —
+     * D-C10-3); sin include, byte-idéntico a C8 (clave AUSENTE — NON_NULL).</p>
      */
     @GetMapping
     public ResponseEntity<Object> listar(
-            @RequestParam(required = false) String status) {
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String include) {
+        // (1) status — byte-idéntico a C3 y SIEMPRE primero (D-C10-5)
         if (status != null && !"ACTIVE".equals(status) && !"ARCHIVED".equals(status)) {
             return error(HttpStatus.BAD_REQUEST, CODE_FILTER_INVALID_VALUE,
                     "Valor de status no válido; use ACTIVE o ARCHIVED", "status");
         }
-        return ResponseEntity.ok(projectsRepository.findAll(status));
+        // (2) include — único valor legal: summary (§3.2/M3); fail-fast SIN BD
+        if (include != null && !INCLUDE_SUMMARY.equals(include)) {
+            return error(HttpStatus.BAD_REQUEST, CODE_FILTER_INVALID_VALUE,
+                    "Valor de include no válido; use summary", "include");
+        }
+        List<ProjectDto> filas = projectsRepository.findAll(status);
+        if (include == null) {
+            return ResponseEntity.ok(filas);
+        }
+        return ResponseEntity.ok(filas.stream()
+                .map(p -> p.conResumen(logsQueryRepository.resumen(p.id())))
+                .toList());
     }
 
     /** {@code GET /{id}} (R3.11, CD-3.8): 404 {@code not_found} con cuerpo
-     * estándar — NUNCA respuesta vacía ni lista vacía (AppFlow §5). */
+     * estándar — NUNCA respuesta vacía ni lista vacía (AppFlow §5). El DTO
+     * NO lleva {@code summary} (M3: la ficha consume {@code GET /{id}/summary}) —
+     * la clave queda AUSENTE por el NON_NULL (G4-a). */
     @GetMapping("/{id}")
     public ResponseEntity<Object> obtener(@PathVariable long id) {
         Optional<ProjectDto> fila = projectsRepository.findById(id);
         return fila.<ResponseEntity<Object>>map(ResponseEntity::ok)
                 .orElseGet(() -> error(HttpStatus.NOT_FOUND, CODE_NOT_FOUND,
                         MSG_NOT_FOUND));
+    }
+
+    /**
+     * C10 (flujo 9, M3/G4-a): {@code GET /{id}/summary} — endpoint DEDICADO
+     * de la ficha: {@code findById} → 404 (sin consultar logs, E3.19: nulo-
+     * imposible después — REQ-C10-RESUMEN-6 del spec) → {@code resumen(id)}
+     * → 200 con el {@code SummaryDto} EXACTO de §3.3 (4 claves SIEMPRE —
+     * estado vacío {@code {"by_level": {}, "by_environment": {}, "total": 0,
+     * "last_log_at": null}}). Archivados cuentan igual (M5).
+     */
+    @GetMapping("/{id}/summary")
+    public ResponseEntity<Object> resumen(@PathVariable long id) {
+        if (projectsRepository.findById(id).isEmpty()) {
+            return error(HttpStatus.NOT_FOUND, CODE_NOT_FOUND, MSG_NOT_FOUND);
+        }
+        return ResponseEntity.ok(logsQueryRepository.resumen(id));
+    }
+
+    /**
+     * C10 (flujo 8a, REQ-C10-DEL-1..5): {@code DELETE /{id}} — borrado
+     * DEFINITIVO del proyecto y sus logs. Orden fail-fast EXACTO (D-C10-1):
+     * (1) cabecera {@code X-Confirm-Name} ausente → 400
+     * {@code confirm_required} SIN tocar BD; (2) {@code findById} vacío →
+     * 404 {@code not_found} (MSG_NOT_FOUND C3); (3) igualdad EXACTA
+     * {@code String} contra el name de BD (SIN trim, diferenciando
+     * mayúsculas/espacios — el trim es solo del input de la UI) → 400
+     * {@code confirm_mismatch} «La confirmación no coincide» (sin
+     * {@code field}); (4) borrado → 204 SIN cuerpo (false ⇒ 404 de carrera).
+     * La CASCADE de logs y la muerte de la key las ejecuta el MOTOR en la
+     * MISMA transacción (D-C10-2). Archivado NO bloquea (M5: sin rama de
+     * status).
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Object> eliminar(@PathVariable long id,
+            @RequestHeader(name = "X-Confirm-Name", required = false)
+            String confirmacion) {
+        // (1) cabecera obligatoria — cero E/S (fail-fast más-barato-primero)
+        if (confirmacion == null) {
+            return error(HttpStatus.BAD_REQUEST, CODE_CONFIRM_REQUIRED,
+                    MSG_CONFIRM_REQUIRED);
+        }
+        // (2) existencia
+        Optional<ProjectDto> fila = projectsRepository.findById(id);
+        if (fila.isEmpty()) {
+            return error(HttpStatus.NOT_FOUND, CODE_NOT_FOUND, MSG_NOT_FOUND);
+        }
+        // (3) igualdad EXACTA (String.equals, sin trim)
+        if (!fila.get().name().equals(confirmacion)) {
+            return error(HttpStatus.BAD_REQUEST, CODE_CONFIRM_MISMATCH,
+                    MSG_CONFIRM_MISMATCH);
+        }
+        // (4) borrado — la CASCADE la ejecuta el motor (D-C10-2)
+        if (!projectsRepository.borrar(id)) {
+            return error(HttpStatus.NOT_FOUND, CODE_NOT_FOUND, MSG_NOT_FOUND);
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * C10 (flujo 8c, REQ-C10-PURGA-1..5): {@code DELETE /{id}/logs} — purga
+     * de TODOS los logs; el proyecto y su API key SOBREVIVEN (fila de
+     * {@code projects} intocada). Cabecera y orden fail-fast idénticos al
+     * 8a (D-C10-1). Devuelve 200 con el cuerpo EXACTO {@code {"deleted": N}}
+     * (LinkedHashMap + ObjectMapper — primer cuerpo de un DELETE del
+     * proyecto, gap 6); el N ES el retorno de filas de
+     * {@code JdbcTemplate.update}. Desambiguación N=0 (M4/D-C10-2):
+     * re-{@code findById} — vacío ⇒ 404 (estado «proyecto inexistente»,
+     * incluye la carrera del CASCADE); presente ⇒ 200 {@code {"deleted": 0}}
+     * (estado vacío informativo, NUNCA error).
+     */
+    @DeleteMapping("/{id}/logs")
+    public ResponseEntity<Object> purgar(@PathVariable long id,
+            @RequestHeader(name = "X-Confirm-Name", required = false)
+            String confirmacion) {
+        // (1) cabecera obligatoria — cero E/S
+        if (confirmacion == null) {
+            return error(HttpStatus.BAD_REQUEST, CODE_CONFIRM_REQUIRED,
+                    MSG_CONFIRM_REQUIRED);
+        }
+        // (2) existencia
+        Optional<ProjectDto> fila = projectsRepository.findById(id);
+        if (fila.isEmpty()) {
+            return error(HttpStatus.NOT_FOUND, CODE_NOT_FOUND, MSG_NOT_FOUND);
+        }
+        // (3) igualdad EXACTA (String.equals, sin trim)
+        if (!fila.get().name().equals(confirmacion)) {
+            return error(HttpStatus.BAD_REQUEST, CODE_CONFIRM_MISMATCH,
+                    MSG_CONFIRM_MISMATCH);
+        }
+        // (4) purga — el N ES el retorno del UPDATE/DELETE (D-C10-2)
+        int n = logsBorradoRepository.purgarPorProyecto(id);
+        if (n == 0 && projectsRepository.findById(id).isEmpty()) {
+            // carrera: el proyecto desapareció (con sus logs, CASCADE) —
+            // NUNCA 200 {"deleted": 0} sobre inexistente (REQ-C10-PURGA-4)
+            return error(HttpStatus.NOT_FOUND, CODE_NOT_FOUND, MSG_NOT_FOUND);
+        }
+        Map<String, Object> cuerpo = new LinkedHashMap<>();
+        cuerpo.put("deleted", n);
+        return ResponseEntity.ok(objectMapper.valueToTree(cuerpo));
     }
 
     /**

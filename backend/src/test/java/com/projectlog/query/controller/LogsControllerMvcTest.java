@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -35,6 +37,7 @@ import com.projectlog.config.CorsConfig;
 import com.projectlog.config.RestAuthenticationEntryPoint;
 import com.projectlog.config.SecurityConfig;
 import com.projectlog.query.CursorCodec;
+import com.projectlog.query.repository.LogsBorradoRepository;
 import com.projectlog.query.repository.LogsQueryRepository;
 import com.projectlog.query.repository.LogsQueryRepository.FilaConsulta;
 import com.projectlog.query.dto.LogDto;
@@ -82,6 +85,9 @@ class LogsControllerMvcTest {
 
     @MockitoBean
     private LogsQueryRepository logsQueryRepository;
+
+    @MockitoBean
+    private LogsBorradoRepository logsBorradoRepository;
 
     @MockitoBean
     private TokenService tokenService;
@@ -580,5 +586,102 @@ class LogsControllerMvcTest {
                 .andExpect(jsonPath("$.message").value(
                         "El filtro to debe ser una fecha ISO-8601 con zona horaria"));
         Mockito.verifyNoInteractions(logsQueryRepository);
+    }
+
+    // ==================================================================
+    // C10 — DELETE /{id} (8b) — doble confirmación por X-Confirm-Log-Id
+    //      con orden fail-fast EXACTO de D-C10-1/M10
+    // ==================================================================
+
+    private static final String CABECERA_LOG_ID = "X-Confirm-Log-Id";
+
+    @Test
+    void delete8bFelizResponde204YVaAlRepoConElIdCorrecto() throws Exception {
+        // REQ-C10-LOGDEL-1: 204 SIN cuerpo; solo borra este repo (LOGDEL-4:
+        // el proyecto NUNCA se toca — no hay otra dependencia de escritura)
+        String bearer = bearer();
+        when(logsBorradoRepository.borrarPorId(48211L)).thenReturn(1);
+
+        mockMvc.perform(delete(URL_LISTA + "/48211")
+                        .header("Authorization", bearer)
+                        .header(CABECERA_LOG_ID, "48211"))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+        Mockito.verify(logsBorradoRepository).borrarPorId(48211L);
+        Mockito.verifyNoInteractions(logsQueryRepository); // nada de lectura
+    }
+
+    @Test
+    void delete8bSinCabeceraResponde400ConfirmRequiredSinBd() throws Exception {
+        String bearer = bearer();
+        mockMvc.perform(delete(URL_LISTA + "/48211")
+                        .header("Authorization", bearer))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("confirm_required"))
+                .andExpect(jsonPath("$.message")
+                        .value("La cabecera X-Confirm-Log-Id es obligatoria"))
+                .andExpect(jsonPath("$.field").doesNotExist());
+        Mockito.verifyNoInteractions(logsBorradoRepository);
+    }
+
+    @Test
+    void delete8bCabeceraDesigualResponde400MismatchSinBd() throws Exception {
+        // M10/D-C10-1 (2 de 8b): la comparación es contra la PROPIA ruta —
+        // SIN BD (verifyNoInteractions), incluso con el log existente
+        String bearer = bearer();
+        for (String desigual : new String[] {"48212", " 48211", "048211",
+                "48211 "}) {
+            mockMvc.perform(delete(URL_LISTA + "/48211")
+                            .header("Authorization", bearer)
+                            .header(CABECERA_LOG_ID, desigual))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("confirm_mismatch"))
+                    .andExpect(jsonPath("$.message")
+                            .value("La confirmación no coincide"))
+                    .andExpect(jsonPath("$.field").doesNotExist());
+            Mockito.verifyNoInteractions(logsBorradoRepository);
+        }
+    }
+
+    @Test
+    void delete8bIdInexistenteConCabeceraDesigualResponde400FailFast()
+            throws Exception {
+        // M10 (8b): id inexistente Y cabecera desigual ⇒ el 400 GANA (sin BD,
+        // determinista — la comparación jamás consulta el log)
+        String bearer = bearer();
+        mockMvc.perform(delete(URL_LISTA + "/999999")
+                        .header("Authorization", bearer)
+                        .header(CABECERA_LOG_ID, "999998"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("confirm_mismatch"))
+                .andExpect(jsonPath("$.field").doesNotExist());
+        Mockito.verifyNoInteractions(logsBorradoRepository);
+    }
+
+    @Test
+    void delete8bConCabeceraCorrectaSobreInexistenteResponde404()
+            throws Exception {
+        // REQ-C10-LOGDEL-3: id 999999 con SU cabecera correcta → borrarPorId
+        // devuelve 0 filas → 404 not_found
+        String bearer = bearer();
+        when(logsBorradoRepository.borrarPorId(999999L)).thenReturn(0);
+
+        mockMvc.perform(delete(URL_LISTA + "/999999")
+                        .header("Authorization", bearer)
+                        .header(CABECERA_LOG_ID, "999999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("not_found"))
+                .andExpect(jsonPath("$.message")
+                        .value("No existe (quizás fue eliminado)"));
+        Mockito.verify(logsBorradoRepository).borrarPorId(999999L);
+    }
+
+    @Test
+    void delete8bSinJwtResponde401InvalidToken() throws Exception {
+        // REQ-C10-DEL-7 análogo: la cadena 2 cubre el DELETE sin toque
+        mockMvc.perform(delete(URL_LISTA + "/48211"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("invalid_token"));
+        Mockito.verifyNoInteractions(logsBorradoRepository, logsQueryRepository);
     }
 }

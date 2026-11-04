@@ -2,11 +2,14 @@ package com.projectlog.projects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -36,8 +39,11 @@ import com.projectlog.config.RestAuthenticationEntryPoint;
 import com.projectlog.config.SecurityConfig;
 import com.projectlog.projects.controller.ProjectsController;
 import com.projectlog.projects.dto.ProjectDto;
+import com.projectlog.projects.dto.SummaryDto;
 import com.projectlog.projects.dto.UpdateProjectRequest;
 import com.projectlog.projects.repository.ProjectsRepository;
+import com.projectlog.query.repository.LogsBorradoRepository;
+import com.projectlog.query.repository.LogsQueryRepository;
 
 /**
  * E3.26 [L] + 401 [L] (CD-3.13.1, G4): {@code @WebMvcTest} sobre
@@ -80,11 +86,20 @@ class ProjectsControllerMvcTest {
     private ProjectsRepository projectsRepository;
 
     @MockitoBean
+    private LogsQueryRepository logsQueryRepository;
+
+    @MockitoBean
+    private LogsBorradoRepository logsBorradoRepository;
+
+    @MockitoBean
     private TokenService tokenService;
 
     // ------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------
+
+    /** id inexistente canónico de los bordes DEL (M10/D-C10-1). */
+    private static final long ID_INEXISTENTE = 999999L;
 
     /** JWT real (string) firmado con un TokenService local de test. */
     private static String jwtDePrueba() {
@@ -442,6 +457,16 @@ class ProjectsControllerMvcTest {
         assertThat(recibido.camposPresentes())
                 .containsExactly("description"); // presente (sin valor)
         assertThat(recibido.description()).isNull(); // valor null → columna NULL
+
+        // C10/T10.2 (REQ-C10-RESUMEN-2/R3): el PATCH 200 TAMBIÉN omite
+        // summary — clave AUSENTE por el NON_NULL (byte-idéntico a C8)
+        List<String> clavesPatch = clavesDe(mockMvc.perform(patch(URL_FICHA)
+                        .header("Authorization", bearer)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"description\": \"limpia\"}"))
+                .andExpect(status().isOk()).andReturn()
+                .getResponse().getContentAsString());
+        assertThat(clavesPatch).doesNotContain("summary");
     }
 
     @Test
@@ -542,5 +567,369 @@ class ProjectsControllerMvcTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("invalid_token"));
         Mockito.verifyNoInteractions(projectsRepository);
+    }
+
+    // ==================================================================
+    // C10 — DELETE /{id} (8a) + DELETE /{id}/logs (purga) + summary
+    //      + include=summary — orden fail-fast EXACTO de D-C10-1/M10
+    // ==================================================================
+
+    private static final String CABECERA = "X-Confirm-Name";
+    private static final String NAME = "payments-service";
+
+    // ------------------------------------------------------------------
+    // 8a DELETE /{id}
+    // ------------------------------------------------------------------
+
+    @Test
+    void delete8aSinCabeceraEIdInexistenteResponde400ConfirmRequiredNo404()
+            throws Exception {
+        // M10/D-C10-1 (1): la ausencia de cabecera GANA incluso sobre un id
+        // que no existe — 400 sin tocar BD (jamás 404)
+        String bearer = bearer();
+        mockMvc.perform(delete(URL_LISTA + "/" + ID_INEXISTENTE)
+                        .header("Authorization", bearer))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("confirm_required"))
+                .andExpect(jsonPath("$.message")
+                        .value("La cabecera X-Confirm-Name es obligatoria"))
+                .andExpect(jsonPath("$.field").doesNotExist()); // sin field
+        Mockito.verifyNoInteractions(projectsRepository);
+    }
+
+    @Test
+    void delete8aConCabeceraErroneaEIdInexistenteResponde404() throws Exception {
+        // M10/D-C10-1 (2): con cabecera PRESENTE, la EXISTENCIA gana sobre la
+        // desigualdad (el target de comparación ya no existe) → 404
+        String bearer = bearer();
+        when(projectsRepository.findById(ID_INEXISTENTE)).thenReturn(Optional.empty());
+        mockMvc.perform(delete(URL_LISTA + "/" + ID_INEXISTENTE)
+                        .header("Authorization", bearer)
+                        .header(CABECERA, "payments-servic"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("not_found"))
+                .andExpect(jsonPath("$.message")
+                        .value("No existe (quizás fue eliminado)"));
+        Mockito.verify(projectsRepository, Mockito.never()).borrar(anyLong());
+    }
+
+    @Test
+    void delete8aCabeceraErroneaEnExistenteResponde400MismatchSinBorrar()
+            throws Exception {
+        String bearer = bearer();
+        when(projectsRepository.findById(3L)).thenReturn(
+                Optional.of(proyecto(3L, NAME, "ACTIVE")));
+        // mayúsculas y espacio interior: la igualdad es EXACTA (sin trim)
+        for (String mala : new String[] {"PAYMENTS-SERVICE", "payments service",
+                "payments-servic", " payments-service"}) {
+            mockMvc.perform(delete(URL_LISTA + "/3")
+                            .header("Authorization", bearer)
+                            .header(CABECERA, mala))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("confirm_mismatch"))
+                    .andExpect(jsonPath("$.message")
+                            .value("La confirmación no coincide"))
+                    .andExpect(jsonPath("$.field").doesNotExist());
+        }
+        Mockito.verify(projectsRepository, Mockito.never()).borrar(anyLong());
+    }
+
+    @Test
+    void delete8aFelizResponde204SinCuerpoYBorraConElIdCorrecto() throws Exception {
+        String bearer = bearer();
+        when(projectsRepository.findById(3L)).thenReturn(
+                Optional.of(proyecto(3L, NAME, "ACTIVE")));
+        when(projectsRepository.borrar(3L)).thenReturn(true);
+
+        mockMvc.perform(delete(URL_LISTA + "/3")
+                        .header("Authorization", bearer)
+                        .header(CABECERA, NAME))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+        Mockito.verify(projectsRepository).borrar(3L);
+    }
+
+    @Test
+    void delete8aCarreraFilaDesaparecidaResponde404() throws Exception {
+        // D-C10-1: borrar() false ⇒ 404 de carrera (patrón empty-RETURNING C4)
+        String bearer = bearer();
+        when(projectsRepository.findById(3L)).thenReturn(
+                Optional.of(proyecto(3L, NAME, "ACTIVE")));
+        when(projectsRepository.borrar(3L)).thenReturn(false);
+
+        mockMvc.perform(delete(URL_LISTA + "/3")
+                        .header("Authorization", bearer)
+                        .header(CABECERA, NAME))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("not_found"));
+    }
+
+    @Test
+    void delete8aSobreArchivadoResponde204SinRamaDeStatus() throws Exception {
+        // M5/REQ-C10-DEL-6: el archivado NO bloquea los DELETE
+        String bearer = bearer();
+        when(projectsRepository.findById(3L)).thenReturn(
+                Optional.of(proyecto(3L, NAME, "ARCHIVED")));
+        when(projectsRepository.borrar(3L)).thenReturn(true);
+
+        mockMvc.perform(delete(URL_LISTA + "/3")
+                        .header("Authorization", bearer)
+                        .header(CABECERA, NAME))
+                .andExpect(status().isNoContent());
+        Mockito.verify(projectsRepository).borrar(3L);
+    }
+
+    // ------------------------------------------------------------------
+    // 8c DELETE /{id}/logs (purga)
+    // ------------------------------------------------------------------
+
+    @Test
+    void purgaSinCabeceraResponde400ConfirmRequiredSinTocarBd() throws Exception {
+        String bearer = bearer();
+        mockMvc.perform(delete(URL_FICHA + "/logs")
+                        .header("Authorization", bearer))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("confirm_required"))
+                .andExpect(jsonPath("$.field").doesNotExist());
+        Mockito.verifyNoInteractions(projectsRepository, logsBorradoRepository);
+    }
+
+    @Test
+    void purgaIdInexistenteConCabeceraResponde404AntesDePurgar() throws Exception {
+        String bearer = bearer();
+        when(projectsRepository.findById(ID_INEXISTENTE)).thenReturn(Optional.empty());
+        mockMvc.perform(delete(URL_LISTA + "/" + ID_INEXISTENTE + "/logs")
+                        .header("Authorization", bearer)
+                        .header(CABECERA, "otro-name"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("not_found"));
+        Mockito.verifyNoInteractions(logsBorradoRepository); // jamás purga
+    }
+
+    @Test
+    void purgaCabeceraErroneaEnExistenteResponde400MismatchSinPurgar()
+            throws Exception {
+        String bearer = bearer();
+        when(projectsRepository.findById(3L)).thenReturn(
+                Optional.of(proyecto(3L, NAME, "ACTIVE")));
+        mockMvc.perform(delete(URL_LISTA + "/3/logs")
+                        .header("Authorization", bearer)
+                        .header(CABECERA, NAME + " "))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("confirm_mismatch"))
+                .andExpect(jsonPath("$.message")
+                        .value("La confirmación no coincide"))
+                .andExpect(jsonPath("$.field").doesNotExist());
+        Mockito.verifyNoInteractions(logsBorradoRepository);
+    }
+
+    @Test
+    void purgaFelizResponde200ConCuerpoExactoDeleted55() throws Exception {
+        // REQ-C10-PURGA-1: {"deleted": 55} — primer cuerpo de un DELETE del
+        // proyecto; el N ES el retorno de JdbcTemplate.update (D-C10-2)
+        String bearer = bearer();
+        when(projectsRepository.findById(3L)).thenReturn(
+                Optional.of(proyecto(3L, NAME, "ACTIVE")));
+        when(logsBorradoRepository.purgarPorProyecto(3L)).thenReturn(55);
+
+        var resultado = mockMvc.perform(delete(URL_LISTA + "/3/logs")
+                        .header("Authorization", bearer)
+                        .header(CABECERA, NAME))
+                .andExpect(status().isOk())
+                .andReturn();
+        assertThat(resultado.getResponse().getContentAsString())
+                .isEqualTo("{\"deleted\":55}");
+        Mockito.verify(logsBorradoRepository).purgarPorProyecto(3L);
+    }
+
+    @Test
+    void purgaCeroConProyectoPresenteResponde200Deleted0() throws Exception {
+        // M4/REQ-C10-PURGA-5: estado vacío informativo, NUNCA error
+        String bearer = bearer();
+        when(projectsRepository.findById(3L)).thenReturn(
+                Optional.of(proyecto(3L, NAME, "ACTIVE")));
+        when(logsBorradoRepository.purgarPorProyecto(3L)).thenReturn(0);
+
+        var resultado = mockMvc.perform(delete(URL_LISTA + "/3/logs")
+                        .header("Authorization", bearer)
+                        .header(CABECERA, NAME))
+                .andExpect(status().isOk())
+                .andReturn();
+        assertThat(resultado.getResponse().getContentAsString())
+                .isEqualTo("{\"deleted\":0}");
+    }
+
+    @Test
+    void purgaCeroConProyectoDesaparecidoCarreraResponde404() throws Exception {
+        // D-C10-2/M4: la re-verificación de la rama N=0 cubre la carrera
+        String bearer = bearer();
+        when(projectsRepository.findById(3L)) // 1.ª llamada (orden D-C10-1) → presente
+                .thenReturn(Optional.of(proyecto(3L, NAME, "ACTIVE")))
+                .thenAnswer(inv -> Optional.empty()); // re-verificación N=0 → vacía
+        when(logsBorradoRepository.purgarPorProyecto(3L)).thenReturn(0);
+
+        mockMvc.perform(delete(URL_LISTA + "/3/logs")
+                        .header("Authorization", bearer)
+                        .header(CABECERA, NAME))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("not_found"));
+    }
+
+    // ------------------------------------------------------------------
+    // GET /{id}/summary
+    // ------------------------------------------------------------------
+
+    @Test
+    void summaryExistenteResponde200ConLaFormaExacta4Claves() throws Exception {
+        String bearer = bearer();
+        when(projectsRepository.findById(7L)).thenReturn(
+                Optional.of(proyecto(7L, NAME, "ACTIVE")));
+        when(logsQueryRepository.resumen(7L)).thenReturn(new SummaryDto(
+                Map.of("ERROR", 12L, "WARN", 3L),
+                Map.of("production", 40L), 55L, "2026-10-16T22:31:04Z"));
+
+        var resultado = mockMvc.perform(get(URL_FICHA + "/summary")
+                        .header("Authorization", bearer))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(55))
+                .andExpect(jsonPath("$.last_log_at").value("2026-10-16T22:31:04Z"))
+                .andExpect(jsonPath("$.by_level.ERROR").value(12))
+                .andExpect(jsonPath("$.by_environment.production").value(40))
+                .andReturn();
+        JsonNode nodo = objectMapper.readTree(
+                resultado.getResponse().getContentAsString());
+        List<String> claves = new ArrayList<>();
+        nodo.fieldNames().forEachRemaining(claves::add);
+        assertThat(claves).containsExactlyInAnyOrder("by_level", "by_environment",
+                "total", "last_log_at"); // §3.3 — 4 claves SIEMPRE
+    }
+
+    @Test
+    void summaryInexistenteResponde404SinConsultarLogs() throws Exception {
+        String bearer = bearer();
+        when(projectsRepository.findById(ID_INEXISTENTE)).thenReturn(Optional.empty());
+        mockMvc.perform(get(URL_LISTA + "/" + ID_INEXISTENTE + "/summary")
+                        .header("Authorization", bearer))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("not_found"));
+        Mockito.verifyNoInteractions(logsQueryRepository); // E3.19: nulo-imposible
+    }
+
+    @Test
+    void summaryDeProyectoSinLogsRespondeEstadoVacioLiteral() throws Exception {
+        String bearer = bearer();
+        when(projectsRepository.findById(7L)).thenReturn(
+                Optional.of(proyecto(7L, NAME, "ACTIVE")));
+        when(logsQueryRepository.resumen(7L)).thenReturn(new SummaryDto(
+                Map.of(), Map.of(), 0L, null));
+
+        var resultado = mockMvc.perform(get(URL_FICHA + "/summary")
+                        .header("Authorization", bearer))
+                .andExpect(status().isOk())
+                .andReturn();
+        // literal §3.3/flujo 9: total 0 y last_log_at null EXPLÍCITO
+        assertThat(resultado.getResponse().getContentAsString())
+                .isEqualTo("{\"by_level\":{},\"by_environment\":{},"
+                        + "\"total\":0,\"last_log_at\":null}");
+    }
+
+    // ------------------------------------------------------------------
+    // include=summary en el LISTADO (M3: SOLO la lista)
+    // ------------------------------------------------------------------
+
+    @Test
+    void listaConIncludeSummaryTraeResumenEnTodosLosElementos() throws Exception {
+        String bearer = bearer();
+        when(projectsRepository.findAll(null)).thenReturn(List.of(
+                proyecto(1L, "a", "ACTIVE"), proyecto(2L, "b", "ACTIVE")));
+        when(logsQueryRepository.resumen(1L)).thenReturn(new SummaryDto(
+                Map.of("ERROR", 12L), Map.of("production", 40L), 55L,
+                "2026-10-16T22:31:04Z"));
+        when(logsQueryRepository.resumen(2L)).thenReturn(new SummaryDto(
+                Map.of(), Map.of(), 0L, null));
+
+        mockMvc.perform(get(URL_LISTA + "?include=summary")
+                        .header("Authorization", bearer))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].summary.total").value(55))
+                .andExpect(jsonPath("$[0].summary.by_level.ERROR").value(12))
+                // "nunca vacío por defecto": el sin logs lleva la forma §3.3
+                .andExpect(jsonPath("$[1].summary.total").value(0))
+                .andExpect(jsonPath("$[1].summary.last_log_at").doesNotExist())
+                .andExpect(jsonPath("$[1].summary.by_level").isEmpty());
+        Mockito.verify(logsQueryRepository).resumen(1L);
+        Mockito.verify(logsQueryRepository).resumen(2L);
+    }
+
+    @Test
+    void listaSinIncludeMantieneSummaryAusente() throws Exception {
+        String bearer = bearer();
+        when(projectsRepository.findAll(null)).thenReturn(List.of(
+                proyecto(1L, "a", "ACTIVE")));
+        mockMvc.perform(get(URL_LISTA).header("Authorization", bearer))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].summary").doesNotExist()); // NON_NULL
+        Mockito.verifyNoInteractions(logsQueryRepository);
+    }
+
+    @Test
+    void listaArchivadaConIncludeMantieneResumenIntacto() throws Exception {
+        // RESUMEN-5/flujo 9 paso 3: el archivado NO altera el agregado
+        String bearer = bearer();
+        when(projectsRepository.findAll("ARCHIVED")).thenReturn(List.of(
+                proyecto(2L, "b", "ARCHIVED")));
+        when(logsQueryRepository.resumen(2L)).thenReturn(new SummaryDto(
+                Map.of("INFO", 9L), Map.of(), 9L, "2026-10-19T21:47:58Z"));
+
+        mockMvc.perform(get(URL_LISTA)
+                        .param("status", "ARCHIVED")
+                        .param("include", "summary")
+                        .header("Authorization", bearer))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].summary.total").value(9))
+                .andExpect(jsonPath("$[0].summary.by_level.INFO").value(9));
+    }
+
+    @Test
+    void includeInvalidoResponde400FilterInvalidValueConFieldIncludeSinBd()
+            throws Exception {
+        String bearer = bearer();
+        mockMvc.perform(get(URL_LISTA)
+                        .param("include", "otracosa")
+                        .header("Authorization", bearer))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("filter_invalid_value"))
+                .andExpect(jsonPath("$.field").value("include"))
+                .andExpect(jsonPath("$.message")
+                        .value("Valor de include no válido; use summary"));
+        Mockito.verifyNoInteractions(projectsRepository); // fail-fast ANTES de BD
+
+        // D-C10-5: el orden (1) status, (2) include — el status inválido GANA
+        mockMvc.perform(get(URL_LISTA)
+                        .param("status", "xxx")
+                        .param("include", "otracosa")
+                        .header("Authorization", bearer))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.field").value("status"));
+        Mockito.verifyNoInteractions(projectsRepository);
+    }
+
+    // ------------------------------------------------------------------
+    // 401 de la cadena 2 en los endpoints NUEVOS sin JWT (S19)
+    // ------------------------------------------------------------------
+
+    @Test
+    void sinJwtLosTresEndpointsNuevosResponde401InvalidToken() throws Exception {
+        mockMvc.perform(delete(URL_LISTA + "/3"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("invalid_token"));
+        mockMvc.perform(delete(URL_FICHA + "/logs"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("invalid_token"));
+        mockMvc.perform(get(URL_FICHA + "/summary"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("invalid_token"));
+        Mockito.verifyNoInteractions(projectsRepository, logsBorradoRepository,
+                logsQueryRepository);
     }
 }
