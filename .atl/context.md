@@ -1,7 +1,7 @@
 ---
 project: "Project_Log"
 artifact: context
-last_updated: 2026-10-20
+last_updated: 2026-10-29
 status: active
 ---
 
@@ -12,14 +12,15 @@ Servicio de ingesta, consulta y streaming en vivo de logs de runtime para el
 homelab del usuario, desplegado con Docker Compose en una VM Proxmox por red
 interna. Monousuario, sin registro público, sin integraciones externas.
 
-## Estado actual (2026-10-20)
-- **El proyecto NO tiene código todavía**, solo documentación en `/docs`
-  (paquete de definición cerrado: 7/7 documentos `valido`).
-- No es repositorio git aún (el repo se crea en el corte C1 / Fase 0 Setup).
-- Pipeline de planificación: `06_IMPLEMENTATION_PLAN.md` (Fases 0–3, stories
-  P0-1…P0-14 + P1 + P2) y `07_SLICING_PLAN.md` (10 cortes C1–C10, cada uno =
-  una ejecución completa del flujo SDD; estado por corte en campo `estado:`).
-- Todos los cortes C1–C10: `estado: pendiente`. Siguiente: **C1**.
+## Estado actual (2026-10-29)
+- Repo git activo en `main` (base C9: 27b62cb, sin push). Pila local podman
+  `:8080` arriba; deploy en VM 108 «projectlog» (192.168.1.58, docker compose
+  v5.6.1, firewall nftables GATE #11) cerrado en C9.
+- Suites: mvn 177/177, Vitest 55/55, smokes canónicos `scripts/qa_c*`,
+  arnés visual Playwright `scripts/qa_vis_c9.{py,sh}` (26 checks).
+- Cortes C1–C9: `estado: hecho`. Siguiente (y ÚLTIMO de Fase 1+2): **C10**
+  (Fase 2: borrados definitivos, resumen, acceso remoto) + fixes ratificados
+  H-C9-WS-COLGADO / E9.13 / E9.2 / E9.10 + UX-401-logout (DEV-C8-4).
 
 ## Stack definido (documentado, no implementado aún)
 - Backend: Spring Boot (Java), package-by-feature: `auth, projects, keys,

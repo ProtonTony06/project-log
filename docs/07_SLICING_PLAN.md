@@ -189,18 +189,41 @@ C2→(1), C3→(2,13,14), C4→(3,4), C5→(5,6,7), C6→(8,9,10), C7→(11,12).
   opcional para demo del usuario.
 - **Insumos:** 06 (demo y riesgos), TRD §6.7 (firewall), AppFlow flujo 6.
 
-### C10 — Fase 2: borrados, resumen, acceso remoto (`estado: pendiente`)
+### C10 — Fase 2: borrados, resumen, acceso remoto (`estado: hecho` 2026-11-04 · apply 36/36 tareas T10.1–T10.36 en 6 bloques (0 toques a intocables; única excepción RATIFICADA D-C10-16: 1 hunk de 7 inserciones en `qa_vis_c9.py` b6 — «C9 tocado en su guion por C10»), mvn 225/225 [48 C10 + 177 heredados sin relajar; builder podman canon, incluidos 2 pins de preflight real D-C10-15], Vitest 81/81 [60 previos sin relajar + 20 C10 + pin del default del Reloj del fix ratificado] con tsc 0, smoke `qa_c10` 10/10 PASS exit 0 (SQL real: purga `{"deleted":N}`/`{"deleted":0}`, CASCADE, key muere `401 api_key_invalid`, key sobrevive a la purga 202), arnés visual `qa_vis_c10.{py,sh}` 33 marcas · 0 FAIL · 1 BLOQUEADO (E9.7 variante B — su canon honesto) exit 1 canónico con 8 re-corridas hasta convergir (2 hallazgos de PRODUCTO remediados RATIFICADOS: Reloj natives desenlazados → `/logs` en blanco [nota+Resolución]; CORS `X-Confirm-*` no materializable en DefaultCorsProcessor → literales exactos X-Confirm-Name/X-Confirm-Log-Id [nota+Resolución]), kill-window E9.11/E9.26 corrió, fase L con guard `^qa-c9-|^qa-c10-` (1 proyecto del usuario INTOCADO), 39 PNGs en `.atl/sdd/C10/evidencia/` con MANIFEST-sha256 `sha256sum -c` 39/39, S16 0 hits en todos los RAW, regresiones seriales AL FINAL: qa_c3 22 PASS · 2 FAIL (E3.22 = N/A-post-D2 ratificada; E3.24 = ARTEFACTO del guard git-diff sin el commit pendiente — «verde tras commit») · qa_c7 9/9 PASS exit 2 (canon-documento C8 §4.5; «exit 0» de chat = errata reconciliada) · qa_c8 17 PASS · 6 FAIL · 1 BLOQUEADO Q23 (raíz única: premisas C8 invalidadas POR EL DISEÑO C10 ratificado — CERO defectos de producto; lectura recomendada N/A-post-C10 PENDIENTE-DE-RATIFICAR-POR-EL-DUEÑO), verify PASS-with-notes 0 CRITICAL / 2 W (RAWs desfasados pre-fix en disco) / 5 S, commit docs(SDD) SELECTIVO PREPARADO SIN EJECUTAR — espera permiso del dueño)
 
-- **Alcance:** `DELETE /projects/{id}` (`X-Confirm-Name`, CASCADE
-  transaccional), `DELETE /logs/{id}` (`X-Confirm-Log-Id` — la UI del
-  modal ya existe desde C8), `DELETE /projects/{id}/logs`
-  (`X-Confirm-Name` → 200 `{deleted: N}`); resumen `include=summary` +
-  `GET /projects/{id}/summary` (SummaryDto; tarjeta en `/proyectos` y
-  bloque en ficha); doc operativo de acceso remoto (Tailscale) y
-  preparación TLS (TRD §6.8).
+- **Hecho (2026-11-04):** 3 DELETE con doble confirmación (UI texto tecleado
+  G2-a/M1 + cabeceras `X-Confirm-Name`/`X-Confirm-Log-Id`) con el orden
+  fail-fast D-C10-1/M10 (400 `confirm_required` SIN BD → 404 → 400
+  `confirm_mismatch` equals EXACTO sin field → borrado; desambiguación N=0
+  vía re-`findById` para la purga — carrera CASCADE incluida), CASCADE del
+  motor en el proyecto (key muere con la fila — smoke + arnés); resumen
+  `include=summary` + `GET /projects/{id}/summary` (`SummaryDto` 4 claves
+  siempre, `SummaryDto` NON_NULL en `ProjectDto` absent-without — ctor
+  comodín 8-arg), tarjeta/ficha (maquetas 04/05) con bandas
+  `lv-*`/`env-*` del orden CASE (nota orden bandas: DEBUG=4/INFO=5 manda
+  spec+maqueta), «Actualizar», estado vacío «sin logs todavía» (M4),
+  archivado resumen-intacto; CORS G1-a LATENTE multi-origen por coma
+  (split+trim+filtrado + guard cierre; sin `*`, sin patterns;
+  literales exactos D-C10-15 — la variante (a+) del `.env` de la VM queda
+  PENDIENTE-DE-CONFIRMACIÓN-DEL-USUARIO); `docs/08_ACCESO_REMOTO.md`
+  (Tailscale P1, TLS P2 documentado-SIN-implementar, README índice dif-0);
+  fixes H-C9 de primera clase con re-runs honestos EN VIVO: WS-COLGADO
+  (T_TIMEOUT_CONNECTING_MS=10 s + distinción cadena/inaugural M9),
+  E9.13 (query tal cual — 3 puntos), E9.2 (una sola navegación — helpers
+  puros + ref), E9.10 (UN set_filters por cambio real — memo + guard); UX
+  401-logout cerrado (status reales del DELETE; DEV-C8-4 ratificada); pines
+  backend Vitest sin DOM (D-C8-11) y SQL pines D-9; post-C8 de la pila
+  reconstruida 3/3 healthy sin `down -v` salvo canon propio de los smokes.
 - **Done cuando (del 06):** los 3 DELETE exigen doble confirmación (UI +
-  cabecera) y devuelven los estados del AppFlow flujo 8; el resumen aparece
-  en lista/ficha; el doc está en /docs o README operativo.
+  cabecera) y devuelven los estados del AppFlow flujo 8 ← verificado con
+  checks E10.x en vivo (mismatch dentro del modal sin logout ni borrado;
+  banners con N real; WS delta 0 en purgas); el resumen aparece en
+  lista/ficha ← E10.1–E10.5; el doc está en /docs ← `docs/08` (rama /docs,
+  `docs/README.md` dif-0).
+- **Residuo (pendientes del dueño, no bloqueantes):** commit del fix CORS
+  (E3.24 verdea después), ratificar lectura N/A-post-C10 de los 6 FAIL
+  E8.x de qa_c8, fila stale tras borrado 8b (opción abierta sin pin del
+  arnés), variante CORS-LAN (a+) en la VM.
 - **Insumos:** Schema §3.2/§3.3, AppFlow flujo 8/9, maquetas 03/04/05, TRD §2.3.
 
 ## Vigilancia de riesgos entre cortes (del 06)
