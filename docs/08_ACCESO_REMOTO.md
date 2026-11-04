@@ -1,6 +1,6 @@
 ---
 status: valido
-updated: 2026-10-29
+updated: 2026-11-04
 fuera-del-paquete: si
 ---
 
@@ -54,6 +54,16 @@ Estado verificado del despliegue al cerrar el corte C9 (fuente:
   (192.168.1.0/24 → dport 22) y **8080 desde la LAN** (192.168.1.0/24 →
   dport 8080). Boot-safe probado en frío y en reinicio (FB-7). Orden dura del
   GATE respetada: SSH-LAN primero, jamás se cortó la sesión de gestión.
+- **Actualización 2026-11-04 (deploy del C10 — corrigendum
+  H-D10-VM-ENV-8081)**: el `.env` REAL del VM contenía
+  `FRONTEND_ORIGIN=http://localhost:8081`, NO el `http://localhost:8080`
+  que citaba este doc (y el estado de C9) — divergencia del propio estado
+  del deploy, nunca load-bearing (igual-origen por proxy no cruza CORS y
+  el reflejo CORS es exacto). Corregido en el deploy: hoy el valor es la
+  lista de 3 orígenes
+  `http://localhost:8080,http://192.168.1.58:8080,http://100.97.243.102:8080`
+  (§4 ejecutado + origen de tailnet, ver detalle en
+  `.atl/notes/c10-nota-deploy-vm-corslan.md`). Cero secretos en este doc.
 - **Tailscale SSH ya operativo como ruta de gestión** (FB-0): la máquina de
   desarrollo NO está en la LAN (wlp0s20f3, 192.168.42.x); todo acceso a la VM
   salta por la tailnet:
@@ -83,7 +93,10 @@ Ruta de gestión: la cadena ProxyJump de la sección 2. Dentro de la VM
 
 ```bash
 # 1. Añadir el repositorio oficial de Tailscale para Debian 12 (bookworm)
-curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.noarmored.asc \
+#    (Actualización 2026-11-04: la ruta `bookworm.noarmored.asc` citada
+#    antes devuelve 404 hoy; la keyring publicada es `bookworm.asc` —
+#    verificada en el install real de tailscale 1.104.5)
+curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.asc \
   | tee /usr/share/keyrings/tailscale-archive-keyring.asc >/dev/null
 curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.list \
   | tee /etc/apt/sources.list.d/tailscale.list
@@ -117,17 +130,24 @@ el propio nginx del frontend enruta `/api/v1/**` + `/ws/logs` al backend
 tailnet) salvo el CORS, que se trata en la sección 4. PostgreSQL y backend no publican puertos
 (TRD §6.7) y siguen sin existir fuera de la red de Compose.
 
-### 3.3 Firewall: la regla 8080-solo-LAN NO basta fuera del túnel
+### 3.3 Firewall: el 8080 publicado por Docker NO está cubierto por el chain input (corregido y verificado 2026-11-04)
 
 - El tráfico **Tailscale SSH/tunnel observado en FB-0** (la ruta de gestión
   vía `root@100.64.3.17`) opera a nivel de kernel, **fuera** de la chain
   nftables LAN del GATE #11: por eso SSH funciona hoy desde la tailnet sin
   regla LAN.
-- Un **navegador** que pida `http://<tailnet-IP>:8080` directamente NO va por
-  ese túnel: llega una conexión TCP nueva con origen en el rango de tailnet
-  (`100.64.0.0/10` sobre la interfaz `tailscale0`), que la `policy drop` del
-  GATE #11 descartaría — la regla 8080 existente solo acepta origen
-  `192.168.1.0/24`.
+- **CORREGIDO Y VERIFICADO EN VIVO (2026-11-04)**: la versión anterior de
+  este punto afirmaba que la `policy drop` del chain `input` descartaría el
+  pedido del navegador a `http://<tailnet-IP>:8080`. ES FALSO para los
+  puertos publicados por Docker: el 8080 se publica con **DNAT en
+  PREROUTING** hacia el contenedor `frontend`, de modo que ese tráfico
+  NUNCA atraviesa el chain `input` de `table inet pl_vm` (donde vive el
+  policy drop) — va por FORWARD, en las cadenas de Docker. Verificado
+  empíricamente el 2026-11-04: `curl http://100.97.243.102:8080/` desde dos
+  nodos externos de la tailnet (el PVE 100.64.3.17 y el host dev
+  100.67.69.32) respondió **200 sin ninguna regla nueva** (evidencia:
+  `.atl/notes/c10-nota-deploy-vm-corslan.md` §8). El «solo-LAN» de GATE #11
+  rige el tráfico host-bound, no los puertos de contenedor publicados.
 - **Regla 8080 por tailnet SOLO si el usuario la pide**: en ese caso, añadir
   antes de cualquier cambio una regla scoped a la tabla existente (patrón
   boot-safe del C9: tabla pre-declarada antes del `flush` scoped, `nft -c -f`
@@ -135,6 +155,11 @@ tailnet) salvo el CORS, que se trata en la sección 4. PostgreSQL y backend no p
   saddr 100.64.0.0/10` (o `iifname "tailscale0"`) en `table inet pl_vm`,
   **jamás** `flush ruleset` global (arrasaría las cadenas iptables-nft de
   Docker — incidente documentado en FB-4 del C9).
+  **DECISIÓN RATIFICADA DEL DUEÑO (2026-11-04, H-D10-TS-FW-NOOP): esta regla
+  NO se aplica** — es un no-op (el tráfico DNATeado jamás llega al chain
+  input; el panel por tailnet responde 200 sin ella) y solo ensancharía el
+  surface del host. nftables queda EXACTO: lo, established,related,
+  SSH-LAN 22 y 8080-LAN, nada más.
 
 Alternativa sin tocar el firewall: encapsular el panel por el túnel SSH
 existente (port-forward: `ssh -J root@100.64.3.17 -L 8080:localhost:8080
