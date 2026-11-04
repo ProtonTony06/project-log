@@ -556,3 +556,61 @@ orquestador.
   el down -v: limpio.
 - Los repros efímeros de /tmp con autolimpieza REST terminaron sin
   residuo; credenciales jamá impresas (S16: 0 hits en los 4 logs).
+
+## Fix fila stale 8b — expulsión por id (ratificado por el dueño)
+
+Fecha: 2026-11-04 · Origen: `.atl/notes/c10-nota-8b-fila-stale-snapshot-sin-refetch.md`
+(E10.9, fila stale tras el 204 real del DELETE /logs/{id} — la vuelta a /logs
+restaura el snapshot y la fila borrada sigue en pantalla). Elección del dueño:
+**opción (a) expulsar por id** — sin refetch, coherente con el skip del
+snapshot E8.35 y con el «delta 0» del WS para borrados (LiveBroadcaster sólo
+emite con ingesta).
+
+### Elección de mecanismo + racional
+
+Canal **`location.state`** (piloto por estado de navegación — ya usado por el
+producto para el aviso «Registro eliminado», REQ-C10-UI-5): `alExito` del
+modal 8b añade `idBorrado: dto.id` junto al aviso; `Logs.tsx` lo lee al montar
+y expulsa la fila del acumulado INICIAL (consumo de snapshot + filtro) con la
+función pura **`expulsarPorId`** (dominio del acumulado, `usePagination.ts`).
+Menor superficie: 0 requests, 0 stores nuevos, 0 toques en frontera — la
+expulsión actúa sobre lo ya consumido; el id en el state es el operando
+quirúrgico y el filtro inicial se hace ANTES del primer render (nada de
+doble render ni efectos extra).
+
+### Diff resumido
+
+- `frontend/src/hooks/usePagination.ts` (+20): `expulsarPorId<T extends
+  {id:number}>(a, id)` — devuelve `{items: a.items.filter(i => i.id !== id),
+  nextCursor: a.nextCursor}`; pura, no muta la entrada, cursor keyset intacto
+  (codifica received_at/id del último item de página — la expulsión no lo
+  invalida); id inexistente ⇒ no-op.
+- `frontend/src/pages/LogDetalle.tsx` (+5): `alExito` navega con
+  `state: {aviso, idBorrado: dto.id}`.
+- `frontend/src/pages/Logs.tsx` (+13): lectura defensiva `idBorrado`
+  (`typeof number`) del state; el `useState` inicial del acumulado aplica
+  `expulsarPorId(base, idBorrado)` cuando viene — red que alimenta a
+  `refAcumulado` (identidad estable, coherente con la mutación única
+  `paginar`).
+- `frontend/src/hooks/usePagination.test.ts` (+60): bloque
+  `expulsarPorId` — 4 tests (expulsión conservando orden+cursor, id
+  inexistente no-op, no-mutación/identidad, única fila ⇒ vacío legítimo sin
+  refetch).
+- `frontend/src/hooks/storeListado.test.ts` (+21): test de integración del
+  round-trip 8b con search EXACTA (`?text=…` — pin E9.13) + expulsión: la
+  snapshot NO cambió, la fila borrada sale, las demás quedan.
+
+### Cifras
+
+- `npx tsc --noEmit`: **0 errores** (exit 0).
+- `npx vitest run`: **86/86 verde** (9 ficheros) — 81 previos + 5 nuevos
+  (4 en `usePagination.test.ts`, 1 en `storeListado.test.ts`). Sin DOM
+  (D-C8-11).
+
+### Frontera confirmada (dif-0)
+
+`storeListado.ts`, `ws/client.ts`, `hooks/useLogsStream.ts`,
+`api/client.ts`, `App.tsx`: **sin diff** (git diff vacío). Sin refetch
+automático; el guard `debeReenviarFiltros` y el ciclo WS intactos. Round-trip
+E8.35 con snapshot+search EXACTA permanece — sólo la fila borrada desaparece
+del snapshot al restaurar. NO staging; SIN commit (pendiente del orquestador).

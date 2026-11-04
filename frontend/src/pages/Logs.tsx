@@ -19,6 +19,7 @@ import {
 import {
   acumular,
   esFinDeResultados,
+  expulsarPorId,
   paginaInicial,
   primeraPagina,
   type Acumulado,
@@ -51,6 +52,16 @@ export default function Logs() {
   // REQ-C10-UI-5; patrón ya usado por ProyectoDetalle).
   const aviso = (location.state as { aviso?: string } | null)?.aviso ?? null;
 
+  // Fix fila stale 8b (ratificado por el dueño): tras el 204 del DELETE el
+  // detalle regresa con el id de la fila borrada en el state (junto al
+  // aviso). La expulsión se hace AQUÍ, sobre el snapshot restaurado, sin
+  // refetch y sin tocar storeListado/WS — la fila deleted ya no vive en el
+  // backend y el WS no tiene canal de borrados (delta 0, LiveBroadcaster
+  // sólo emite con ingesta). Malformado/no-numérico ⇒ null ⇒ no-op.
+  const idBorradoNav = location.state as { idBorrado?: unknown } | null;
+  const idBorrado =
+    typeof idBorradoNav?.idBorrado === "number" ? idBorradoNav.idBorrado : null;
+
   // E8.35 (post-parche D-C8-8): si volvemos del detalle con la MISMA query
   // string, la instantánea del acumulado se consume AQUÍ (una sola vez por
   // montaje) y el PRIMER refetch de página 1 se salta — los filtros ya
@@ -60,10 +71,14 @@ export default function Logs() {
   const saltoPrimeraRef = useRef(restaurada !== null);
 
   const [proyectos, setProyectos] = useState<ProjectDto[]>([]);
-  const [acumulado, setAcumulado] =
-    useState<Acumulado<LogListItemDto>>(() =>
-      restaurada !== null ? restaurada.acumulado : paginaInicial(),
-    );
+  const [acumulado, setAcumulado] = useState<Acumulado<LogListItemDto>>(() => {
+    const base: Acumulado<LogListItemDto> =
+      restaurada !== null ? restaurada.acumulado : paginaInicial();
+    // Expulsión quirúrgica de la fila borrada (flujo 8b): el round-trip
+    // E8.35 permanece (snapshot consumida con la search EXACTA) — solo la
+    // fila deleted desaparece del acumulado al restaurar.
+    return idBorrado !== null ? expulsarPorId(base, idBorrado) : base;
+  });
   // espejo para mutaciones coherentes (frames / Cargar más / refetch)
   const refAcumulado = useRef(acumulado);
   const [cargandoPrimera, setCargandoPrimera] = useState(true);

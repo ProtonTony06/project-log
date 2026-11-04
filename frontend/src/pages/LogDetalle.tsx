@@ -281,7 +281,13 @@ export default function LogDetalle() {
         alExito={() => {
           setModalAbierto(false);
           navegar(`/logs${location.search}`, {
-            state: { aviso: "Registro eliminado" },
+            state: {
+              aviso: "Registro eliminado",
+              // Fix fila stale 8b (ratificado): el id viaja en el state para
+              // que /logs EXPULSE la fila borrada del snapshot restaurado
+              // (sin refetch — expulsarPorId; el WS no emite borrados).
+              idBorrado: dto.id,
+            },
           });
         }}
       />

@@ -36,3 +36,23 @@ export function primeraPagina<T>(
 export function esFinDeResultados<T>(a: Acumulado<T>): boolean {
   return a.nextCursor === null;
 }
+
+/** Expulsa por id la fila borrada (flujo 8b — fix C10 ratificado por el
+ * dueño): tras el 204 del DELETE el detalle regresa a /logs con el id en
+ * location.state (junto al aviso «Registro eliminado») y esta función lo
+ * quita del acumulado restaurado — SIN refetch, coherente con el skip del
+ * snapshot E8.35 y con el «delta 0» del WS para borrados (LiveBroadcaster
+ * sólo emite con ingesta: no hay canal de DELETE).
+ * El cursor keyset NO se toca: codifica received_at/id del último item de
+ * la página recibida y la expulsión de una fila no invalida los restantes.
+ * Id inexistente en el acumulado ⇒ contenido equivalente (no-op puro).
+ * NUNCA muta la entrada (React depende de identidad). */
+export function expulsarPorId<T extends { id: number }>(
+  a: Acumulado<T>,
+  id: number,
+): Acumulado<T> {
+  return {
+    items: a.items.filter((item) => item.id !== id),
+    nextCursor: a.nextCursor,
+  };
+}

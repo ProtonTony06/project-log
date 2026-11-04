@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   acumular,
   esFinDeResultados,
+  expulsarPorId,
   paginaInicial,
   primeraPagina,
 } from "./usePagination";
@@ -71,5 +72,53 @@ describe("esFinDeResultados / primeraPagina", () => {
     expect(b.items.map((i) => i.id)).toEqual([1]);
     expect(b.nextCursor).toBe("n1");
     expect(a.items.length).toBe(2); // a no tocado
+  });
+});
+
+describe("expulsarPorId (fix fila stale 8b — borrado sin refetch, C10)", () => {
+  it("expulsa la fila borrada (8b) y conserva resto, orden y cursor keyset", () => {
+    // Snapshot acumulado [10, 9, 8, 7] con cursor vivo; el dueño borra el 9.
+    let a = acumular(paginaInicial<LogListItemDto>(), {
+      items: [item(10), item(9)],
+      next_cursor: "eyJyYXciOjV9",
+    });
+    a = acumular(a, { items: [item(8), item(7)], next_cursor: "eyJyYXciOjN9" });
+
+    const tras = expulsarPorId(a, 9);
+    expect(tras.items.map((i) => i.id)).toEqual([10, 8, 7]); // 9 fuera, orden intacto
+    expect(tras.nextCursor).toBe("eyJyYXciOjN9"); // cursor NO tocado
+    expect(esFinDeResultados(tras)).toBe(false);
+  });
+
+  it("id inexistente en el acumulado ⇒ contenido equivalente (no-op puro)", () => {
+    const a = acumular(paginaInicial<LogListItemDto>(), {
+      items: [item(10), item(9)],
+      next_cursor: null,
+    });
+    const tras = expulsarPorId(a, 999);
+    expect(tras.items.map((i) => i.id)).toEqual([10, 9]);
+    expect(tras.nextCursor).toBeNull();
+  });
+
+  it("NUNCA muta el acumulado previo (identidad estable para React)", () => {
+    const a = acumular(paginaInicial<LogListItemDto>(), {
+      items: [item(10), item(9)],
+      next_cursor: "c2",
+    });
+    const tras = expulsarPorId(a, 10);
+    expect(tras).not.toBe(a);
+    expect(a.items.map((i) => i.id)).toEqual([10, 9]); // entrada intacta
+  });
+
+  it("expulsa la ÚNICA fila ⇒ items vacíos (estado vacío legítimo, sin refetch)", () => {
+    // Caso E10.9 del arnés: el needle devolvía 1 fila y tras el 8b el
+    // vacío debe ser visible SIN refetch (delta 0 del WS para borrados).
+    const a = acumular(paginaInicial<LogListItemDto>(), {
+      items: [item(9)],
+      next_cursor: null,
+    });
+    const tras = expulsarPorId(a, 9);
+    expect(tras.items).toEqual([]);
+    expect(esFinDeResultados(tras)).toBe(true);
   });
 });

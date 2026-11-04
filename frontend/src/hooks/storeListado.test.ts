@@ -8,6 +8,7 @@ import {
   guardarListado,
   leerListado,
 } from "./storeListado";
+import { expulsarPorId } from "./usePagination";
 import type { LogListItemDto } from "../api/types";
 
 const item: LogListItemDto = {
@@ -79,5 +80,22 @@ describe("storeListado (E8.35 — acumulado entre el detalle y el retorno)", () 
     // acumulado se hubiese perdido. Pin: con snapshot viva, «??» ⇒ null.
     guardarListado("?text=qa-c10", { items: [item], nextCursor: null });
     expect(consumirListado("??text=qa-c10")).toBeNull();
+  });
+
+  it("fix fila stale 8b (C10): round-trip con search EXACTA + expulsión del borrado", () => {
+    // Nota c10-nota-8b: tras el 204 del DELETE la vuelta consume la
+    // snapshot (E8.35, sin refetch) y la fila borrada se EXPULSA por id —
+    // el store NO se toca: la expulsión actúa sobre lo CONSUMIDO.
+    const vecino: LogListItemDto = { ...item, id: 43 };
+    guardarListado("?text=qa-c10", { items: [item, vecino], nextCursor: null });
+
+    // La vuelta del detalle usa la MISMA search EXACTA (con su «?»)…
+    const tomada = consumirListado("?text=qa-c10");
+    expect(tomada?.search).toBe("?text=qa-c10");
+    // …y el id del borrado (location.state.idBorrado) expulsa SOLO esa fila.
+    const tras = expulsarPorId(tomada!.acumulado, 42);
+    expect(tras.items.map((i) => i.id)).toEqual([43]); // fila stale fuera
+    expect(tras.nextCursor).toBeNull();
+    // La snapshot consumida NO mutó (la expulsión es inmediata y pura).
   });
 });
